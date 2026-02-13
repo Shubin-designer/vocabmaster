@@ -1187,15 +1187,45 @@ const saveCollection = async (name) => {
 };
 
   const requestDelete = (type, item) => setConfirmDelete({ type, item, name: item.word || item.name || item.title });
-  const executeDelete = () => {
-    const { type, item } = confirmDelete;
-    if (type === 'word') { setDeletedItem({ type, data: item }); setData(d => ({ ...d, words: d.words.filter(w => w.id !== item.id) })); }
-    else if (type === 'song') { setDeletedItem({ type, data: item }); setData(d => ({ ...d, songs: d.songs.filter(s => s.id !== item.id) })); if (currentSong?.id === item.id) { setCurrentSong(null); setView('dashboard'); } }
-    else if (type === 'songFolder') { setDeletedItem({ type, data: { folder: item, songs: data.songs.filter(s => s.folderId === item.id) } }); setData(d => ({ ...d, songFolders: d.songFolders.filter(f => f.id !== item.id), songs: d.songs.filter(s => s.folderId !== item.id) })); }
-    else if (type === 'collection') { const sIds = item.sections.map(s => s.id); setDeletedItem({ type, data: { collection: item, words: data.words.filter(w => sIds.includes(w.sectionId)) } }); setData(d => ({ ...d, collections: d.collections.filter(c => c.id !== item.id), words: d.words.filter(w => !sIds.includes(w.sectionId)) })); if (currentCollection?.id === item.id) { setCurrentCollection(null); setCurrentSection(null); } }
-    else if (type === 'section') { setDeletedItem({ type, data: { section: item.section, colId: item.colId, words: data.words.filter(w => w.sectionId === item.section.id) } }); setData(d => ({ ...d, collections: d.collections.map(c => c.id === item.colId ? { ...c, sections: c.sections.filter(s => s.id !== item.section.id) } : c), words: d.words.filter(w => w.sectionId !== item.section.id) })); if (currentSection?.id === item.section.id) setCurrentSection(null); }
-    setToast({ message: `Deleted`, canUndo: true }); setConfirmDelete(null);
-  };
+  const executeDelete = async () => {
+  const { type, item } = confirmDelete;
+  
+  if (type === 'word') {
+    // Удаляем из базы
+    await supabase.from('words').delete().eq('id', item.id);
+    setDeletedItem({ type, data: item }); 
+    setData(d => ({ ...d, words: d.words.filter(w => w.id !== item.id) })); 
+  }
+  else if (type === 'section') {
+    // Удаляем секцию и все её слова
+    await supabase.from('sections').delete().eq('id', item.section.id);
+    setDeletedItem({ type, data: { section: item.section, colId: item.colId, words: data.words.filter(w => w.sectionId === item.section.id) } }); 
+    setData(d => ({ ...d, collections: d.collections.map(c => c.id === item.colId ? { ...c, sections: c.sections.filter(s => s.id !== item.section.id) } : c), words: d.words.filter(w => w.sectionId !== item.section.id) })); 
+    if (currentSection?.id === item.section.id) setCurrentSection(null);
+  }
+  else if (type === 'collection') {
+    // Удаляем коллекцию (секции и слова удалятся автоматически из-за CASCADE)
+    await supabase.from('collections').delete().eq('id', item.id);
+    const sIds = item.sections.map(s => s.id); 
+    setDeletedItem({ type, data: { collection: item, words: data.words.filter(w => sIds.includes(w.sectionId)) } }); 
+    setData(d => ({ ...d, collections: d.collections.filter(c => c.id !== item.id), words: d.words.filter(w => !sIds.includes(w.sectionId)) })); 
+    if (currentCollection?.id === item.id) { setCurrentCollection(null); setCurrentSection(null); }
+  }
+  else if (type === 'song') { 
+    await supabase.from('songs').delete().eq('id', item.id);
+    setDeletedItem({ type, data: item }); 
+    setData(d => ({ ...d, songs: d.songs.filter(s => s.id !== item.id) })); 
+    if (currentSong?.id === item.id) { setCurrentSong(null); setView('dashboard'); } 
+  }
+  else if (type === 'songFolder') {
+    await supabase.from('song_folders').delete().eq('id', item.id);
+    setDeletedItem({ type, data: { folder: item, songs: data.songs.filter(s => s.folderId === item.id) } }); 
+    setData(d => ({ ...d, songFolders: d.songFolders.filter(f => f.id !== item.id), songs: d.songs.filter(s => s.folderId !== item.id) })); 
+  }
+  
+  setToast({ message: `Deleted`, canUndo: true }); 
+  setConfirmDelete(null);
+};
   const undoDelete = () => { if (!deletedItem) return; if (deletedItem.type === 'word') setData(d => ({ ...d, words: [...d.words, deletedItem.data] })); else if (deletedItem.type === 'song') setData(d => ({ ...d, songs: [...d.songs, deletedItem.data] })); else if (deletedItem.type === 'songFolder') setData(d => ({ ...d, songFolders: [...d.songFolders, deletedItem.data.folder], songs: [...d.songs, ...deletedItem.data.songs] })); else if (deletedItem.type === 'collection') setData(d => ({ ...d, collections: [...d.collections, deletedItem.data.collection], words: [...d.words, ...deletedItem.data.words] })); else if (deletedItem.type === 'section') setData(d => ({ ...d, collections: d.collections.map(c => c.id === deletedItem.data.colId ? { ...c, sections: [...c.sections, deletedItem.data.section] } : c), words: [...d.words, ...deletedItem.data.words] })); setDeletedItem(null); setToast(null); };
 
   const updateWordProgress = (id, mode, correct) => { 
