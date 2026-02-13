@@ -1323,6 +1323,10 @@ const saveCollection = async (name) => {
     );
   };
 
+    console.log('Current data:', data);
+    console.log('Is loading:', isLoading);
+
+
   if (authLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!user) return <AuthForm />;
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading data...</div>;
@@ -1535,11 +1539,6 @@ const saveCollection = async (name) => {
                   const dashIndex = trimmed.lastIndexOf(' - ');
                   const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
                   
-                  console.log('Current data:', data);
-console.log('Is loading:', isLoading);
-
-if (authLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-
                   return (
                     <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                       <div className="w-32 font-medium text-gray-900">{word || '—'}</div>
