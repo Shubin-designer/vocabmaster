@@ -907,75 +907,7 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
 };
 
 export default function VocabApp() {
-  function AuthForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [mode, setMode] = useState('signin');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleAuth = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    setLoading(true);
-
-    if (mode === 'signup') {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) setMessage(error.message);
-      else setMessage('✅ Check your email to confirm!');
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMessage(error.message);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">VocabMaster</h1>
-        <form onSubmit={handleAuth} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password (min 6 characters)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-            required
-            minLength={6}
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : mode === 'signin' ? 'Sign In' : 'Sign Up'}
-          </button>
-        </form>
-        <button
-          onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-          className="w-full mt-4 text-sm text-gray-600 hover:text-gray-800"
-        >
-          {mode === 'signin' ? 'Need an account? Sign up' : 'Have an account? Sign in'}
-        </button>
-        {message && (
-          <p className={`mt-4 text-sm text-center ${message.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
-            {message}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
+  
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [data, setData] = useState(initialData);
@@ -1015,34 +947,50 @@ export default function VocabApp() {
     return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => { 
-    (async () => { 
-      try { 
-          const r = localStorage.getItem('vocabmaster-data-v7');
-          const parsed = r ? { value: r } : null;
-        if (r?.value) { 
-          const l = JSON.parse(r.value); 
-          const collections = (l.collections || []).map(c => ({
-            ...c,
-            icon: c.icon || '📚',
-            sections: (c.sections || []).map(s => ({
-              ...s,
-              icon: s.icon || '📖'
-            }))
-          }));
-          setData({ 
-            ...l, 
-            collections,
-            songFolders: l.songFolders || [{ id: 'sf1', name: 'My Songs' }], 
-            songs: l.songs || [] 
-          }); 
-        } 
-      } catch (e) {} 
-      setIsLoading(false); 
-    })(); 
-  }, []);
-  useEffect(() => { if (!isLoading) localStorage.setItem('vocabmaster-data-v7', JSON.stringify(data)); }, [data, isLoading]);
+  useEffect(() => {
+  if (!user) return;
+  
+  (async () => { 
+    try {
+      // Загружаем коллекции с секциями
+      const { data: collections } = await supabase
+        .from('collections')
+        .select('*, sections(*)')
+        .order('created_at');
 
+      // Загружаем слова
+      const { data: words } = await supabase
+        .from('words')
+        .select('*')
+        .order('created_at');
+
+      // Загружаем папки песен
+      const { data: songFolders } = await supabase
+        .from('song_folders')
+        .select('*')
+        .order('created_at');
+
+      // Загружаем песни
+      const { data: songs } = await supabase
+        .from('songs')
+        .select('*')
+        .order('created_at');
+
+      setData({
+        collections: collections || [],
+        words: words || [],
+        allTags: [],
+        songFolders: songFolders || [],
+        songs: songs || []
+      });
+    } catch (e) {
+      console.error(e);
+    } 
+    setIsLoading(false); 
+  })(); 
+}, [user]);
+          
+  
   const playPronunciation = w => { const u = new SpeechSynthesisUtterance(w); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); };
 
   const getCurrentWords = () => {
