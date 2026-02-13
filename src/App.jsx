@@ -1044,8 +1044,10 @@ export default function VocabApp() {
   }, [view, filteredWords.length]);
 
   const createSectionFromSong = async (cid, name) => { const s = { id: 's' + Date.now(), name, icon: '📖' }; setData(d => ({ ...d, collections: d.collections.map(c => c.id === cid ? { ...c, sections: [...c.sections, s] } : c) })); return s.id; };
+ 
   const saveSong = async (sd) => {
   console.log('Saving song:', sd);
+  
   const { data: newSong, error } = await supabase
     .from('songs')
     .insert([{ 
@@ -1056,6 +1058,8 @@ export default function VocabApp() {
     }])
     .select()
     .single();
+  
+  console.log('Result:', newSong, 'Error:', error);
   
   if (!error && newSong) {
     setData(d => ({ ...d, songs: [...d.songs, newSong] })); 
