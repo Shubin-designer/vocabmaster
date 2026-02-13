@@ -1037,7 +1037,7 @@ export default function VocabApp() {
   };
   const saveSongFolder = name => { if (!name.trim()) return; if (modal.data?.id) setData(d => ({ ...d, songFolders: d.songFolders.map(f => f.id === modal.data.id ? { ...modal.data, name } : f) })); else { const f = { id: 'sf' + Date.now(), name }; setData(d => ({ ...d, songFolders: [...d.songFolders, f] })); setExpandedSongFolders(e => [...e, f.id]); } setModal({ type: null, data: null }); };
   
-  const saveWord = async (w) => { 
+const saveWord = async (w) => { 
   const existingWord = data.words.find(word => word.word.toLowerCase() === w.word.toLowerCase());
   if (existingWord && existingWord.id !== w.id) {
     const sec = data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name }))).find(s => s.id === existingWord.sectionId);
@@ -1047,41 +1047,61 @@ export default function VocabApp() {
   }
   
   if (w.id) {
-    // Обновление существующего слова
+    // Обновление
     const { error } = await supabase
       .from('words')
-      .update(w)
+      .update({
+        word: w.word,
+        type: w.type,
+        level: w.level,
+        forms: w.forms,
+        meaning_en: w.meaningEn,
+        meaning_ru: w.meaningRu,
+        example: w.example,
+        my_example: w.myExample,
+        single_root_words: w.singleRootWords || '',
+        synonyms: w.synonyms || '',
+        tags: w.tags || [],
+        status: w.status,
+        passed_modes: w.passedModes || []
+      })
       .eq('id', w.id);
     
     if (!error) {
       setData(d => ({ ...d, words: d.words.map(x => x.id === w.id ? w : x) }));
     }
   } else {
-    // Создание нового слова
-    const newWord = {
-      ...w,
-      user_id: user.id,
-      section_id: currentSection.id,
-      status: STATUS.NEW,
-      passed_modes: [],
-      single_root_words: w.singleRootWords || '',
-      synonyms: w.synonyms || ''
-    };
-    
-    const { data: inserted, error } = await supabase
+    // Создание
+    const { data: newWord, error } = await supabase
       .from('words')
-      .insert([newWord])
+      .insert([{
+        user_id: user.id,
+        section_id: currentSection.id,
+        word: w.word,
+        type: w.type,
+        level: w.level,
+        forms: w.forms || '',
+        meaning_en: w.meaningEn || '',
+        meaning_ru: w.meaningRu || '',
+        example: w.example || '',
+        my_example: w.myExample || '',
+        single_root_words: w.singleRootWords || '',
+        synonyms: w.synonyms || '',
+        tags: w.tags || [],
+        status: STATUS.NEW,
+        passed_modes: []
+      }])
       .select()
       .single();
     
-    if (!error && inserted) {
-      setData(d => ({ ...d, words: [...d.words, inserted] }));
+    if (!error && newWord) {
+      setData(d => ({ ...d, words: [...d.words, newWord] }));
     }
   }
   
   setModal({ type: null, data: null }); 
 };
-  
+
 const saveCollection = async (name) => { 
   if (!name.trim()) return; 
   const icon = document.getElementById('col-icon')?.textContent || '📚';
