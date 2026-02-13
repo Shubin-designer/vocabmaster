@@ -1362,7 +1362,7 @@ const saveCollection = async (name) => {
                 <button onClick={() => { setFilterStatus('learning'); setViewTitle('Learning Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-yellow-50 rounded-xl p-4 border border-yellow-100 hover:bg-yellow-100 text-left"><div className="text-3xl font-bold text-yellow-600">{data.words.filter(w => w.status === STATUS.LEARNING).length}</div><div className="text-gray-500 text-sm">Learning</div></button>
                 <button onClick={() => { setFilterStatus('learned'); setViewTitle('Learned Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-green-50 rounded-xl p-4 border border-green-100 hover:bg-green-100 text-left"><div className="text-3xl font-bold text-green-600">{data.words.filter(w => w.status === STATUS.LEARNED).length}</div><div className="text-gray-500 text-sm">Learned</div></button>
               </div>
-              {data.words.length === 0 && <div className="text-center py-12"><div className="text-6xl mb-4">📚</div><h2 className="text-xl font-semibold mb-2">Welcome to VocabMaster!</h2><p className="text-gray-500">Create a collection and start adding words.</p></div>}
+              {data.collections.length === 0 && <div className="text-center py-12"><div className="text-6xl mb-4">📚</div><h2 className="text-xl font-semibold mb-2">Welcome to VocabMaster!</h2><p className="text-gray-500">Create a collection and start adding words.</p></div>}
             </div>
           )}
           {view === 'all-words' && (
