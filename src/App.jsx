@@ -890,7 +890,7 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
       const u = { ...song, ...sd }; 
       onUpdateSong(u); 
     } else { 
-      const n = { id: 's' + Date.now(), ...sd, folderId: folderId || 'sf1' }; 
+      const n = { ...sd, folderId: folderId || 'sf1' }; 
       onSave(n); 
     }
     onCancel();
