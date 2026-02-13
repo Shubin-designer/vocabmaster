@@ -1078,20 +1078,37 @@ export default function VocabApp() {
   setModal({ type: null, data: null }); 
 };
   
-  const saveCollection = name => { 
-    if (!name.trim()) return; 
-    const icon = document.getElementById('col-icon')?.textContent || '📚';
-    if (modal.data?.id) { 
+const saveCollection = async (name) => { 
+  if (!name.trim()) return; 
+  const icon = document.getElementById('col-icon')?.textContent || '📚';
+  
+  if (modal.data?.id) {
+    // Обновление
+    const { error } = await supabase
+      .from('collections')
+      .update({ name, icon })
+      .eq('id', modal.data.id);
+    
+    if (!error) {
       const u = { ...modal.data, name, icon }; 
       setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.id ? u : c) })); 
       if (currentCollection?.id === modal.data.id) setCurrentCollection(u); 
-    } else { 
-      const c = { id: 'c' + Date.now(), name, icon, sections: [] }; 
-      setData(d => ({ ...d, collections: [...d.collections, c] })); 
-      setExpandedCollections(e => [...e, c.id]); 
-    } 
-    setModal({ type: null, data: null }); 
-  };
+    }
+  } else {
+    // Создание
+    const { data: newCol, error } = await supabase
+      .from('collections')
+      .insert([{ user_id: user.id, name, icon }])
+      .select()
+      .single();
+    
+    if (!error && newCol) {
+      setData(d => ({ ...d, collections: [...d.collections, { ...newCol, sections: [] }] })); 
+      setExpandedCollections(e => [...e, newCol.id]); 
+    }
+  } 
+  setModal({ type: null, data: null }); 
+};
   
   const saveSection = name => { 
     if (!name.trim() || !modal.data?.colId) return; 
