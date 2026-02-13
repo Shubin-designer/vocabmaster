@@ -1054,8 +1054,34 @@ export default function VocabApp() {
     setData(d => ({ ...d, songs: d.songs.map(x => x.id === s.id ? s : x) })); 
     if (currentSong?.id === s.id) setCurrentSong(s); 
   };
-  const saveSongFolder = name => { if (!name.trim()) return; if (modal.data?.id) setData(d => ({ ...d, songFolders: d.songFolders.map(f => f.id === modal.data.id ? { ...modal.data, name } : f) })); else { const f = { id: 'sf' + Date.now(), name }; setData(d => ({ ...d, songFolders: [...d.songFolders, f] })); setExpandedSongFolders(e => [...e, f.id]); } setModal({ type: null, data: null }); };
+
+  const saveSongFolder = async (name) => { 
+  if (!name.trim()) return; 
   
+  if (modal.data?.id) {
+    // Обновление
+    await supabase
+      .from('song_folders')
+      .update({ name })
+      .eq('id', modal.data.id);
+    
+    setData(d => ({ ...d, songFolders: d.songFolders.map(f => f.id === modal.data.id ? { ...modal.data, name } : f) })); 
+  } else { 
+    // Создание
+    const { data: newFolder, error } = await supabase
+      .from('song_folders')
+      .insert([{ user_id: user.id, name }])
+      .select()
+      .single();
+    
+    if (!error && newFolder) {
+      setData(d => ({ ...d, songFolders: [...d.songFolders, newFolder] })); 
+      setExpandedSongFolders(e => [...e, newFolder.id]); 
+    }
+  } 
+  setModal({ type: null, data: null }); 
+};
+
 const saveWord = async (w) => { 
   const existingWord = data.words.find(word => word.word.toLowerCase() === w.word.toLowerCase());
   if (existingWord && existingWord.id !== w.id) {
