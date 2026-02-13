@@ -1115,6 +1115,8 @@ const saveCollection = async (name) => {
 };
   
   const saveSection = async (name) => { 
+      console.log('Creating section:', name, modal.data?.colId);
+
   if (!name.trim() || !modal.data?.colId) return; 
   const icon = document.getElementById('sec-icon')?.textContent || '📖';
   
