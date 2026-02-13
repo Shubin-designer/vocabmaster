@@ -960,10 +960,29 @@ export default function VocabApp() {
 
       console.log('Loaded collections:', collections);
       // Загружаем слова
-      const { data: words } = await supabase
+      const { data: wordsData } = await supabase
         .from('words')
         .select('*')
         .order('created_at');
+
+      // Конвертируем snake_case в camelCase
+      const words = (wordsData || []).map(w => ({
+        id: w.id,
+        sectionId: w.section_id,
+        word: w.word,
+        type: w.type,
+        level: w.level,
+        forms: w.forms,
+        meaningEn: w.meaning_en,
+        meaningRu: w.meaning_ru,
+        example: w.example,
+        myExample: w.my_example,
+        singleRootWords: w.single_root_words,
+        synonyms: w.synonyms,
+        tags: w.tags,
+        status: w.status,
+        passedModes: w.passed_modes
+      }));
 
       // Загружаем папки песен
       const { data: songFolders } = await supabase
