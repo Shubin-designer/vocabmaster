@@ -1033,19 +1033,50 @@ export default function VocabApp() {
   };
   const saveSongFolder = name => { if (!name.trim()) return; if (modal.data?.id) setData(d => ({ ...d, songFolders: d.songFolders.map(f => f.id === modal.data.id ? { ...modal.data, name } : f) })); else { const f = { id: 'sf' + Date.now(), name }; setData(d => ({ ...d, songFolders: [...d.songFolders, f] })); setExpandedSongFolders(e => [...e, f.id]); } setModal({ type: null, data: null }); };
   
-  const saveWord = w => { 
-    const existingWord = data.words.find(word => word.word.toLowerCase() === w.word.toLowerCase());
-    if (existingWord && existingWord.id !== w.id) {
-      const sec = data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name }))).find(s => s.id === existingWord.sectionId);
-      const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown section';
-      setAlert(`"${w.word}" already exists in: ${location}`);
-      return;
-    }
+  const saveWord = async (w) => { 
+  const existingWord = data.words.find(word => word.word.toLowerCase() === w.word.toLowerCase());
+  if (existingWord && existingWord.id !== w.id) {
+    const sec = data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name }))).find(s => s.id === existingWord.sectionId);
+    const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown section';
+    setAlert(`"${w.word}" already exists in: ${location}`);
+    return;
+  }
+  
+  if (w.id) {
+    // Обновление существующего слова
+    const { error } = await supabase
+      .from('words')
+      .update(w)
+      .eq('id', w.id);
     
-    if (w.id) setData(d => ({ ...d, words: d.words.map(x => x.id === w.id ? w : x) })); 
-    else setData(d => ({ ...d, words: [...d.words, { ...w, id: Date.now(), sectionId: currentSection.id, status: STATUS.NEW, passedModes: [], singleRootWords: w.singleRootWords || '', synonyms: w.synonyms || '' }] })); 
-    setModal({ type: null, data: null }); 
-  };
+    if (!error) {
+      setData(d => ({ ...d, words: d.words.map(x => x.id === w.id ? w : x) }));
+    }
+  } else {
+    // Создание нового слова
+    const newWord = {
+      ...w,
+      user_id: user.id,
+      section_id: currentSection.id,
+      status: STATUS.NEW,
+      passed_modes: [],
+      single_root_words: w.singleRootWords || '',
+      synonyms: w.synonyms || ''
+    };
+    
+    const { data: inserted, error } = await supabase
+      .from('words')
+      .insert([newWord])
+      .select()
+      .single();
+    
+    if (!error && inserted) {
+      setData(d => ({ ...d, words: [...d.words, inserted] }));
+    }
+  }
+  
+  setModal({ type: null, data: null }); 
+};
   
   const saveCollection = name => { 
     if (!name.trim()) return; 
