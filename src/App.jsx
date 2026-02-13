@@ -1114,19 +1114,36 @@ const saveCollection = async (name) => {
   setModal({ type: null, data: null }); 
 };
   
-  const saveSection = name => { 
-    if (!name.trim() || !modal.data?.colId) return; 
-    const icon = document.getElementById('sec-icon')?.textContent || '📖';
-    if (modal.data.section?.id) { 
+  const saveSection = async (name) => { 
+  if (!name.trim() || !modal.data?.colId) return; 
+  const icon = document.getElementById('sec-icon')?.textContent || '📖';
+  
+  if (modal.data.section?.id) {
+    // Обновление
+    const { error } = await supabase
+      .from('sections')
+      .update({ name, icon })
+      .eq('id', modal.data.section.id);
+    
+    if (!error) {
       const u = { ...modal.data.section, name, icon }; 
       setData(d => ({ ...d, collections: d.collections.map(c => ({ ...c, sections: c.sections.map(s => s.id === modal.data.section.id ? u : s) })) })); 
       if (currentSection?.id === modal.data.section.id) setCurrentSection(u); 
-    } else { 
-      const s = { id: 's' + Date.now(), name, icon }; 
-      setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.colId ? { ...c, sections: [...c.sections, s] } : c) })); 
-    } 
-    setModal({ type: null, data: null }); 
-  };
+    }
+  } else {
+    // Создание
+    const { data: newSection, error } = await supabase
+      .from('sections')
+      .insert([{ collection_id: modal.data.colId, name, icon }])
+      .select()
+      .single();
+    
+    if (!error && newSection) {
+      setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.colId ? { ...c, sections: [...c.sections, newSection] } : c) })); 
+    }
+  } 
+  setModal({ type: null, data: null }); 
+};
 
   const requestDelete = (type, item) => setConfirmDelete({ type, item, name: item.word || item.name || item.title });
   const executeDelete = () => {
