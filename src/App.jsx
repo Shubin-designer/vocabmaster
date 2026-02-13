@@ -1228,18 +1228,37 @@ const saveCollection = async (name) => {
 };
   const undoDelete = () => { if (!deletedItem) return; if (deletedItem.type === 'word') setData(d => ({ ...d, words: [...d.words, deletedItem.data] })); else if (deletedItem.type === 'song') setData(d => ({ ...d, songs: [...d.songs, deletedItem.data] })); else if (deletedItem.type === 'songFolder') setData(d => ({ ...d, songFolders: [...d.songFolders, deletedItem.data.folder], songs: [...d.songs, ...deletedItem.data.songs] })); else if (deletedItem.type === 'collection') setData(d => ({ ...d, collections: [...d.collections, deletedItem.data.collection], words: [...d.words, ...deletedItem.data.words] })); else if (deletedItem.type === 'section') setData(d => ({ ...d, collections: d.collections.map(c => c.id === deletedItem.data.colId ? { ...c, sections: [...c.sections, deletedItem.data.section] } : c), words: [...d.words, ...deletedItem.data.words] })); setDeletedItem(null); setToast(null); };
 
-  const updateWordProgress = (id, mode, correct) => { 
-    setData(d => ({ ...d, words: d.words.map(w => { 
-      if (w.id !== id) return w; 
-      let pm = w.passedModes || []; 
-      if (correct && !pm.includes(mode)) pm = [...pm, mode]; 
-      else if (!correct) {
-        // При ошибке убираем текущий режим И cards (чтобы слово снова появилось в карточках)
-        pm = pm.filter(m => m !== mode && m !== 'cards');
-      }
-      return { ...w, passedModes: pm, status: pm.length >= 3 ? STATUS.LEARNED : pm.length > 0 ? STATUS.LEARNING : STATUS.NEW }; 
-    }) })); 
-  };
+  const updateWordProgress = async (id, mode, correct) => {
+  const word = data.words.find(w => w.id === id);
+  if (!word) return;
+  
+  let pm = word.passedModes || [];
+  if (correct && !pm.includes(mode)) pm = [...pm, mode];
+  else if (!correct) {
+    pm = pm.filter(m => m !== mode && m !== 'cards');
+  }
+  
+  const newStatus = pm.length >= 3 ? STATUS.LEARNED : pm.length > 0 ? STATUS.LEARNING : STATUS.NEW;
+  
+  // Сохраняем в базу
+  await supabase
+    .from('words')
+    .update({ 
+      passed_modes: pm, 
+      status: newStatus 
+    })
+    .eq('id', id);
+  
+  // Обновляем state
+  setData(d => ({ 
+    ...d, 
+    words: d.words.map(w => 
+      w.id === id 
+        ? { ...w, passedModes: pm, status: newStatus } 
+        : w
+    ) 
+  }));
+};
 
   const exportData = () => { const j = JSON.stringify({ ...data, exportedAt: new Date().toISOString(), version: 'v7' }, null, 2); const a = document.createElement('a'); a.href = 'data:application/json;base64,' + btoa(unescape(encodeURIComponent(j))); a.download = `vocabmaster-backup-${new Date().toISOString().split('T')[0]}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); setToast({ message: 'Backup downloaded!', canUndo: false }); };
   const importData = e => { const f = e.target.files?.[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { try { const i = JSON.parse(ev.target.result); if (i.collections && i.words) { setData({ collections: i.collections, words: i.words, allTags: i.allTags || [], songs: i.songs || [], songFolders: i.songFolders || [{ id: 'sf1', name: 'My Songs' }] }); setToast({ message: `Restored!`, canUndo: false }); } } catch (e) { setToast({ message: 'Error', canUndo: false }); } }; r.readAsText(f); e.target.value = ''; };
