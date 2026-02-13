@@ -958,6 +958,7 @@ export default function VocabApp() {
         .select('*, sections(*)')
         .order('created_at');
 
+      console.log('Loaded collections:', collections);
       // Загружаем слова
       const { data: words } = await supabase
         .from('words')
