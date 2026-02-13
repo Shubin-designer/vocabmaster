@@ -1323,8 +1323,9 @@ const saveCollection = async (name) => {
     );
   };
 
-    console.log('Current data:', data);
-    console.log('Is loading:', isLoading);
+   console.log('Current data:', data);
+  console.log('Collections:', data.collections);
+  console.log('Is loading:', isLoading);
 
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
