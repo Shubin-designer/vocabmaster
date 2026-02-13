@@ -1044,16 +1044,37 @@ export default function VocabApp() {
   }, [view, filteredWords.length]);
 
   const createSectionFromSong = async (cid, name) => { const s = { id: 's' + Date.now(), name, icon: '📖' }; setData(d => ({ ...d, collections: d.collections.map(c => c.id === cid ? { ...c, sections: [...c.sections, s] } : c) })); return s.id; };
-  const saveSong = sd => { 
-    setData(d => ({ ...d, songs: [...d.songs, sd] })); 
-    setCurrentSong(sd); 
-    setView('song'); 
-  };
+  const saveSong = async (sd) => {
+  const { data: newSong, error } = await supabase
+    .from('songs')
+    .insert([{ 
+      user_id: user.id,
+      folder_id: sd.folderId,
+      title: sd.title,
+      text: sd.text
+    }])
+    .select()
+    .single();
   
-  const updateSong = s => { 
-    setData(d => ({ ...d, songs: d.songs.map(x => x.id === s.id ? s : x) })); 
-    if (currentSong?.id === s.id) setCurrentSong(s); 
-  };
+  if (!error && newSong) {
+    setData(d => ({ ...d, songs: [...d.songs, newSong] })); 
+    setCurrentSong(newSong); 
+    setView('song'); 
+  }
+};
+
+const updateSong = async (s) => {
+  await supabase
+    .from('songs')
+    .update({ 
+      title: s.title,
+      text: s.text
+    })
+    .eq('id', s.id);
+  
+  setData(d => ({ ...d, songs: d.songs.map(x => x.id === s.id ? s : x) })); 
+  if (currentSong?.id === s.id) setCurrentSong(s); 
+};
 
   const saveSongFolder = async (name) => { 
   if (!name.trim()) return; 
