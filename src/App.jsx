@@ -991,10 +991,19 @@ export default function VocabApp() {
         .order('created_at');
 
       // Загружаем песни
-      const { data: songs } = await supabase
+      // Загружаем песни
+      const { data: songsData } = await supabase
         .from('songs')
         .select('*')
         .order('created_at');
+
+      // Конвертируем snake_case в camelCase
+      const songs = (songsData || []).map(s => ({
+        id: s.id,
+        folderId: s.folder_id,
+        title: s.title,
+        text: s.text
+      }));
 
       setData({
         collections: collections || [],
