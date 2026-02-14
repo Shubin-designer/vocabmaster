@@ -293,7 +293,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
     if (!form.word.trim() || loading) return;
     if (auto && hasLookedUp) return;
     
-    // Проверка дубликата ПЕРЕД вызовом API (только если это новое слово или изменилось название)
+    // Проверка дубликата
     const cleaned = form.word.trim().toLowerCase();
     const existingWord = existingWords.find(w => w.word.toLowerCase() === cleaned);
     
@@ -305,58 +305,38 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
     }
     
     setLoading(true);
-    const doLookup = async (auto = false) => {
-  if (!form.word.trim() || loading) return;
-  if (auto && hasLookedUp) return;
-  
-  // Проверка дубликата
-  const cleaned = form.word.trim().toLowerCase();
-  const existingWord = existingWords.find(w => w.word.toLowerCase() === cleaned);
-  
-  if (existingWord && existingWord.id !== form.id) {
-    const sec = sections.find(s => s.id === existingWord.sectionId);
-    const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown section';
-    onDuplicateFound(`"${form.word}" already exists in: ${location}`);
-    return;
-  }
-  
-  setLoading(true);
-  try {
-    const { data, error } = await supabase.functions.invoke('lookup-word', {
-      body: { word: form.word.trim() }
-    });
-    
-    if (error) throw error;
-    
-    const firstRu = data.meanings?.[0]?.ru || '';
-    const firstExample = data.meanings?.[0]?.example || '';
-    
-    setForm(f => ({ 
-      ...f, 
-      type: data.type || f.type, 
-      level: 'B1',
-      forms: data.phonetic || f.forms,
-      meaningEn: data.meaningEn || f.meaningEn,
-      meaningRu: auto ? (f.meaningRu || firstRu) : (firstRu || f.meaningRu),
-      example: auto ? (f.example || firstExample) : (firstExample || f.example),
-      synonyms: data.synonyms || f.synonyms
-    }));
-    
-    if (data.meanings && Array.isArray(data.meanings)) {
-      setTranslationsWithExamples(data.meanings);
-      setTranslations(data.meanings.map(m => m.ru));
-      if (firstRu) {
-        setAddedTranslations(new Set([firstRu.toLowerCase()]));
+    try {
+      const { data, error } = await supabase.functions.invoke('lookup-word', {
+        body: { word: form.word.trim() }
+      });
+      
+      if (error) throw error;
+      
+      const firstRu = data.meanings?.[0]?.ru || '';
+      const firstExample = data.meanings?.[0]?.example || '';
+      
+      setForm(f => ({ 
+        ...f, 
+        type: data.type || f.type, 
+        level: 'B1',
+        forms: data.phonetic || f.forms,
+        meaningEn: data.meaningEn || f.meaningEn,
+        meaningRu: auto ? (f.meaningRu || firstRu) : (firstRu || f.meaningRu),
+        example: auto ? (f.example || firstExample) : (firstExample || f.example),
+        synonyms: data.synonyms || f.synonyms
+      }));
+      
+      if (data.meanings && Array.isArray(data.meanings)) {
+        setTranslationsWithExamples(data.meanings);
+        setTranslations(data.meanings.map(m => m.ru));
+        if (firstRu) {
+          setAddedTranslations(new Set([firstRu.toLowerCase()]));
+        }
       }
+      setHasLookedUp(true);
+    } catch (e) {
+      console.error('Lookup error:', e);
     }
-    setHasLookedUp(true);
-  } catch (e) {
-    console.error('Lookup error:', e);
-  }
-  setLoading(false);
-};
-
-  catch (e) {}
     setLoading(false);
   };
   
