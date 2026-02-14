@@ -363,26 +363,50 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   };
   
   const addTranslation = (t) => {
-    if (addedTranslations.has(t.toLowerCase())) return;
+    if (addedTranslations.has(t.toLowerCase())) {
+      // Если уже добавлен - УДАЛЯЕМ
+      const current = form.meaningRu.split(',').map(s => s.trim()).filter(s => s.toLowerCase() !== t.toLowerCase()).join(', ');
+      setForm(f => ({ ...f, meaningRu: current }));
+      setAddedTranslations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(t.toLowerCase());
+        return newSet;
+      });
+      
+      // Удаляем пример
+      const meaning = translationsWithExamples.find(m => m.ru === t);
+      if (meaning?.example) {
+        const examples = form.example.split('\n').filter(e => e !== meaning.example).join('\n');
+        setForm(f => ({ ...f, example: examples }));
+      }
+      
+      // Удаляем meaningEn
+      if (meaning?.meaningEn) {
+        const meanings = form.meaningEn.split('\n').filter(e => e !== meaning.meaningEn).join('\n');
+        setForm(f => ({ ...f, meaningEn: meanings }));
+      }
+      return;
+    }
     
-    setForm(f => {
-      const current = f.meaningRu.trim();
-      return { ...f, meaningRu: current ? `${current}, ${t}` : t };
-    });
-    
-    // Отмечаем как добавленный
+    // Добавляем
+    const current = form.meaningRu.trim();
+    setForm(f => ({ ...f, meaningRu: current ? `${current}, ${t}` : t }));
     setAddedTranslations(prev => new Set([...prev, t.toLowerCase()]));
     
-    // Найти пример для этого перевода и добавить к существующим примерам
+    // Добавляем пример и meaningEn с новой строки
     const meaning = translationsWithExamples.find(m => m.ru === t);
-    if (meaning?.example) {
-      setForm(f => {
-        const currentExample = f.example.trim();
-        return { ...f, example: currentExample ? `${currentExample}\n${meaning.example}` : meaning.example };
-      });
+    if (meaning) {
+      if (meaning.example) {
+        const currentExample = form.example.trim();
+        setForm(f => ({ ...f, example: currentExample ? `${currentExample}\n${meaning.example}` : meaning.example }));
+      }
+      if (meaning.meaningEn) {
+        const currentMeaningEn = form.meaningEn.trim();
+        setForm(f => ({ ...f, meaningEn: currentMeaningEn ? `${currentMeaningEn}\n${meaning.meaningEn}` : meaning.meaningEn }));
+      }
     }
   };
-  
+    
   const isTranslationAdded = (t) => {
     if (!t) return false;
     return addedTranslations.has(t.toLowerCase());
