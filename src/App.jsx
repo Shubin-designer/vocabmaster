@@ -252,8 +252,21 @@ const TranslateEmptyModal = ({ words, onTranslate, onCancel }) => {
       setProgress({ current: i + 1, total: words.length });
       const word = words[i];
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [{ role: 'user', content: `Analyze: "${word.word}". Return JSON: {"type":"phrase/verb/noun/etc","level":"A1-C2","meaningEn":"definition","meaningRu":"перевод","phonetic":"/ipa/","example":"sentence","singleRootWords":"related words","synonyms":"synonyms list"}. Only JSON.` }] }) });
-        if (res.ok) { const data = await res.json(); let text = data.content?.[0]?.text || ''; text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim(); const m = text.match(/\{[\s\S]*\}/); if (m) { const p = JSON.parse(m[0]); translated.push({ ...word, type: p.type || word.type, level: p.level || word.level, meaningEn: p.meaningEn || '', meaningRu: p.meaningRu || '', forms: p.phonetic || word.forms, example: p.example || word.example, singleRootWords: p.singleRootWords || word.singleRootWords || '', synonyms: p.synonyms || word.synonyms || '' }); } else translated.push(word); } else translated.push(word);
+        const { data, error } = await supabase.functions.invoke('translate-words', {
+          body: { word: word.word }
+        });
+        
+        if (error) throw error;
+        
+        translated.push({ 
+          ...word, 
+          type: data.type || word.type, 
+          level: data.level || word.level, 
+          meaningEn: data.meaningEn || '', 
+          meaningRu: data.meaningRu || '', 
+          forms: data.phonetic || word.forms, 
+          example: data.example || word.example
+        });
       } catch (e) { translated.push(word); }
       setResults([...translated]);
       await new Promise(r => setTimeout(r, 500));
