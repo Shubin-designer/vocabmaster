@@ -305,52 +305,58 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
     }
     
     setLoading(true);
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ 
-          model: 'claude-sonnet-4-20250514', 
-          max_tokens: 1500, 
-          messages: [{ 
-            role: 'user', 
-            content: `Analyze: "${form.word.trim()}". Return JSON with multiple meanings (2-4 most common): {"type":"phrase/verb/noun/etc","level":"A1-C2","phonetic":"/ipa/","meaningEn":"main definition","meanings":[{"ru":"перевод 1","example":"example 1"},{"ru":"перевод 2","example":"example 2"}],"singleRootWords":"comma-separated list of related words with same root","synonyms":"comma-separated list of synonyms"}. Only JSON.` 
-          }] 
-        }) 
-      });
-      if (res.ok) { 
-        const data = await res.json(); 
-        let text = data.content?.[0]?.text || ''; 
-        text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim(); 
-        const p = JSON.parse(text); 
-        
-        const firstRu = p.meanings?.[0]?.ru || '';
-        const firstExample = p.meanings?.[0]?.example || '';
-        
-        setForm(f => ({ 
-          ...f, 
-          type: p.type || f.type, 
-          level: p.level || f.level, 
-          forms: p.phonetic || f.forms,
-          meaningEn: p.meaningEn || f.meaningEn,
-          meaningRu: auto ? (f.meaningRu || firstRu) : (firstRu || f.meaningRu),
-          example: auto ? (f.example || firstExample) : (firstExample || f.example),
-          singleRootWords: p.singleRootWords || f.singleRootWords,
-          synonyms: p.synonyms || f.synonyms
-        }));
-        
-        // Сохраняем переводы с примерами
-        if (p.meanings && Array.isArray(p.meanings)) {
-          setTranslationsWithExamples(p.meanings);
-          setTranslations(p.meanings.map(m => m.ru));
-          // Отмечаем первый перевод как добавленный
-          if (firstRu) {
-            setAddedTranslations(new Set([firstRu.toLowerCase()]));
-          }
-        }
-        setHasLookedUp(true);
+    const doLookup = async (auto = false) => {
+  if (!form.word.trim() || loading) return;
+  if (auto && hasLookedUp) return;
+  
+  // Проверка дубликата
+  const cleaned = form.word.trim().toLowerCase();
+  const existingWord = existingWords.find(w => w.word.toLowerCase() === cleaned);
+  
+  if (existingWord && existingWord.id !== form.id) {
+    const sec = sections.find(s => s.id === existingWord.sectionId);
+    const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown section';
+    onDuplicateFound(`"${form.word}" already exists in: ${location}`);
+    return;
+  }
+  
+  setLoading(true);
+  try {
+    const { data, error } = await supabase.functions.invoke('lookup-word', {
+      body: { word: form.word.trim() }
+    });
+    
+    if (error) throw error;
+    
+    const firstRu = data.meanings?.[0]?.ru || '';
+    const firstExample = data.meanings?.[0]?.example || '';
+    
+    setForm(f => ({ 
+      ...f, 
+      type: data.type || f.type, 
+      level: 'B1',
+      forms: data.phonetic || f.forms,
+      meaningEn: data.meaningEn || f.meaningEn,
+      meaningRu: auto ? (f.meaningRu || firstRu) : (firstRu || f.meaningRu),
+      example: auto ? (f.example || firstExample) : (firstExample || f.example),
+      synonyms: data.synonyms || f.synonyms
+    }));
+    
+    if (data.meanings && Array.isArray(data.meanings)) {
+      setTranslationsWithExamples(data.meanings);
+      setTranslations(data.meanings.map(m => m.ru));
+      if (firstRu) {
+        setAddedTranslations(new Set([firstRu.toLowerCase()]));
       }
-    } catch (e) {}
+    }
+    setHasLookedUp(true);
+  } catch (e) {
+    console.error('Lookup error:', e);
+  }
+  setLoading(false);
+};
+
+  catch (e) {}
     setLoading(false);
   };
   
