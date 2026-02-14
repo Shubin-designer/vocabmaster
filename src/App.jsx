@@ -255,7 +255,9 @@ const TranslateEmptyModal = ({ words, onTranslate, onCancel }) => {
         const { data, error } = await supabase.functions.invoke('translate-words', {
           body: { word: word.word }
         });
-        
+
+        console.log('Translation result:', data, error);
+
         if (error) throw error;
         
         translated.push({ 
