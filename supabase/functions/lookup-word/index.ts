@@ -18,32 +18,51 @@ serve(async (req) => {
     const dictData = await dictRes.json();
 
     // 2. Datamuse для синонимов
-    const synoRes = await fetch(`https://api.datamuse.com/words?rel_syn=${word}&max=10`);
-    const synoData = await synoRes.json();
+    const synRes = await fetch(`https://api.datamuse.com/words?rel_syn=${word}&max=6`);
+    const synData = await synRes.json();
 
-    // 3. LibreTranslate для перевода
-    const definition = dictData[0]?.meanings[0]?.definitions[0]?.definition || word;
-    const transRes = await fetch('https://libretranslate.com/translate', {
-      method: 'POST',
-      body: JSON.stringify({
-        q: definition,
-        source: 'en',
-        target: 'ru'
-      }),
-      headers: { 'Content-Type': 'application/json' }
-    });
-    const transData = await transRes.json();
+    // Берем ВСЕ meanings (все части речи)
+    const allMeanings = dictData[0]?.meanings || [];
+
+    // Для КАЖДОГО meaning берем первое definition
+    const meanings = [];
+    for (let i = 0; i < allMeanings.length; i++) {
+      const meaning = allMeanings[i];
+      const definitions = meaning.definitions.slice(0, 2);
+
+      for (const def of definitions) {
+        let cleanDef = def.definition.split(/\.\s*Example:/i)[0].trim();
+
+        // Берём первые 3 слова из definition как подсказку
+        const hint = cleanDef.split(' ').slice(0, 3).join(' ');
+
+        // Переводим: "word (hint)"
+        const transRes = await fetch(
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|ru&context=${encodeURIComponent(hint)}`
+        );
+        const transData = await transRes.json();
+
+        meanings.push({
+          ru: transData.responseData?.translatedText || word,
+          meaningEn: cleanDef,
+          example: def.example || '',
+          partOfSpeech: meaning.partOfSpeech
+        });
+      }
+    }
+
+    // Первое определение
+    const firstMeaning = allMeanings[0]?.definitions[0];
+    let mainDef = firstMeaning?.definition || '';
+    mainDef = mainDef.split(/\.\s*Example:/i)[0].trim();
 
     // Формируем ответ
     const result = {
-      type: dictData[0]?.meanings[0]?.partOfSpeech || 'word',
+      type: allMeanings[0]?.partOfSpeech || 'word',
       phonetic: dictData[0]?.phonetic || '',
-      meaningEn: definition,
-      meanings: dictData[0]?.meanings[0]?.definitions?.slice(0, 3).map(d => ({
-        ru: transData.translatedText || '',
-        example: d.example || ''
-      })) || [],
-      synonyms: synoData.map(s => s.word).join(', ')
+      meaningEn: mainDef,
+      meanings: meanings,
+      synonyms: synData.map(s => s.word).slice(0, 5).join(', ')
     };
 
     return new Response(JSON.stringify(result), {
