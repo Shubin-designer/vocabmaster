@@ -787,11 +787,23 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             const matches = findMatchingWords(exist);
             result.push(<span key={i}>{text.slice(i, i + startOffset)}</span>);
             result.push(
-              <span key={i + startOffset} className="border-b-2 border-dashed border-gray-400 cursor-help"
-                onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setHoveredWord({ matches, pos: { x: r.left + r.width/2, y: r.top } }); }}
-                onMouseLeave={() => setHoveredWord(null)}
-              >{text.slice(i + startOffset, i + startOffset + exist.length)}</span>
-            );
+                <span 
+                  key={i + startOffset} 
+                  className="border-b-2 border-dashed border-gray-400 cursor-help"
+                  onMouseEnter={e => { 
+                    const r = e.currentTarget.getBoundingClientRect(); 
+                    setHoveredWord({ 
+                      matches, 
+                      phonetic: matches[0]?.forms || '',  // ← ДОБАВЛЕНО
+                      translation: matches[0]?.translation || '',  // ← ДОБАВЛЕНО
+                      pos: { x: r.left + r.width/2, y: r.top } 
+                    }); 
+                  }}
+                  onMouseLeave={() => setHoveredWord(null)}
+                >
+                  {text.slice(i + startOffset, i + startOffset + exist.length)}
+                </span>
+              );
             i += startOffset + exist.length;
             matched = true;
             break;
@@ -810,12 +822,24 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           
           if (isSelected) {
             result.push(<span key={i} className="bg-blue-200 rounded-sm px-0.5">{word}</span>);
-          } else if (matches.length > 0) {
+          } } else if (matches.length > 0) {
             result.push(
-              <span key={i} className="border-b-2 border-dashed border-gray-400 cursor-help"
-                onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setHoveredWord({ matches, pos: { x: r.left + r.width/2, y: r.top } }); }}
+              <span 
+                key={i} 
+                className="border-b-2 border-dashed border-gray-400 cursor-help"
+                onMouseEnter={e => { 
+                  const r = e.currentTarget.getBoundingClientRect(); 
+                  setHoveredWord({ 
+                    matches, 
+                    phonetic: matches[0]?.forms || '',
+                    translation: matches[0]?.translation || '',
+                    pos: { x: r.left + r.width/2, y: r.top } 
+                  }); 
+                }}
                 onMouseLeave={() => setHoveredWord(null)}
-              >{word}</span>
+              >
+                {word}
+              </span>
             );
           } else if (isComplexFromPhrase) {
             result.push(
@@ -832,7 +856,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       }
     }
     return <div className="whitespace-pre-wrap leading-relaxed select-text" onMouseUp={handleSelection}>{result}</div>;
-  };
+  }; 
 
   return (
     <div className="flex flex-col h-full">
@@ -981,7 +1005,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         )}
       </div>
     );
-  };
+
 
 const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
   const [title, setTitle] = useState(song?.title || '');
