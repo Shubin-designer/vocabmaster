@@ -530,6 +530,11 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   const [alert, setAlert] = useState(null);
   // Кэш переводов - сохраняем уже подтянутые значения
   const [translationCache, setTranslationCache] = useState({});
+  useEffect(() => {
+    if (song.explanation) {
+      setExplanation(song.explanation);
+    }
+  }, [song.id]);
   
   useEffect(() => {
     if (onUnsavedChange) {
@@ -556,7 +561,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
 
   useEffect(() => { const h = e => { if (popup && !e.target.closest('.song-popup')) setPopup(null); }; document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h); }, [popup]);
 
-  const explainSong = async () => {
+ const explainSong = async () => {
   if (explanation) { setShowExp(!showExp); return; }
   setShowExp(true); setLoadingExp(true);
   try {
@@ -564,7 +569,14 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       body: { action: 'explain', title: song.title, text: song.text }
     });
     if (!error && data) {
-      setExplanation(data.result || '');
+      const result = data.result || '';
+      setExplanation(result);
+      
+      // Сохраняем в базу
+      await supabase
+        .from('songs')
+        .update({ explanation: result })
+        .eq('id', song.id);
     }
   } catch (e) { 
     setExplanation('Error'); 
