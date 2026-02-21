@@ -327,6 +327,12 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       
       if (error) throw error;
       
+      console.log('=== Lookup result ===');
+      console.log('Full data:', data);
+      console.log('Type:', data.type);
+      console.log('Level:', data.level);
+      console.log('Meanings:', data.meanings);
+
       const firstRu = data.meanings?.[0]?.ru || '';
       const firstExample = data.meanings?.[0]?.example || '';
       
