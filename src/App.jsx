@@ -344,6 +344,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         meaningEn: data.meaningEn || f.meaningEn,
         meaningRu: auto ? (f.meaningRu || firstRu) : (firstRu || f.meaningRu),
         example: auto ? (f.example || firstExample) : (firstExample || f.example),
+        singleRootWords: data.singleRootWords || f.singleRootWords,
         synonyms: data.synonyms || f.synonyms
       }));
       
