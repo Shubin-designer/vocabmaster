@@ -826,17 +826,45 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-2xl font-bold">{song.title}</h2>
-        {onClose && <button onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">← Back</button>}
+        {onClose && 
+        <div className="flex gap-2">
+        <button onClick={explainSong} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
+  >
+        {loadingExp ? <Loader size={16} className="animate-spin" /> : '💡'} 
+        Explain Song
+      </button>
+        
+        <button onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">← Back</button>}
       </div>
-      
+      </div>
       <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
         <div className="bg-white rounded-xl shadow-sm border p-4 flex-1 min-h-0 flex flex-col relative">
           <div className="text-xs text-gray-600 mb-2 flex-shrink-0">Select text to see translation and add words</div>
           <div className="bg-gray-50 p-4 rounded-lg flex-1 overflow-y-auto min-h-0">{highlightText()}</div>
           <div className="mt-2 pt-2 border-t flex-shrink-0">
-            <button onClick={explainSong} className="text-sm text-blue-600">💡 {explanation ? (showExp ? 'Hide' : 'Show') : 'Explain song'}</button>
-            {showExp && <div className="mt-2 p-3 bg-blue-50 rounded-lg max-h-40 overflow-y-auto">{loadingExp ? <Loader className="animate-spin" /> : <div className="text-sm whitespace-pre-wrap">{explanation}</div>}</div>}
-          </div>
+            {showExp && (
+  <div className="fixed inset-y-0 right-0 w-1/2 bg-white shadow-2xl z-50 overflow-y-auto border-l-2 border-blue-500">
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold">Song Explanation</h3>
+        <button onClick={() => setShowExp(false)} className="p-2 hover:bg-gray-100 rounded">
+          <X size={20} />
+        </button>
+      </div>
+      {loadingExp ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader size={32} className="animate-spin text-blue-500" />
+        </div>
+      ) : (
+        <div className="prose max-w-none whitespace-pre-wrap">{explanation}</div>
+      )}
+    </div>
+  </div>
+)}
+
+{showExp && (
+  <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowExp(false)}></div>
+)}
           {hoveredWord && (
             <div className="fixed bg-gray-800 text-white rounded-lg shadow-xl p-3 z-50 min-w-48 max-w-xs" style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
               {hoveredWord.phrases ? (
