@@ -821,27 +821,28 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           const isComplexFromPhrase = complexWordsMap.has(cleaned) && matches.length === 0;
           
           if (isSelected) {
-            result.push(<span key={i} className="bg-blue-200 rounded-sm px-0.5">{word}</span>);
-          } } else if (matches.length > 0) {
-            result.push(
-              <span 
-                key={i} 
-                className="border-b-2 border-dashed border-gray-400 cursor-help"
-                onMouseEnter={e => { 
-                  const r = e.currentTarget.getBoundingClientRect(); 
-                  setHoveredWord({ 
-                    matches, 
-                    phonetic: matches[0]?.forms || '',
-                    translation: matches[0]?.translation || '',
-                    pos: { x: r.left + r.width/2, y: r.top } 
-                  }); 
-                }}
-                onMouseLeave={() => setHoveredWord(null)}
-              >
-                {word}
-              </span>
-            );
-          } else if (isComplexFromPhrase) {
+            result.push(<span key={i} className="bg-blue-200 rounded-sm px-0.5">{word}</span>);          
+              } else if (matches.length > 0) {
+                result.push(
+                  <span 
+                    key={i} 
+                    className="border-b-2 border-dashed border-gray-400 cursor-help"
+                    onMouseEnter={e => { 
+                      const r = e.currentTarget.getBoundingClientRect(); 
+                      setHoveredWord({ 
+                        matches, 
+                        phonetic: matches[0]?.forms || '',
+                        translation: matches[0]?.translation || '',
+                        pos: { x: r.left + r.width/2, y: r.top } 
+                      }); 
+                    }}
+                    onMouseLeave={() => setHoveredWord(null)}
+                  >
+                    {word}
+                  </span>
+                );
+              }  
+          else if (isComplexFromPhrase) {
             result.push(
               <span key={i} className="border-b border-dotted border-gray-400 cursor-help"
                 onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setHoveredWord({ word: cleaned, phrases: complexWordsMap.get(cleaned), pos: { x: r.left + r.width/2, y: r.top } }); }}
@@ -1005,7 +1006,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         )}
       </div>
     );
-
+  };
 
 const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
   const [title, setTitle] = useState(song?.title || '');
