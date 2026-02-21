@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -6,66 +7,68 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('=== Function started ===');
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const { word } = await req.json();
+    console.log('Looking up word:', word);
 
-    // 1. Free Dictionary API
-    const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-    const dictData = await dictRes.json();
+    const apiKey = Deno.env.get('OPENROUTER_API_KEY');
+    console.log('API key exists:', !!apiKey);
+    console.log('API key length:', apiKey?.length || 0);
 
-    // 2. Datamuse для синонимов
-    const synRes = await fetch(`https://api.datamuse.com/words?rel_syn=${word}&max=6`);
-    const synData = await synRes.json();
 
-    // Берем ВСЕ meanings (все части речи)
-    const allMeanings = dictData[0]?.meanings || [];
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('OPENROUTER_API_KEY')}`,
+        'HTTP-Referer': 'https://vocabmaster.vercel.app',
+        'X-Title': 'VocabMaster'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-lite',
+        messages: [{
+          role: 'user',
+          content: `Analyze the word "${word}". Return ONLY valid JSON (no markdown):
+{
+  "type": "noun/verb/adjective/etc",
+  "phonetic": "/ipa_transcription/",
+  "meaningEn": "brief main definition",
+  "meanings": [
+    {"ru": "перевод 1", "meaningEn": "definition 1", "example": "example sentence 1"},
+    {"ru": "перевод 2", "meaningEn": "definition 2", "example": "example sentence 2"}
+  ],
+  "synonyms": "synonym1, synonym2, synonym3"
+}`
+        }]
+      })
+    });
 
-    // Для КАЖДОГО meaning берем первое definition
-    const meanings = [];
-    for (let i = 0; i < allMeanings.length; i++) {
-      const meaning = allMeanings[i];
-      const definitions = meaning.definitions.slice(0, 2);
 
-      for (const def of definitions) {
-        let cleanDef = def.definition.split(/\.\s*Example:/i)[0].trim();
+    console.log('Response status:', res.status);
+    const data = await res.json();
+    console.log('OpenRouter response:', JSON.stringify(data));
 
-        // Берём первые 3 слова из definition как подсказку
-        const hint = cleanDef.split(' ').slice(0, 3).join(' ');
-
-        // Переводим: "word (hint)"
-        const transRes = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|ru&context=${encodeURIComponent(hint)}`
-        );
-        const transData = await transRes.json();
-
-        meanings.push({
-          ru: transData.responseData?.translatedText || word,
-          meaningEn: cleanDef,
-          example: def.example || '',
-          partOfSpeech: meaning.partOfSpeech
-        });
-      }
+    if (!res.ok) {
+      throw new Error(`OpenRouter error: ${JSON.stringify(data)}`);
     }
 
-    // Первое определение
-    const firstMeaning = allMeanings[0]?.definitions[0];
-    let mainDef = firstMeaning?.definition || '';
-    mainDef = mainDef.split(/\.\s*Example:/i)[0].trim();
+    let text = data.choices?.[0]?.message?.content || '';
+    text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
-    // Формируем ответ
-    const result = {
-      type: allMeanings[0]?.partOfSpeech || 'word',
-      phonetic: dictData[0]?.phonetic || '',
-      meaningEn: mainDef,
-      meanings: meanings,
-      synonyms: synData.map(s => s.word).slice(0, 5).join(', ')
-    };
+    // Пытаемся извлечь JSON из текста
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No valid JSON found in response');
+    }
 
-    return new Response(JSON.stringify(result), {
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
