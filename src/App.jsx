@@ -947,7 +947,10 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
                   <tr key={w} className="border-b hover:bg-gray-50">
                     <td className="p-2"><input type="checkbox" checked={checkedWords.includes(w)} onChange={() => toggleCheck(w)} /></td>
                     <td className="p-2 font-medium">{w}</td>
-                    <td className="p-2"><select value={wordSections[w] || ''} onChange={e => handleSectionChange(w, e.target.value)} className="w-full p-1.5 border rounded text-sm"><option value="">Select section...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select></td>
+                    <td className="p-2">
+                      
+                      <select value={wordSections[w] || ''} onChange={e => handleSectionChange(w, e.target.value)} className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white text-sm hover:bg-gray-50 appearance-none"><option value="">Select section...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select>
+                      <div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></div></td>
                     <td className="p-2"><button onClick={() => removeFromList(w)} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={14} /></button></td>
                   </tr>
                 ))}</tbody>
