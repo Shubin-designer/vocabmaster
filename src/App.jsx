@@ -414,13 +414,23 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   setAddedTranslations(prev => new Set([...prev, t.toLowerCase()]));
   
   // Заменяем meaningEn и example на выбранный перевод
+  // Добавляем meaningEn и example с новой строки
   const meaning = translationsWithExamples.find(m => m.ru === t);
   if (meaning) {
-    setForm(f => ({ 
-      ...f, 
-      meaningEn: meaning.meaningEn || f.meaningEn,
-      example: meaning.example || f.example
-    }));
+    setForm(f => {
+      const currentMeaningEn = f.meaningEn.trim();
+      const currentExample = f.example.trim();
+      
+      return {
+        ...f,
+        meaningEn: currentMeaningEn 
+          ? `${currentMeaningEn}\n${meaning.meaningEn}` 
+          : meaning.meaningEn,
+        example: currentExample 
+          ? `${currentExample}\n${meaning.example}` 
+          : meaning.example
+      };
+    });
   }
 };
     
