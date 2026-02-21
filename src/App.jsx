@@ -945,9 +945,31 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         </Modal>
       )}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
-    </div>
-  );
-};
+        {showExp && (
+          <>
+            <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowExp(false)}></div>
+            <div className="fixed inset-y-0 right-0 w-1/2 bg-white shadow-2xl z-50 overflow-y-auto border-l-2 border-blue-500">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold">Song Explanation</h3>
+                  <button onClick={() => setShowExp(false)} className="p-2 hover:bg-gray-100 rounded">
+                    <X size={20} />
+                  </button>
+                </div>
+                {loadingExp ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader size={32} className="animate-spin text-blue-500" />
+                  </div>
+                ) : (
+                  <div className="prose max-w-none whitespace-pre-wrap">{explanation}</div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
 const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
   const [title, setTitle] = useState(song?.title || '');
@@ -975,28 +997,7 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
   );
 };
 
-{showExp && (
-  <>
-    <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowExp(false)}></div>
-    <div className="fixed inset-y-0 right-0 w-1/2 bg-white shadow-2xl z-50 overflow-y-auto border-l-2 border-blue-500">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">Song Explanation</h3>
-          <button onClick={() => setShowExp(false)} className="p-2 hover:bg-gray-100 rounded">
-            <X size={20} />
-          </button>
-        </div>
-        {loadingExp ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader size={32} className="animate-spin text-blue-500" />
-          </div>
-        ) : (
-          <div className="prose max-w-none whitespace-pre-wrap">{explanation}</div>
-        )}
-      </div>
-    </div>
-  </>
-)}
+
 
 
 function AuthForm() {
