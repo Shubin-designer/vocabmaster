@@ -339,7 +339,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       setForm(f => ({ 
         ...f, 
         type: data.type || f.type, 
-        level: 'B1',
+        level: data.level || f.level,
         forms: data.phonetic || f.forms,
         meaningEn: data.meaningEn || f.meaningEn,
         meaningRu: auto ? (f.meaningRu || firstRu) : (firstRu || f.meaningRu),
@@ -371,6 +371,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   const addTranslation = (t) => {
   // Если уже добавлен - УДАЛЯЕМ
   if (addedTranslations.has(t.toLowerCase())) {
+    
     // Удаляем из meaningRu
     const currentTranslations = form.meaningRu.split(',').map(s => s.trim()).filter(s => s);
     const filtered = currentTranslations.filter(s => s.toLowerCase() !== t.toLowerCase());
