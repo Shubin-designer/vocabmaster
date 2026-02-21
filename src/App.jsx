@@ -192,16 +192,16 @@ RULES:
 Return ONLY valid JSON.`
           : `For the word "${word.word}" (${word.type}), provide 4-6 synonyms with brief context. Return JSON: {"synonyms":"synonym1, synonym2, ..."}. Only JSON.`;
         
-        const res = await fetch('https://api.anthropic.com/v1/messages', { 
-          method: 'POST', 
-          headers: { 'Content-Type': 'application/json' }, 
-          body: JSON.stringify({ 
-            model: 'claude-sonnet-4-20250514', 
-            max_tokens: 500, 
-            messages: [{ role: 'user', content: prompt }] 
-          }) 
+        const { data: result, error } = await supabase.functions.invoke('fill-fields', {
+          body: { word: word.word, fieldName }
         });
-        
+
+        if (!error && result) {
+          const value = fieldName === 'singleRootWords' ? result.words : result.synonyms;
+          filled.push({ ...word, [fieldName]: value || word[fieldName] });
+        } else {
+          filled.push(word);
+        }
         if (res.ok) { 
           const data = await res.json(); 
           let text = data.content?.[0]?.text || ''; 
