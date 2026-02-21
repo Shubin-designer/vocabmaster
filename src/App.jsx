@@ -341,7 +341,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         type: data.type || f.type, 
         level: data.level || f.level,
         forms: data.phonetic || f.forms,
-        meaningEn: data.meaningEn || f.meaningEn,
+        meaningEn: auto ? (f.meaningEn || firstMeaningEn) : (firstMeaningEn || f.meaningEn),  // ← ИСПРАВЛЕНО
         meaningRu: auto ? (f.meaningRu || firstRu) : (firstRu || f.meaningRu),
         example: auto ? (f.example || firstExample) : (firstExample || f.example),
         singleRootWords: data.singleRootWords || f.singleRootWords,
@@ -393,8 +393,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         setForm(f => ({ ...f, example: examples.join('\n') }));
       }
       if (meaning.meaningEn) {
-        const meanings = form.meaningEn.split('\n').filter(e => e.trim() !== meaning.meaningEn.trim());
-        setForm(f => ({ ...f, meaningEn: meanings.join('\n') }));
+        setForm(f => ({ ...f, meaningEn: '' }));
       }
     }
     return;
@@ -413,8 +412,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       setForm(f => ({ ...f, example: currentExample ? `${currentExample}\n${meaning.example}` : meaning.example }));
     }
     if (meaning.meaningEn) {
-      const currentMeaningEn = form.meaningEn.trim();
-      setForm(f => ({ ...f, meaningEn: currentMeaningEn ? `${currentMeaningEn}\n${meaning.meaningEn}` : meaning.meaningEn }));
+      setForm(f => ({ ...f, meaningEn: meaning.meaningEn }));
     }
   }
 };
