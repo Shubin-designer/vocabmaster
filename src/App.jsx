@@ -557,11 +557,20 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   useEffect(() => { const h = e => { if (popup && !e.target.closest('.song-popup')) setPopup(null); }; document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h); }, [popup]);
 
   const explainSong = async () => {
-    if (explanation) { setShowExp(!showExp); return; }
-    setShowExp(true); setLoadingExp(true);
-    try { const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: `Explain this song in Russian:\n"${song.title}"\n${song.text}\nInclude meaning, metaphors, slang.` }] }) }); if (res.ok) { const d = await res.json(); setExplanation(d.content?.[0]?.text || ''); } } catch (e) { setExplanation('Error'); }
-    setLoadingExp(false);
-  };
+  if (explanation) { setShowExp(!showExp); return; }
+  setShowExp(true); setLoadingExp(true);
+  try {
+    const { data, error } = await supabase.functions.invoke('song-helper', {
+      body: { action: 'explain', title: song.title, text: song.text }
+    });
+    if (!error && data) {
+      setExplanation(data.result || '');
+    }
+  } catch (e) { 
+    setExplanation('Error'); 
+  }
+  setLoadingExp(false);
+};
 
   const handleSelection = async () => {
     const sel = window.getSelection(); 
@@ -613,25 +622,18 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
     });
     
     setTranslating(true);
-    try { 
-      const res = await fetch('https://api.anthropic.com/v1/messages', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ 
-          model: 'claude-sonnet-4-20250514', 
-          max_tokens: 100, 
-          messages: [{ role: 'user', content: `Translate "${cleaned}" to Russian. Only translation.` }] 
-        }) 
-      }); 
-      if (res.ok) { 
-        const d = await res.json(); 
-        const translation = (d.content?.[0]?.text || '').trim();
-        // Сохраняем в кэш
+    try {
+      const { data, error } = await supabase.functions.invoke('song-helper', {
+        body: { action: 'translate', word: cleaned }
+      });
+      
+      if (!error && data) {
+        const translation = (data.result || '').trim();
         setTranslationCache(prev => ({ ...prev, [cleaned]: translation }));
-        setPopup(p => p ? { ...p, translation } : null); 
-      } 
-    } catch (e) { 
-      setPopup(p => p ? { ...p, translation: 'Error' } : null); 
+        setPopup(p => p ? { ...p, translation } : null);
+      }
+    } catch (e) {
+      setPopup(p => p ? { ...p, translation: 'Error' } : null);
     }
     setTranslating(false);
   };

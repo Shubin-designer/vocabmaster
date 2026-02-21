@@ -31,6 +31,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-lite',
+        temperature: 0.3,
         messages: [{
           role: 'user',
           content: `Analyze the word "${word}". Return ONLY valid JSON (no markdown):
@@ -40,10 +41,10 @@ serve(async (req) => {
             "phonetic": "/ipa_transcription/",
             "meaningEn": "brief main definition",
             "meanings": [
-              {"ru": "перевод 1", "meaningEn": "definition 1", "example": "example sentence 1"},
-              {"ru": "перевод 2", "meaningEn": "definition 2", "example": "example sentence 2"}
+              {"ru": "перевод 1", "meaningEn": "definition 1", "example": "IMPORTANT: natural, intermediate-level example (10-15 words, real-world context, varied structure)"},
+              {"ru": "перевод 2", "meaningEn": "definition 2", "example": "IMPORTANT: natural, intermediate-level example (10-15 words, real-world context, varied structure)"}
             ],
-            "singleRootWords": "IMPORTANT: provide 5-10 words with same root (suffixes, prefixes, compound words). Example: book→books, booklet, booking,bookish,bookkeeper",
+            "singleRootWords": "IMPORTANT: provide 5-10 words with same root (suffixes, prefixes, compound words). Example: book→books, booklet, booking, bookish, bookkeeper",
             "synonyms": "synonym1, synonym2, synonym3"
           }`
         }]
