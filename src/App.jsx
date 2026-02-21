@@ -533,9 +533,9 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   useEffect(() => {
     if (song.explanation) {
       setExplanation(song.explanation);
-    }
+    } 
   }, [song.id]);
-  
+
   useEffect(() => {
     if (onUnsavedChange) {
       onUnsavedChange(selected.length > 0);
@@ -1177,7 +1177,8 @@ export default function VocabApp() {
         id: s.id,
         folderId: s.folder_id,
         title: s.title,
-        text: s.text
+        text: s.text,
+        explanation: s.explanation
       }));
 
       setData({
