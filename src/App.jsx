@@ -942,7 +942,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b"><tr><th className="p-2 text-left w-10"><input type="checkbox" checked={checkedWords.length === selected.length && selected.length > 0} onChange={toggleCheckAll} /></th><th className="p-2 text-left">Word/Phrase</th><th className="p-2 text-left">Section</th><th className="p-2 w-10"></th></tr></thead>
+                <thead className="bg-gray-50 border-b"><tr><th className="p-2 text-left w-10"><input type="checkbox" checked={checkedWords.length === selected.length && selected.length > 0} onChange={toggleCheckAll} /></th><th className="p-2 text-left">Word/Phrase</th><th className="p-2 text-left">Section</th></tr></thead>
                 <tbody>{selected.map(w => (
                   <tr key={w} className="border-b hover:bg-gray-50">
                     <td className="p-2"><input type="checkbox" checked={checkedWords.includes(w)} onChange={() => toggleCheck(w)} /></td>
