@@ -471,10 +471,19 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
             {translations.length > 0 && (
               <div className="mt-1">
                 <span className="text-xs text-gray-500 mr-1">Click to add:</span>
-                {translations.map((t, i) => {
-                  const isAdded = isTranslationAdded(t);
-                  return <button key={i} type="button" onClick={() => addTranslation(t)} disabled={isAdded} className={`text-xs px-2 py-1 rounded mr-1 mb-1 ${isAdded ? 'bg-green-100 text-green-700' : 'bg-gray-100 hover:bg-blue-100'}`}>{isAdded ? '✓' : '+'} {t}</button>;
-                })}
+                {translations.map(t => (
+                <button
+                  key={t}
+                  onClick={() => addTranslation(t)}
+                  className={`text-sm px-3 py-1 rounded-full ${
+                    isTranslationAdded(t) 
+                      ? 'bg-green-100 text-green-700 border border-green-300' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {isTranslationAdded(t) ? '✓ ' : ''}{t}
+                </button>
+              ))}
               </div>
             )}
           </div>
