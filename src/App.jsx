@@ -335,6 +335,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
 
       const firstRu = data.meanings?.[0]?.ru || '';
       const firstExample = data.meanings?.[0]?.example || '';
+      const firstMeaningEn = data.meanings?.[0]?.meaningEn || '';
       
       setForm(f => ({ 
         ...f, 

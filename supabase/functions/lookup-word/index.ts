@@ -34,16 +34,18 @@ serve(async (req) => {
         messages: [{
           role: 'user',
           content: `Analyze the word "${word}". Return ONLY valid JSON (no markdown):
-{
-  "type": "noun/verb/adjective/etc",
-  "phonetic": "/ipa_transcription/",
-  "meaningEn": "brief main definition",
-  "meanings": [
-    {"ru": "перевод 1", "meaningEn": "definition 1", "example": "example sentence 1"},
-    {"ru": "перевод 2", "meaningEn": "definition 2", "example": "example sentence 2"}
-  ],
-  "synonyms": "synonym1, synonym2, synonym3"
-}`
+          {
+            "type": "noun/verb/adjective/etc",
+            "level": "A1/A2/B1/B2/C1/C2",
+            "phonetic": "/ipa_transcription/",
+            "meaningEn": "brief main definition",
+            "meanings": [
+              {"ru": "перевод 1", "meaningEn": "definition 1", "example": "example sentence 1"},
+              {"ru": "перевод 2", "meaningEn": "definition 2", "example": "example sentence 2"}
+            ],
+            "singleRootWords": "IMPORTANT: provide 5-10 words with same root (suffixes, prefixes, compound words). Example: book→books, booklet, booking,bookish,bookkeeper",
+            "synonyms": "synonym1, synonym2, synonym3"
+          }`
         }]
       })
     });
