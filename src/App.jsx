@@ -370,33 +370,41 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
     }
   };
   
-  const addTranslation = (t) => {
+ const addTranslation = (t) => {
   // Если уже добавлен - УДАЛЯЕМ
   if (addedTranslations.has(t.toLowerCase())) {
-    
     // Удаляем из meaningRu
     const currentTranslations = form.meaningRu.split(',').map(s => s.trim()).filter(s => s);
     const filtered = currentTranslations.filter(s => s.toLowerCase() !== t.toLowerCase());
     setForm(f => ({ ...f, meaningRu: filtered.join(', ') }));
     
     // Удаляем из Set
-    setAddedTranslations(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(t.toLowerCase());
-      return newSet;
-    });
+    const newSet = new Set(addedTranslations);
+    newSet.delete(t.toLowerCase());
+    setAddedTranslations(newSet);
     
-    // Удаляем пример и meaningEn
+    // Удаляем/обновляем пример и meaningEn
     const meaning = translationsWithExamples.find(m => m.ru === t);
-    if (meaning) {
-      if (meaning.example) {
-        const examples = form.example.split('\n').filter(e => e.trim() !== meaning.example.trim());
-        setForm(f => ({ ...f, example: examples.join('\n') }));
+    
+    // Если остались другие переводы - берём их данные
+    if (newSet.size > 0) {
+      const remainingTranslations = Array.from(newSet);
+      const firstRemaining = translationsWithExamples.find(m => 
+        remainingTranslations.includes(m.ru.toLowerCase())
+      );
+      
+      if (firstRemaining) {
+        setForm(f => ({ 
+          ...f, 
+          meaningEn: firstRemaining.meaningEn || '',
+          example: firstRemaining.example || ''
+        }));
       }
-      if (meaning.meaningEn) {
-        setForm(f => ({ ...f, meaningEn: '' }));
-      }
+    } else {
+      // Если не осталось переводов - очищаем
+      setForm(f => ({ ...f, meaningEn: '', example: '' }));
     }
+    
     return;
   }
   
@@ -405,16 +413,14 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   setForm(f => ({ ...f, meaningRu: current ? `${current}, ${t}` : t }));
   setAddedTranslations(prev => new Set([...prev, t.toLowerCase()]));
   
-  // Добавляем пример и meaningEn
+  // Заменяем meaningEn и example на выбранный перевод
   const meaning = translationsWithExamples.find(m => m.ru === t);
   if (meaning) {
-    if (meaning.example) {
-      const currentExample = form.example.trim();
-      setForm(f => ({ ...f, example: currentExample ? `${currentExample}\n${meaning.example}` : meaning.example }));
-    }
-    if (meaning.meaningEn) {
-      setForm(f => ({ ...f, meaningEn: meaning.meaningEn }));
-    }
+    setForm(f => ({ 
+      ...f, 
+      meaningEn: meaning.meaningEn || f.meaningEn,
+      example: meaning.example || f.example
+    }));
   }
 };
     
