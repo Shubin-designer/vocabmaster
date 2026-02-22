@@ -1365,8 +1365,25 @@ const saveWord = async (w) => {
       .single();
     
     if (!error && newWord) {
-      setData(d => ({ ...d, words: [...d.words, newWord] }));
-    }
+    const converted = {
+      id: newWord.id,
+      sectionId: newWord.section_id,
+      word: newWord.word,
+      type: newWord.type,
+      level: newWord.level,
+      forms: newWord.forms,
+      meaningEn: newWord.meaning_en,
+      meaningRu: newWord.meaning_ru,
+      example: newWord.example,
+      myExample: newWord.my_example,
+      singleRootWords: newWord.single_root_words,
+      synonyms: newWord.synonyms,
+      tags: newWord.tags,
+      status: newWord.status,
+      passedModes: newWord.passed_modes
+    };
+    setData(d => ({ ...d, words: [...d.words, converted] }));
+  }
   }
   
   setModal({ type: null, data: null }); 
