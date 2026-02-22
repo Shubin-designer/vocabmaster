@@ -7,12 +7,15 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('=== fill-fields started ===');
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const { word, fieldName } = await req.json();
+    console.log('Word:', word, 'Field:', fieldName);
 
     const prompt = fieldName === 'singleRootWords'
       ? `List 5-10 words with same root as "${word}". Example: cook→cooker,cooking,cooked,cookbook. Return JSON: {"words":"word1, word2, word3"}`
