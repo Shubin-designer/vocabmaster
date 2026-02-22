@@ -163,62 +163,31 @@ const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }
   const [progress, setProgress] = useState({ current: 0, total: words.length });
   const [results, setResults] = useState([]);
 
-  const doFill = async () => {
-    setFilling(true);
-    const filled = [];
-    for (let i = 0; i < words.length; i++) {
-      setProgress({ current: i + 1, total: words.length });
-      const word = words[i];
-      try {
-        const prompt = fieldName === 'singleRootWords' 
-          ? `Generate 4-6 single-root words related to "${word.word}" (${word.type}).
-
-CRITICAL: You MUST return ONLY a JSON object with a "words" field containing a comma-separated string.
-
-EXACT FORMAT for each word in the string:
-word (part_of_speech) /IPA_transcription/ - Russian_translation
-
-EXAMPLE OUTPUT for "teach":
-{"words":"teach (verb) /tiːtʃ/ - учить, teacher (noun) /ˈtiːtʃər/ - учитель, teaching (noun) /ˈtiːtʃɪŋ/ - обучение, taught (past tense) /tɔːt/ - научил, teachable (adjective) /ˈtiːtʃəbl/ - обучаемый, unteachable (adjective) /ʌnˈtiːtʃəbl/ - необучаемый"}
-
-RULES:
-1. Every word MUST have ALL 4 parts: word, (part_of_speech), /IPA/, - translation
-2. Use standard parts of speech: noun, verb, adjective, adverb, past tense, gerund, past participle, etc.
-3. IPA must be in British English pronunciation format
-4. Translation must be in Russian
-5. Separate entries with commas ONLY
-6. NO markdown, NO explanations, ONLY the JSON object
-
-Return ONLY valid JSON.`
-          : `For the word "${word.word}" (${word.type}), provide 4-6 synonyms with brief context. Return JSON: {"synonyms":"synonym1, synonym2, ..."}. Only JSON.`;
-        
-        const { data: result, error } = await supabase.functions.invoke('fill-fields', {
-          body: { word: word.word, fieldName }
-        });
-
-        if (!error && result) {
-          const value = fieldName === 'singleRootWords' ? result.words : result.synonyms;
-          filled.push({ ...word, [fieldName]: value || word[fieldName] });
-        } else {
-          filled.push(word);
-        }
-        if (res.ok) { 
-          const data = await res.json(); 
-          let text = data.content?.[0]?.text || ''; 
-          text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim(); 
-          const m = text.match(/\{[\s\S]*\}/); 
-          if (m) { 
-            const p = JSON.parse(m[0]); 
-            const value = fieldName === 'singleRootWords' ? p.words : p.synonyms;
-            filled.push({ ...word, [fieldName]: value || word[fieldName] }); 
-          } else filled.push(word); 
-        } else filled.push(word);
-      } catch (e) { filled.push(word); }
-      setResults([...filled]);
-      await new Promise(r => setTimeout(r, 500));
+const doFill = async () => {
+  setFilling(true);
+  const filled = [];
+  for (let i = 0; i < words.length; i++) {
+    setProgress({ current: i + 1, total: words.length });
+    const word = words[i];
+    try {
+      const { data: result, error } = await supabase.functions.invoke('fill-fields', {
+        body: { word: word.word, fieldName }
+      });
+      
+      if (!error && result) {
+        const value = fieldName === 'singleRootWords' ? result.words : result.synonyms;
+        filled.push({ ...word, [fieldName]: value || word[fieldName] });
+      } else {
+        filled.push(word);
+      }
+    } catch (e) { 
+      filled.push(word); 
     }
-    setFilling(false);
-  };
+    setResults([...filled]);
+    await new Promise(r => setTimeout(r, 500));
+  }
+  setFilling(false);
+};
 
   return (
     <Modal onClose={onCancel} preventClose>
