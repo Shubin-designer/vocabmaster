@@ -20,7 +20,6 @@ serve(async (req) => {
     console.log('API key exists:', !!apiKey);
     console.log('API key length:', apiKey?.length || 0);
 
-
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -35,22 +34,25 @@ serve(async (req) => {
         messages: [{
           role: 'user',
           content: `Analyze the word "${word}". Return ONLY valid JSON (no markdown):
-          {
-            "type": "noun/verb/adjective/etc",
-            "level": "A1/A2/B1/B2/C1/C2",
-            "phonetic": "/ipa_transcription/",
-            "meaningEn": "brief main definition",
-            "meanings": [
-              {"ru": "перевод 1", "meaningEn": "definition 1", "example": "IMPORTANT: natural, intermediate-level example (10-15 words, real-world context, varied structure)"},
-              {"ru": "перевод 2", "meaningEn": "definition 2", "example": "IMPORTANT: natural, intermediate-level example (10-15 words, real-world context, varied structure)"}
-            ],
-            "singleRootWords": "IMPORTANT: provide 5-10 words with same root (suffixes, prefixes, compound words). Example: book→books, booklet, booking, bookish, bookkeeper",
-            "synonyms": "synonym1, synonym2, synonym3"
-          }`
+{
+  "type": "noun/verb/adjective/etc",
+  "level": "A1/A2/B1/B2/C1/C2",
+  "phonetic": "/ipa_transcription/",
+  "meaningEn": "brief main definition",
+  "meanings": [
+    {"ru": "перевод 1", "meaningEn": "definition 1", "example": "natural example (10-15 words)"},
+    {"ru": "перевод 2", "meaningEn": "definition 2", "example": "natural example (10-15 words)"}
+  ],
+  "singleRootWords": [
+    {"word": "teacher", "type": "noun", "ipa": "/ˈtiːtʃər/", "ru": "учитель"},
+    {"word": "teaching", "type": "noun", "ipa": "/ˈtiːtʃɪŋ/", "ru": "обучение"}
+  ],
+  "synonyms": "synonym1, synonym2, synonym3"
+}
+CRITICAL: singleRootWords MUST be an array of objects with word, type, ipa, ru fields!`
         }]
       })
     });
-
 
     console.log('Response status:', res.status);
     const data = await res.json();
@@ -70,6 +72,13 @@ serve(async (req) => {
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
+
+    // Конвертируем массив в строку нужного формата
+    if (Array.isArray(parsed.singleRootWords)) {
+      parsed.singleRootWords = parsed.singleRootWords
+        .map(w => `${w.word} (${w.type}) /${w.ipa}/ - ${w.ru}`)
+        .join(', ');
+    }
 
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
