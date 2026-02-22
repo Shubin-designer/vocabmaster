@@ -163,7 +163,7 @@ const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }
   const [progress, setProgress] = useState({ current: 0, total: words.length });
   const [results, setResults] = useState([]);
 
-const doFill = async () => {
+const doFill = async () => {  
   setFilling(true);
   const filled = [];
   for (let i = 0; i < words.length; i++) {
@@ -173,6 +173,8 @@ const doFill = async () => {
       const { data: result, error } = await supabase.functions.invoke('fill-fields', {
         body: { word: word.word, fieldName }
       });
+      console.log('Fill result for', word.word, ':', result, error);
+
       
       if (!error && result) {
         const value = fieldName === 'singleRootWords' ? result.words : result.synonyms;

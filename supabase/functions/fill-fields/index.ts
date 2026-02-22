@@ -17,9 +17,13 @@ serve(async (req) => {
     const { word, fieldName } = await req.json();
     console.log('Word:', word, 'Field:', fieldName);
 
-    const prompt = fieldName === 'singleRootWords'
-      ? `List 5-10 words with same root as "${word}". Example: cook→cooker,cooking,cooked,cookbook. Return JSON: {"words":"word1, word2, word3"}`
-      : `List 5-8 synonyms for "${word}". Return JSON: {"synonyms":"syn1, syn2, syn3"}`;
+    let prompt = '';
+
+    if (fieldName === 'singleRootWords') {
+      prompt = `Generate 5-10 single-root words for "${word}". CRITICAL FORMAT - each word MUST have ALL 4 parts: word (part_of_speech) /IPA/ - Russian_translation. EXAMPLE for "teach": {"words":"teacher (noun) /ˈtiːtʃər/ - учитель, teaching (noun) /ˈtiːtʃɪŋ/ - обучение, taught (verb) /tɔːt/ - научил, teachable (adjective) /ˈtiːtʃəbl/ - обучаемый"}. RULES: Every word MUST have: word (type) /ipa/ - translation. Use British English IPA. Separate entries with commas. Return ONLY JSON.`;
+    } else {
+      prompt = `List 5-8 synonyms for "${word}". Return JSON: {"synonyms":"syn1, syn2, syn3"}`;
+    }
 
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
