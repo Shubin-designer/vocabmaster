@@ -936,7 +936,13 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             <div className="flex justify-between items-center mb-3 gap-2 flex-wrap">
               <h3 className="font-semibold">Selected ({selected.length})</h3>
               <div className="flex items-center gap-2">
-                {checkedWords.length > 0 && <select onChange={e => handleBulkSectionChange(e.target.value)} className="p-2 border rounded text-sm" defaultValue=""><option value="">Set section for {checkedWords.length}...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select>}
+                {checkedWords.length > 0 && <select onChange={e => handleBulkSectionChange(e.target.value)} 
+                
+                
+                className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white text-sm hover:bg-gray-50 appearance-none" defaultValue=""><option value="">Set section for {checkedWords.length}...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select>
+                
+                
+                }
                 <button onClick={addSelectedWords} className="px-4 py-2 bg-green-500 text-white rounded text-sm">Add to vocabulary</button>
               </div>
             </div>
