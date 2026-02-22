@@ -35,9 +35,30 @@ serve(async (req) => {
 
     const data = await res.json();
     let text = data.choices?.[0]?.message?.content || '';
+
+    console.log('Raw response:', text);
+
+
     text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const parsed = JSON.parse(jsonMatch[0]);
+
+    console.log('Parsed:', parsed);
+    console.log('Original word:', word);
+
+
+    // Убираем исходное слово из списка
+    if (fieldName === 'singleRootWords' && parsed.words) {
+      const wordsArray = parsed.words.split(',').map(w => w.trim());
+      const filtered = wordsArray.filter(w => w.toLowerCase() !== word.toLowerCase());
+      parsed.words = filtered.join(', ');
+    }
+
+    if (fieldName === 'synonyms' && parsed.synonyms) {
+      const synsArray = parsed.synonyms.split(',').map(w => w.trim());
+      const filtered = synsArray.filter(w => w.toLowerCase() !== word.toLowerCase());
+      parsed.synonyms = filtered.join(', ');
+    }
 
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
