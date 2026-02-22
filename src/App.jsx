@@ -164,6 +164,7 @@ const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }
   const [results, setResults] = useState([]);
 
 const doFill = async () => {  
+  console.log('=== doFill started ===', words.length, 'words');
   setFilling(true);
   const filled = [];
   for (let i = 0; i < words.length; i++) {
