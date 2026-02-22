@@ -1851,8 +1851,62 @@ const saveCollection = async (name) => {
         </div>
       </Modal>}
       {modal.type === 'translateEmpty' && <TranslateEmptyModal words={modal.data} onTranslate={translated => { setData(d => ({ ...d, words: d.words.map(w => { const t = translated.find(x => x.id === w.id); return t || w; }) })); setToast({ message: `${translated.length} words translated!`, canUndo: false }); }} onCancel={() => setModal({ type: null, data: null })} />}
-      {modal.type === 'fillRoots' && <FillFieldModal words={modal.data} fieldName="singleRootWords" fieldLabel="Single-root words" icon="🌱" onFill={filled => { setData(d => ({ ...d, words: d.words.map(w => { const f = filled.find(x => x.id === w.id); return f || w; }) })); setToast({ message: `${filled.length} words updated!`, canUndo: false }); }} onCancel={() => setModal({ type: null, data: null })} />}
-      {modal.type === 'fillSynonyms' && <FillFieldModal words={modal.data} fieldName="synonyms" fieldLabel="Synonyms" icon="🔄" onFill={filled => { setData(d => ({ ...d, words: d.words.map(w => { const f = filled.find(x => x.id === w.id); return f || w; }) })); setToast({ message: `${filled.length} words updated!`, canUndo: false }); }} onCancel={() => setModal({ type: null, data: null })} />}
+      {modal.type === 'fillRoots' && <FillFieldModal 
+  words={modal.data} 
+  fieldName="singleRootWords" 
+  fieldLabel="Single-root words" 
+  icon="🌱" 
+  onFill={async (filled) => { 
+    // Обновляем state
+    setData(d => ({ 
+      ...d, 
+      words: d.words.map(w => { 
+        const f = filled.find(x => x.id === w.id); 
+        return f || w; 
+      }) 
+    })); 
+    
+    // Сохраняем в базу
+    for (const word of filled) {
+      await supabase
+        .from('words')
+        .update({ single_root_words: word.singleRootWords })
+        .eq('id', word.id);
+    }
+    
+    setToast({ message: `${filled.length} words updated!`, canUndo: false }); 
+  }} 
+  onCancel={() => setModal({ type: null, data: null })} 
+/>}
+
+
+  {modal.type === 'fillSynonyms' && <FillFieldModal 
+  words={modal.data} 
+  fieldName="synonyms" 
+  fieldLabel="Synonyms" 
+  icon="🔄" 
+  onFill={async (filled) => { 
+    // Обновляем state
+    setData(d => ({ 
+      ...d, 
+      words: d.words.map(w => { 
+        const f = filled.find(x => x.id === w.id); 
+        return f || w; 
+      }) 
+    })); 
+    
+    // Сохраняем в базу
+    for (const word of filled) {
+      await supabase
+        .from('words')
+        .update({ synonyms: word.synonyms })
+        .eq('id', word.id);
+    }
+    
+    setToast({ message: `${filled.length} words updated!`, canUndo: false }); 
+  }} 
+  onCancel={() => setModal({ type: null, data: null })} 
+/>}
       {confirmDelete && <Modal onClose={() => setConfirmDelete(null)}><h3 className="text-lg font-semibold mb-2">Delete?</h3><p className="text-gray-600 mb-4">Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
