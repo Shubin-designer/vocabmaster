@@ -1307,35 +1307,7 @@ useEffect(() => {
   localStorage.setItem('vocabmaster_state', JSON.stringify(state));
 }, [user, view, expandedCollections, expandedSongFolders, currentCollection, currentSection, currentSong]);
 
-// Загрузка view и немедленное разворачивание коллекции
-useEffect(() => {
-  if (!user) return;
-  
-  console.log('=== Loading UI state ===');
-  try {
-    const saved = localStorage.getItem('vocabmaster_state');
-    console.log('Saved state:', saved);
-    if (saved) {
-      const state = JSON.parse(saved);
-      console.log('Parsed state:', state);
-      
-      if (state.view) {
-        console.log('Setting view to:', state.view);
-        setView(state.view);
-      }
-      if (state.expandedCollections) {
-        console.log('Setting expandedCollections');
-        setExpandedCollections(state.expandedCollections);
-      }
-      if (state.expandedSongFolders) {
-        setExpandedSongFolders(state.expandedSongFolders);
-      }
-    }
-  } catch (e) {
-    console.error('Failed to load UI state:', e);
-  }
-}, [user]);
-  
+ 
 
 // Обновлени текущей коллекции/секциии/песни после загрузки данных
 useEffect(() => {
