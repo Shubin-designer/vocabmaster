@@ -1918,7 +1918,39 @@ const saveCollection = async (name) => {
           <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
         </div>
       </Modal>}
-      {modal.type === 'translateEmpty' && <TranslateEmptyModal words={modal.data} onTranslate={translated => { setData(d => ({ ...d, words: d.words.map(w => { const t = translated.find(x => x.id === w.id); return t || w; }) })); setToast({ message: `${translated.length} words translated!`, canUndo: false }); }} onCancel={() => setModal({ type: null, data: null })} />}
+      {modal.type === 'translateEmpty' && <TranslateEmptyModal 
+        words={modal.data} 
+        onTranslate={async (translated) => { 
+          // Обновляем state
+          setData(d => ({ 
+            ...d, 
+            words: d.words.map(w => { 
+              const t = translated.find(x => x.id === w.id); 
+              return t || w; 
+            }) 
+          })); 
+          
+          // Сохраняем в базу
+          for (const word of translated) {
+            await supabase
+              .from('words')
+              .update({ 
+                type: word.type,
+                level: word.level,
+                forms: word.forms,
+                meaning_en: word.meaningEn,
+                meaning_ru: word.meaningRu,
+                example: word.example,
+                single_root_words: word.singleRootWords || '',
+                synonyms: word.synonyms || ''
+              })
+              .eq('id', word.id);
+          }
+          
+          setToast({ message: `${translated.length} words translated!`, canUndo: false }); 
+        }} 
+        onCancel={() => setModal({ type: null, data: null })} 
+      />}
       {modal.type === 'fillRoots' && <FillFieldModal 
   words={modal.data} 
   fieldName="singleRootWords" 
