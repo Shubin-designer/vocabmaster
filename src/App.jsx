@@ -1355,6 +1355,13 @@ console.log('=== Rendering VocabApp ===', {
   wordsCount: data.words.length
 });
 
+  // Калі view="song" але няма песні - вяртаемся на dashboard
+if (view === 'song' && !currentSong) {
+  console.log('Song view but no song - redirecting to dashboard');
+  setView('dashboard');
+}
+
+
   const playPronunciation = w => { const u = new SpeechSynthesisUtterance(w); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); };
 
   const getCurrentWords = () => {
