@@ -1223,11 +1223,15 @@ export default function VocabApp() {
 // Загрузка сохранённого состояния
 useEffect(() => {
   if (!user) return;
-  
+    console.log('=== Loading saved state ===');
+
   try {
     const saved = localStorage.getItem('vocabmaster_state');
+        console.log('Saved state:', saved);
+
     if (saved) {
       const state = JSON.parse(saved);
+        console.log('Parsed state:', state);
       if (state.view) setView(state.view);
       if (state.expandedCollections) setExpandedCollections(state.expandedCollections);
       if (state.expandedSongFolders) setExpandedSongFolders(state.expandedSongFolders);
@@ -1266,7 +1270,7 @@ useEffect(() => {
     currentSectionId: currentSection?.id || null,
     currentSongId: currentSong?.id || null
   };
-  
+  console.log('=== Saving state ===', state);
   localStorage.setItem('vocabmaster_state', JSON.stringify(state));
 }, [user, view, expandedCollections, expandedSongFolders, currentCollection, currentSection, currentSong]);
 
