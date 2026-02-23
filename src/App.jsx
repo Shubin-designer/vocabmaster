@@ -1219,7 +1219,57 @@ export default function VocabApp() {
     setIsLoading(false); 
   })(); 
 }, [user]);
-          
+
+// Загрузка сохранённого состояния
+useEffect(() => {
+  if (!user) return;
+  
+  try {
+    const saved = localStorage.getItem('vocabmaster_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      if (state.view) setView(state.view);
+      if (state.expandedCollections) setExpandedCollections(state.expandedCollections);
+      if (state.expandedSongFolders) setExpandedSongFolders(state.expandedSongFolders);
+      
+      // Восстанавливаем текущую коллекцию/секцию/песню после загрузки данных
+      setTimeout(() => {
+        if (state.currentCollectionId) {
+          const col = data.collections.find(c => c.id === state.currentCollectionId);
+          if (col) setCurrentCollection(col);
+        }
+        if (state.currentSectionId) {
+          const sections = data.collections.flatMap(c => c.sections);
+          const sec = sections.find(s => s.id === state.currentSectionId);
+          if (sec) setCurrentSection(sec);
+        }
+        if (state.currentSongId) {
+          const song = data.songs.find(s => s.id === state.currentSongId);
+          if (song) setCurrentSong(song);
+        }
+      }, 100);
+    }
+  } catch (e) {
+    console.error('Failed to load state:', e);
+  }
+}, [user, data.collections, data.songs]);
+
+// Сохранение состояния при изменениях
+useEffect(() => {
+  if (!user) return;
+  
+  const state = {
+    view,
+    expandedCollections,
+    expandedSongFolders,
+    currentCollectionId: currentCollection?.id || null,
+    currentSectionId: currentSection?.id || null,
+    currentSongId: currentSong?.id || null
+  };
+  
+  localStorage.setItem('vocabmaster_state', JSON.stringify(state));
+}, [user, view, expandedCollections, expandedSongFolders, currentCollection, currentSection, currentSong]);
+
   
   const playPronunciation = w => { const u = new SpeechSynthesisUtterance(w); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); };
 

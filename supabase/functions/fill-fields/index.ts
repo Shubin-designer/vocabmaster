@@ -20,7 +20,20 @@ serve(async (req) => {
     let prompt = '';
 
     if (fieldName === 'singleRootWords') {
-      prompt = `Generate 5-10 single-root words for "${word}". CRITICAL FORMAT - each word MUST have ALL 4 parts: word (part_of_speech) /IPA/ - Russian_translation. EXAMPLE for "teach": {"words":"teacher (noun) /ˈtiːtʃər/ - учитель, teaching (noun) /ˈtiːtʃɪŋ/ - обучение, taught (verb) /tɔːt/ - научил, teachable (adjective) /ˈtiːtʃəbl/ - обучаемый"}. RULES: Every word MUST have: word (type) /ipa/ - translation. Use British English IPA. Separate entries with commas. Return ONLY JSON.`;
+      prompt = `Generate 5-10 words that share the SAME ROOT as "${word}". 
+Examples:
+- For "teach" → teacher, teaching, taught, teachable (same root "teach")
+- For "strange" → stranger, strangely, strangeness, estranged (same root "strange")
+
+DO NOT provide synonyms! Only words with the same morphological root.
+
+Return JSON:
+{
+  "words": [
+    {"word": "teacher", "type": "noun", "ipa": "/ˈtiːtʃər/", "ru": "учитель"},
+    {"word": "teaching", "type": "noun", "ipa": "/ˈtiːtʃɪŋ/", "ru": "обучение"}
+  ]
+}`;
     } else {
       prompt = `List 5-8 synonyms for "${word}". Return JSON: {"synonyms":"syn1, syn2, syn3"}`;
     }
@@ -49,6 +62,18 @@ serve(async (req) => {
     text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const parsed = JSON.parse(jsonMatch[0]);
+
+    // Конвертируем массив объектов в строку нужного формата
+    if (fieldName === 'singleRootWords' && Array.isArray(parsed.words)) {
+      parsed.words = parsed.words
+        .map(w => {
+          if (typeof w === 'string') return w; // Якщо вже строка
+          if (!w || !w.word) return null; // Якщо невалідний об'єкт - пропускаємо
+          return `${w.word} (${w.type || 'word'}) /${w.ipa || ''}/ - ${w.ru || ''}`;
+        })
+        .filter(w => w !== null) // Видаляємо null
+        .join(', ');
+    }
 
     console.log('Parsed:', parsed);
     console.log('Original word:', word);
