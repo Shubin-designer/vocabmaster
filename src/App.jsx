@@ -199,7 +199,15 @@ const doFill = async () => {
         <>
           <p className="text-gray-600 mb-4">This will generate {fieldLabel.toLowerCase()} for {words.length} words.</p>
           <div className="max-h-48 overflow-y-auto border rounded-lg p-3 mb-4 bg-gray-50">{words.map((w, i) => <div key={i} className="text-sm">{w.word}</div>)}</div>
-          <div className="flex gap-2"><button onClick={onCancel} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">Cancel</button><button onClick={doFill} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Start</button></div>
+          <div className="flex gap-2"><button onClick={onCancel} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">Cancel</button><button 
+  onClick={() => {
+    console.log('=== Start button clicked ===');
+    doFill();
+  }} 
+  className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+>
+  Start
+</button></div>
         </>
       ) : (
         <>
