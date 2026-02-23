@@ -1347,7 +1347,13 @@ useEffect(() => {
   }
 }, [user, isLoading, data.collections, data.songs]);
 
-
+console.log('=== Rendering VocabApp ===', {
+  view,
+  currentCollection: currentCollection?.name,
+  currentSection: currentSection?.name,
+  isLoading,
+  wordsCount: data.words.length
+});
 
   const playPronunciation = w => { const u = new SpeechSynthesisUtterance(w); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); };
 
