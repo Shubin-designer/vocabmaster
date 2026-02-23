@@ -1111,13 +1111,43 @@ export default function VocabApp() {
   const [currentCollection, setCurrentCollection] = useState(null);
   const [currentSection, setCurrentSection] = useState(null);
   const [currentSong, setCurrentSong] = useState(null);
-  const [view, setView] = useState('dashboard');
+  const [view, setView] = useState(() => {
+  try {
+    const saved = localStorage.getItem('vocabmaster_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.view || 'dashboard';
+    }
+  } catch (e) {
+    console.error('Failed to load view:', e);
+  }
+  return 'dashboard';
+});
   const [modal, setModal] = useState({ type: null, data: null });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
   const [deletedItem, setDeletedItem] = useState(null);
-  const [expandedCollections, setExpandedCollections] = useState(['c1']);
-  const [expandedSongFolders, setExpandedSongFolders] = useState(['sf1']);
+  const [expandedCollections, setExpandedCollections] = useState(() => {
+  try {
+    const saved = localStorage.getItem('vocabmaster_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.expandedCollections || ['c1'];
+    }
+  } catch (e) {}
+  return ['c1'];
+});
+
+const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
+  try {
+    const saved = localStorage.getItem('vocabmaster_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.expandedSongFolders || ['sf1'];
+    }
+  } catch (e) {}
+  return ['sf1'];
+});
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
