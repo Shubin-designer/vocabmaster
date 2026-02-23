@@ -1221,7 +1221,7 @@ export default function VocabApp() {
 }, [user]);
 
 // Загрузка сохранённого состояния
-useEffect(() => {
+useEffect(() => { 
   if (!user) return;
     console.log('=== Loading saved state ===');
 
@@ -1235,7 +1235,6 @@ useEffect(() => {
         console.log('Parsed state:', state);
       if (state.view) setView(state.view);
         console.log('Setting view to:', state.view);
-  console.log('Setting expandedCollections to:', state.expandedCollections);
 
       if (state.expandedCollections) setExpandedCollections(state.expandedCollections);
       if (state.expandedSongFolders) setExpandedSongFolders(state.expandedSongFolders);
@@ -1278,7 +1277,76 @@ useEffect(() => {
   localStorage.setItem('vocabmaster_state', JSON.stringify(state));
 }, [user, view, expandedCollections, expandedSongFolders, currentCollection, currentSection, currentSong]);
 
+// Загрузка view и немедленное разворачивание коллекции
+useEffect(() => {
+  if (!user) return;
   
+  console.log('=== Loading UI state ===');
+  try {
+    const saved = localStorage.getItem('vocabmaster_state');
+    console.log('Saved state:', saved);
+    if (saved) {
+      const state = JSON.parse(saved);
+      console.log('Parsed state:', state);
+      
+      if (state.view) {
+        console.log('Setting view to:', state.view);
+        setView(state.view);
+      }
+      if (state.expandedCollections) {
+        console.log('Setting expandedCollections');
+        setExpandedCollections(state.expandedCollections);
+      }
+      if (state.expandedSongFolders) {
+        setExpandedSongFolders(state.expandedSongFolders);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load UI state:', e);
+  }
+}, [user]);
+  
+
+// Обновлени текущей коллекции/секциии/песни после загрузки данных
+useEffect(() => {
+  if (!user || isLoading) return;
+  
+  console.log('=== Restoring current items ===');
+  try {
+    const saved = localStorage.getItem('vocabmaster_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      
+      if (state.currentCollectionId) {
+        const col = data.collections.find(c => c.id === state.currentCollectionId);
+        if (col) {
+          console.log('Restoring collection:', col.name);
+          setCurrentCollection(col);
+        }
+      }
+      if (state.currentSectionId) {
+        const sections = data.collections.flatMap(c => c.sections);
+        const sec = sections.find(s => s.id === state.currentSectionId);
+        if (sec) {
+          console.log('Restoring section:', sec.name);
+          setCurrentSection(sec);
+        }
+      }
+      if (state.currentSongId) {
+        const song = data.songs.find(s => s.id === state.currentSongId);
+        if (song) {
+          console.log('Restoring song:', song.title);
+          setCurrentSong(song);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Failed to restore items:', e);
+  }
+}, [user, isLoading, data.collections, data.songs]);
+
+
+
   const playPronunciation = w => { const u = new SpeechSynthesisUtterance(w); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); };
 
   const getCurrentWords = () => {
