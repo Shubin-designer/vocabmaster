@@ -34,22 +34,24 @@ serve(async (req) => {
         messages: [{
           role: 'user',
           content: `Analyze the word "${word}". Return ONLY valid JSON (no markdown):
-{
-  "type": "noun/verb/adjective/etc",
-  "level": "A1/A2/B1/B2/C1/C2",
-  "phonetic": "/ipa_transcription/",
-  "meaningEn": "brief main definition",
-  "meanings": [
-    {"ru": "перевод 1", "meaningEn": "definition 1", "example": "natural example (10-15 words)"},
-    {"ru": "перевод 2", "meaningEn": "definition 2", "example": "natural example (10-15 words)"}
-  ],
-  "singleRootWords": [
-    {"word": "teacher", "type": "noun", "ipa": "/ˈtiːtʃər/", "ru": "учитель"},
-    {"word": "teaching", "type": "noun", "ipa": "/ˈtiːtʃɪŋ/", "ru": "обучение"}
-  ],
-  "synonyms": "synonym1, synonym2, synonym3"
-}
-CRITICAL: singleRootWords MUST be an array of objects with word, type, ipa, ru fields!`
+        {
+          "type": "noun/verb/adjective/etc",
+          "level": "A1/A2/B1/B2/C1/C2",
+          "phonetic": "/ipa_transcription/",
+          "meaningEn": "brief main definition",
+          "meanings": [
+            {"ru": "перевод 1", "meaningEn": "definition 1", "example": "natural example (10-15 words)"},
+            {"ru": "перевод 2", "meaningEn": "definition 2", "example": "natural example (10-15 words)"}
+          ],
+          "singleRootWords": [
+            {"word": "teacher", "type": "noun", "ipa": "/ˈtiːtʃər/", "ru": "учитель"},
+            {"word": "teaching", "type": "noun", "ipa": "/ˈtiːtʃɪŋ/", "ru": "обучение"}
+          ],
+          "synonyms": "synonym1, synonym2, synonym3"
+        }
+        CRITICAL: singleRootWords MUST be an array of objects with word, type, ipa, ru fields!
+        IMPORTANT: ru field must be ONE word only, no commas!`
+
         }]
       })
     });

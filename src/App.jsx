@@ -1773,7 +1773,55 @@ const saveCollection = async (name) => {
                 sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} 
                 collections={data.collections} 
                 existingWords={data.words} 
-                onAddWords={ws => { setData(d => ({ ...d, words: [...d.words, ...ws] })); setToast({ message: `${ws.length} words added!`, canUndo: false }); }} 
+                onAddWords={async (ws) => {
+                const savedWords = [];
+                for (const w of ws) {
+                  const { data: newWord, error } = await supabase
+                    .from('words')
+                    .insert([{
+                      user_id: user.id,
+                      section_id: w.sectionId,
+                      word: w.word,
+                      type: w.type,
+                      level: w.level,
+                      forms: w.forms || '',
+                      meaning_en: w.meaningEn || '',
+                      meaning_ru: w.meaningRu || '',
+                      example: w.example || '',
+                      my_example: w.myExample || '',
+                      single_root_words: w.singleRootWords || '',
+                      synonyms: w.synonyms || '',
+                      tags: w.tags || [],
+                      status: STATUS.NEW,
+                      passed_modes: []
+                    }])
+                    .select()
+                    .single();
+                  
+                  if (!error && newWord) {
+                    savedWords.push({
+                      id: newWord.id,
+                      sectionId: newWord.section_id,
+                      word: newWord.word,
+                      type: newWord.type,
+                      level: newWord.level,
+                      forms: newWord.forms,
+                      meaningEn: newWord.meaning_en,
+                      meaningRu: newWord.meaning_ru,
+                      example: newWord.example,
+                      myExample: newWord.my_example,
+                      singleRootWords: newWord.single_root_words,
+                      synonyms: newWord.synonyms,
+                      tags: newWord.tags,
+                      status: newWord.status,
+                      passedModes: newWord.passed_modes
+                    });
+                  }
+                }
+                setData(d => ({ ...d, words: [...d.words, ...savedWords] })); 
+                setToast({ message: `${savedWords.length} words added!`, canUndo: false }); 
+              }}
+
                 onCreateSection={createSectionFromSong} 
                 onUnsavedChange={setHasUnsavedWords}
                 onClose={() => {
