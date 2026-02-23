@@ -1231,8 +1231,12 @@ useEffect(() => {
 
     if (saved) {
       const state = JSON.parse(saved);
+      
         console.log('Parsed state:', state);
       if (state.view) setView(state.view);
+        console.log('Setting view to:', state.view);
+  console.log('Setting expandedCollections to:', state.expandedCollections);
+
       if (state.expandedCollections) setExpandedCollections(state.expandedCollections);
       if (state.expandedSongFolders) setExpandedSongFolders(state.expandedSongFolders);
       
