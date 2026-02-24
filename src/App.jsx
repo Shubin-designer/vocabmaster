@@ -412,7 +412,8 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       
       return {
         ...f,
-        meaningEn: currentMeaningEn 
+        type: meaning.type || f.type,  // ← ДАДАЙ ГЭТ РАДОК
+        meaningEn: currentMeaningEn
           ? `${currentMeaningEn}\n${meaning.meaningEn}` 
           : meaning.meaningEn,
         example: currentExample 
@@ -475,19 +476,24 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
             {translations.length > 0 && (
               <div className="mt-1">
                 <span className="text-xs text-gray-500 mr-1">Click to add:</span>
-                {translations.map(t => (
-                <button
-                  key={t}
-                  onClick={() => addTranslation(t)}
-                  className={`text-sm px-3 py-1 rounded-full ${
-                    isTranslationAdded(t) 
-                      ? 'bg-green-100 text-green-700 border border-green-300' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {isTranslationAdded(t) ? '✓ ' : ''}{t}
-                </button>
-              ))}
+                {translations.map((t, idx) => {
+                  const meaning = translationsWithExamples[idx];
+                  const typeEmoji = meaning?.type === 'noun' ? '🔵' : meaning?.type === 'verb' ? '🔴' : meaning?.type === 'adjective' ? '🟡' : '⚪';
+                  
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => addTranslation(t)}
+                      className={`text-sm px-3 py-1 rounded-full ${
+                        isTranslationAdded(t) 
+                          ? 'bg-green-100 text-green-700 border border-green-300' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {isTranslationAdded(t) ? '✓ ' : ''}{typeEmoji} {t}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
