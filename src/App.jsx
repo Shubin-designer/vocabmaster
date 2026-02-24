@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw } from 'lucide-react';
+import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -1427,6 +1427,8 @@ const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('vocabmaster_theme') || 'light');
   const [cardSession, setCardSession] = useState(null);
   const [quizSession, setQuizSession] = useState(null);
   const [writeSession, setWriteSession] = useState(null);
@@ -1449,9 +1451,34 @@ const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Применение темы
+  useEffect(() => {
+    localStorage.setItem('vocabmaster_theme', theme);
+    if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setShowUserMenu(false);
+  };
+
+  const handleChangePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      setToast({ message: error.message, canUndo: false });
+    } else {
+      setToast({ message: 'Password updated!', canUndo: false });
+      setModal({ type: null, data: null });
+    }
+  };
+
   useEffect(() => {
   if (!user) return;
-  
+
   (async () => { 
     try {
       // Загружаем коллекции с секциями
@@ -2396,32 +2423,210 @@ const saveCollection = async (name) => {
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 h-screen">
-        <header className="bg-white border-b px-4 h-14 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-3"><button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg"><Menu size={20}/></button><h1 className="text-xl font-bold text-blue-600">VocabMaster</h1></div>
+        <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 px-4 h-14 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3"><button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><Menu size={20}/></button><h1 className="text-xl font-bold text-blue-600">VocabMaster</h1></div>
           <div className="flex items-center gap-2">
             <input type="file" accept=".json" onChange={importData} className="hidden" id="import-backup" />
-            <button onClick={() => document.getElementById('import-backup').click()} className="p-2 hover:bg-gray-100 rounded" title="Restore"><Upload size={20}/></button>
-            <button onClick={exportData} className="p-2 hover:bg-gray-100 rounded" title="Backup"><Download size={20}/></button>
+            <button onClick={() => document.getElementById('import-backup').click()} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Restore"><Upload size={20}/></button>
+            <button onClick={exportData} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Backup"><Download size={20}/></button>
             {currentSection && (
               <>
                 <button onClick={() => setModal({ type: 'importText', data: null })} className="h-10 px-3 bg-purple-500 text-white rounded-lg flex items-center gap-1 text-sm"><Upload size={18}/> Import</button>
                 <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className="h-10 px-3 bg-blue-500 text-white rounded-lg flex items-center gap-1 text-sm"><Plus size={18}/> Add word</button>
               </>
             )}
+            <div className="relative ml-2">
+              <button onClick={() => setShowUserMenu(!showUserMenu)} className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-200">
+                <User size={18}/>
+              </button>
+              {showUserMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border dark:border-gray-700 py-2 z-50">
+                    <div className="px-4 py-2 border-b dark:border-gray-700">
+                      <div className="text-sm font-medium truncate">{user.email}</div>
+                    </div>
+                    <div className="py-1">
+                      <button onClick={() => { setTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'); }} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
+                        {theme === 'light' ? <Sun size={16}/> : theme === 'dark' ? <Moon size={16}/> : <Monitor size={16}/>}
+                        Theme: {theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'System'}
+                      </button>
+                      <button onClick={() => { setModal({ type: 'changePassword', data: null }); setShowUserMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
+                        <Settings size={16}/> Change Password
+                      </button>
+                    </div>
+                    <div className="border-t dark:border-gray-700 pt-1">
+                      <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
+                        <LogOut size={16}/> Sign Out
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
         <div className="flex-1 overflow-auto p-4">
-          {view === 'dashboard' && (
+          {view === 'dashboard' && (() => {
+            const totalWords = data.words.length;
+            const newWords = data.words.filter(w => w.status === STATUS.NEW).length;
+            const learningWords = data.words.filter(w => w.status === STATUS.LEARNING).length;
+            const learnedWords = data.words.filter(w => w.status === STATUS.LEARNED).length;
+            const progressPercent = totalWords > 0 ? Math.round((learnedWords / totalWords) * 100) : 0;
+
+            // Статистика по уровням
+            const levelStats = LEVELS.map(level => ({
+              level,
+              count: data.words.filter(w => w.level === level).length
+            })).filter(l => l.count > 0);
+
+            // Последние добавленные слова
+            const recentWords = [...data.words].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+
+            // Слова для повторения (learning)
+            const wordsToReview = data.words.filter(w => w.status === STATUS.LEARNING).slice(0, 5);
+
+            return (
             <div className="space-y-6">
-              <div className="grid grid-cols-4 gap-4">
-                <button onClick={() => { setFilterStatus('all'); setViewTitle('Total Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-white rounded-xl p-4 shadow-sm border hover:bg-gray-50 text-left"><div className="text-3xl font-bold">{data.words.length}</div><div className="text-gray-500 text-sm">Total</div></button>
-                <button onClick={() => { setFilterStatus('new'); setViewTitle('New Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-blue-50 rounded-xl p-4 border border-blue-100 hover:bg-blue-100 text-left"><div className="text-3xl font-bold text-blue-600">{data.words.filter(w => w.status === STATUS.NEW).length}</div><div className="text-gray-500 text-sm">New</div></button>
-                <button onClick={() => { setFilterStatus('learning'); setViewTitle('Learning Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-yellow-50 rounded-xl p-4 border border-yellow-100 hover:bg-yellow-100 text-left"><div className="text-3xl font-bold text-yellow-600">{data.words.filter(w => w.status === STATUS.LEARNING).length}</div><div className="text-gray-500 text-sm">Learning</div></button>
-                <button onClick={() => { setFilterStatus('learned'); setViewTitle('Learned Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-green-50 rounded-xl p-4 border border-green-100 hover:bg-green-100 text-left"><div className="text-3xl font-bold text-green-600">{data.words.filter(w => w.status === STATUS.LEARNED).length}</div><div className="text-gray-500 text-sm">Learned</div></button>
+              {/* Приветствие */}
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
+                <h2 className="text-2xl font-bold mb-2">Welcome back! 👋</h2>
+                <p className="opacity-90">You have {totalWords} words in your vocabulary. Keep learning!</p>
+                {progressPercent > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Overall progress</span>
+                      <span>{progressPercent}%</span>
+                    </div>
+                    <div className="h-2 bg-white/30 rounded-full overflow-hidden">
+                      <div className="h-full bg-white rounded-full transition-all" style={{ width: `${progressPercent}%` }}></div>
+                    </div>
+                  </div>
+                )}
               </div>
-              {data.collections.length === 0 && <div className="text-center py-12"><div className="text-6xl mb-4">📚</div><h2 className="text-xl font-semibold mb-2">Welcome to VocabMaster!</h2><p className="text-gray-500">Create a collection and start adding words.</p></div>}
+
+              {/* Основная статистика */}
+              <div className="grid grid-cols-4 gap-4">
+                <button onClick={() => { setFilterStatus('all'); setViewTitle('Total Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-white rounded-xl p-5 shadow-sm border hover:shadow-md transition-shadow text-left">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center"><BookOpen size={20} className="text-gray-600"/></div>
+                    <div className="text-3xl font-bold">{totalWords}</div>
+                  </div>
+                  <div className="text-gray-500 text-sm">Total words</div>
+                </button>
+                <button onClick={() => { setFilterStatus('new'); setViewTitle('New Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-white rounded-xl p-5 shadow-sm border hover:shadow-md transition-shadow text-left">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><Target size={20} className="text-blue-600"/></div>
+                    <div className="text-3xl font-bold text-blue-600">{newWords}</div>
+                  </div>
+                  <div className="text-gray-500 text-sm">New words</div>
+                </button>
+                <button onClick={() => { setFilterStatus('learning'); setViewTitle('Learning Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-white rounded-xl p-5 shadow-sm border hover:shadow-md transition-shadow text-left">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center"><Flame size={20} className="text-yellow-600"/></div>
+                    <div className="text-3xl font-bold text-yellow-600">{learningWords}</div>
+                  </div>
+                  <div className="text-gray-500 text-sm">Learning</div>
+                </button>
+                <button onClick={() => { setFilterStatus('learned'); setViewTitle('Learned Words'); handleNavigationWithCheck(() => setView('all-words')); }} className="bg-white rounded-xl p-5 shadow-sm border hover:shadow-md transition-shadow text-left">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><Award size={20} className="text-green-600"/></div>
+                    <div className="text-3xl font-bold text-green-600">{learnedWords}</div>
+                  </div>
+                  <div className="text-gray-500 text-sm">Learned</div>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                {/* Уровни */}
+                {levelStats.length > 0 && (
+                  <div className="bg-white rounded-xl p-5 shadow-sm border">
+                    <h3 className="font-semibold mb-4 flex items-center gap-2"><TrendingUp size={18}/> By Level</h3>
+                    <div className="space-y-3">
+                      {levelStats.map(({ level, count }) => (
+                        <div key={level} className="flex items-center gap-3">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${getLevelColor(level)}`}>{level}</span>
+                          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(count / totalWords) * 100}%` }}></div>
+                          </div>
+                          <span className="text-sm text-gray-500 w-8">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Коллекции */}
+                <div className="bg-white rounded-xl p-5 shadow-sm border">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2"><BookOpen size={18}/> Collections</h3>
+                  {data.collections.length > 0 ? (
+                    <div className="space-y-2">
+                      {data.collections.slice(0, 5).map(col => {
+                        const colWords = data.words.filter(w => col.sections.some(s => s.id === w.sectionId));
+                        return (
+                          <button key={col.id} onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 text-left">
+                            <span className="text-xl">{col.icon || '📚'}</span>
+                            <span className="flex-1 truncate text-sm">{col.name}</span>
+                            <span className="text-sm text-gray-400">{colWords.length}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No collections yet. Create one to start!</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Последние слова и слова для повторения */}
+              <div className="grid grid-cols-2 gap-6">
+                {recentWords.length > 0 && (
+                  <div className="bg-white rounded-xl p-5 shadow-sm border">
+                    <h3 className="font-semibold mb-4 flex items-center gap-2"><Calendar size={18}/> Recently Added</h3>
+                    <div className="space-y-2">
+                      {recentWords.map(w => (
+                        <div key={w.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setModal({ type: 'word', data: w })}>
+                          <span className="font-medium text-sm">{w.word}</span>
+                          <span className="text-gray-400 text-sm truncate flex-1">{w.meaningRu}</span>
+                          <span className={`px-2 py-0.5 rounded text-xs ${getLevelColor(w.level)}`}>{w.level}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {wordsToReview.length > 0 && (
+                  <div className="bg-white rounded-xl p-5 shadow-sm border">
+                    <h3 className="font-semibold mb-4 flex items-center gap-2"><RotateCcw size={18}/> Review These</h3>
+                    <div className="space-y-2">
+                      {wordsToReview.map(w => (
+                        <div key={w.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setModal({ type: 'word', data: w })}>
+                          <span className="font-medium text-sm">{w.word}</span>
+                          <span className="text-gray-400 text-sm truncate flex-1">{w.meaningRu}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {learningWords > 5 && (
+                      <button onClick={() => { setFilterStatus('learning'); setView('all-words'); }} className="mt-3 text-sm text-blue-600 hover:text-blue-700">
+                        View all {learningWords} →
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {data.collections.length === 0 && totalWords === 0 && (
+                <div className="text-center py-12 bg-white rounded-xl border">
+                  <div className="text-6xl mb-4">📚</div>
+                  <h2 className="text-xl font-semibold mb-2">Welcome to VocabMaster!</h2>
+                  <p className="text-gray-500 mb-4">Create a collection and start adding words.</p>
+                  <button onClick={() => setModal({ type: 'collection', data: null })} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    <Plus size={18} className="inline mr-1"/> Create Collection
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          );})()}
           {view === 'all-words' && (
             <>
               <div className="flex items-center justify-between mb-4">
@@ -2879,6 +3084,32 @@ const saveCollection = async (name) => {
             )}
           </div>
         </div>
+      )}
+      {modal.type === 'changePassword' && (
+        <Modal onClose={() => setModal({ type: null, data: null })}>
+          <h3 className="text-lg font-semibold mb-4">Change Password</h3>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const newPass = e.target.newPassword.value;
+            const confirmPass = e.target.confirmPassword.value;
+            if (newPass.length < 6) {
+              setToast({ message: 'Password must be at least 6 characters', canUndo: false });
+              return;
+            }
+            if (newPass !== confirmPass) {
+              setToast({ message: 'Passwords do not match', canUndo: false });
+              return;
+            }
+            handleChangePassword(newPass);
+          }}>
+            <input name="newPassword" type="password" placeholder="New password" className="w-full h-10 px-3 border rounded-lg mb-3" required minLength={6} />
+            <input name="confirmPassword" type="password" placeholder="Confirm password" className="w-full h-10 px-3 border rounded-lg mb-4" required minLength={6} />
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border rounded-lg hover:bg-gray-50">Cancel</button>
+              <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change</button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );
