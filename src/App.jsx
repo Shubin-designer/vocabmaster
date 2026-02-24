@@ -1927,6 +1927,45 @@ const saveCollection = async (name) => {
     [newSections[idx], newSections[newIdx]] = [newSections[newIdx], newSections[idx]];
     setData(d => ({ ...d, collections: d.collections.map(c => c.id === colId ? { ...c, sections: newSections } : c) }));
   };
+
+  // Перемещение папок с песнями
+  const moveSongFolder = (folderId, direction) => {
+    const idx = data.songFolders.findIndex(f => f.id === folderId);
+    if (idx === -1) return;
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= data.songFolders.length) return;
+
+    const newFolders = [...data.songFolders];
+    [newFolders[idx], newFolders[newIdx]] = [newFolders[newIdx], newFolders[idx]];
+    setData(d => ({ ...d, songFolders: newFolders }));
+  };
+
+  // Перемещение песен внутри папки
+  const moveSong = (folderId, songId, direction) => {
+    const folderSongs = data.songs.filter(s => s.folderId === folderId);
+    const idx = folderSongs.findIndex(s => s.id === songId);
+    if (idx === -1) return;
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= folderSongs.length) return;
+
+    // Меняем местами в общем массиве
+    const songA = folderSongs[idx];
+    const songB = folderSongs[newIdx];
+    setData(d => ({
+      ...d,
+      songs: d.songs.map(s => {
+        if (s.id === songA.id) return { ...songB, id: songA.id, title: songA.title, text: songA.text, folderId: songA.folderId };
+        if (s.id === songB.id) return { ...songA, id: songB.id, title: songB.title, text: songB.text, folderId: songB.folderId };
+        return s;
+      })
+    }));
+    // Проще - просто поменять позиции
+    const idxA = data.songs.findIndex(s => s.id === songA.id);
+    const idxB = data.songs.findIndex(s => s.id === songB.id);
+    const newSongs = [...data.songs];
+    [newSongs[idxA], newSongs[idxB]] = [newSongs[idxB], newSongs[idxA]];
+    setData(d => ({ ...d, songs: newSongs }));
+  };
   const executeDelete = async () => {
   const { type, item } = confirmDelete;
   
@@ -2205,24 +2244,34 @@ const saveCollection = async (name) => {
         <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2 rounded-lg mb-2 ${view === 'dashboard' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}><Home size={18}/> Dashboard</button>
         <div className="mb-4 pb-3 border-b">
           <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500">🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className="p-1 hover:bg-gray-100 rounded"><Plus size={16}/></button></div>
-          {data.songFolders.map(folder => (
+          {data.songFolders.map((folder, folderIdx) => {
+            const folderSongs = data.songs.filter(s => s.folderId === folder.id);
+            return (
             <div key={folder.id} className="mb-1">
               <div className="flex items-center gap-1 p-2 rounded-lg cursor-pointer group hover:bg-gray-50">
                 <button onClick={() => setExpandedSongFolders(expandedSongFolders.includes(folder.id) ? expandedSongFolders.filter(id => id !== folder.id) : [...expandedSongFolders, folder.id])} className="p-0.5">{expandedSongFolders.includes(folder.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
                 <span className="flex-1 truncate text-sm">{folder.name}</span>
-                <button onClick={() => setModal({ type: 'song', data: { folderId: folder.id } })} className="p-1 opacity-0 group-hover:opacity-100"><Plus size={12}/></button>
-                <button onClick={() => setModal({ type: 'songFolder', data: folder })} className="p-1 opacity-0 group-hover:opacity-100"><Edit2 size={12}/></button>
-                <button onClick={() => requestDelete('songFolder', folder)} className="p-1 opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
+                <div className="flex opacity-0 group-hover:opacity-100">
+                  {folderIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'up'); }} className="p-1 hover:bg-gray-200 rounded" title="Move up"><ChevronUp size={12}/></button>}
+                  {folderIdx < data.songFolders.length - 1 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'down'); }} className="p-1 hover:bg-gray-200 rounded" title="Move down"><ChevronDown size={12}/></button>}
+                  <button onClick={() => setModal({ type: 'song', data: { folderId: folder.id } })} className="p-1 hover:bg-gray-200 rounded"><Plus size={12}/></button>
+                  <button onClick={() => setModal({ type: 'songFolder', data: folder })} className="p-1 hover:bg-gray-200 rounded"><Edit2 size={12}/></button>
+                  <button onClick={() => requestDelete('songFolder', folder)} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={12}/></button>
+                </div>
               </div>
-              {expandedSongFolders.includes(folder.id) && <div className="ml-6 space-y-1">{data.songs.filter(s => s.folderId === folder.id).map(song => (
+              {expandedSongFolders.includes(folder.id) && <div className="ml-6 space-y-1">{folderSongs.map((song, songIdx) => (
                 <div key={song.id} onClick={() => handleNavigationWithCheck(() => { setCurrentSong(song); setCurrentCollection(null); setCurrentSection(null); setFilterStatus('all'); setView('song'); })} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer group text-sm ${currentSong?.id === song.id ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}>
                   <span className="flex-1 truncate">{song.title}</span>
-                  <button onClick={e => { e.stopPropagation(); setModal({ type: 'song', data: song }); }} className="p-1 opacity-0 group-hover:opacity-100"><Edit2 size={12}/></button>
-                  <button onClick={e => { e.stopPropagation(); requestDelete('song', song); }} className="p-1 opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
+                  <div className="flex opacity-0 group-hover:opacity-100">
+                    {songIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'up'); }} className="p-1 hover:bg-gray-200 rounded" title="Move up"><ChevronUp size={12}/></button>}
+                    {songIdx < folderSongs.length - 1 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'down'); }} className="p-1 hover:bg-gray-200 rounded" title="Move down"><ChevronDown size={12}/></button>}
+                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'song', data: song }); }} className="p-1 hover:bg-gray-200 rounded"><Edit2 size={12}/></button>
+                    <button onClick={e => { e.stopPropagation(); requestDelete('song', song); }} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={12}/></button>
+                  </div>
                 </div>
               ))}</div>}
             </div>
-          ))}
+          );})}
         </div>
         <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500">Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className="p-1 hover:bg-gray-100 rounded"><Plus size={16}/></button></div>
         {data.collections.map((col, colIdx) => (
