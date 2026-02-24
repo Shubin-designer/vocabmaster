@@ -2205,6 +2205,12 @@ const saveCollection = async (name) => {
     
     // Сохраняем в базу
    for (const word of filled) {
+  // Праверка што ID - гэта UUID, а не timestamp
+  if (!word.id || typeof word.id !== 'string' || word.id.length < 30) {
+    console.log('Skipping word with invalid ID:', word.word, word.id);
+    continue;
+  }
+  
   console.log('Updating word:', word.word, 'with synonyms:', word.synonyms);
   
   const { error } = await supabase
