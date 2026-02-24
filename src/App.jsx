@@ -2206,12 +2206,17 @@ const saveCollection = async (name) => {
     
     // Сохраняем в базу
     for (const word of filled) {
+        console.log('Updating word:', word.word, 'with synonyms:', word.synonyms);
+
       await supabase
         .from('words')
         .update({ synonyms: word.synonyms })
         .eq('id', word.id);
     }
-    
+      console.log('Update result:', { updated, error });
+if (error) {
+    console.error('Supabase error:', error);
+  }
     setToast({ message: `${filled.length} words updated!`, canUndo: false }); 
   }} 
   onCancel={() => setModal({ type: null, data: null })} 
