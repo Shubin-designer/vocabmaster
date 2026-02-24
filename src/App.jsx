@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw } from 'lucide-react';
+import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -1901,6 +1901,32 @@ const saveCollection = async (name) => {
 };
 
   const requestDelete = (type, item) => setConfirmDelete({ type, item, name: item.word || item.name || item.title });
+
+  // Перемещение коллекций
+  const moveCollection = (colId, direction) => {
+    const idx = data.collections.findIndex(c => c.id === colId);
+    if (idx === -1) return;
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= data.collections.length) return;
+
+    const newCollections = [...data.collections];
+    [newCollections[idx], newCollections[newIdx]] = [newCollections[newIdx], newCollections[idx]];
+    setData(d => ({ ...d, collections: newCollections }));
+  };
+
+  // Перемещение секций внутри коллекции
+  const moveSection = (colId, secId, direction) => {
+    const col = data.collections.find(c => c.id === colId);
+    if (!col) return;
+    const idx = col.sections.findIndex(s => s.id === secId);
+    if (idx === -1) return;
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= col.sections.length) return;
+
+    const newSections = [...col.sections];
+    [newSections[idx], newSections[newIdx]] = [newSections[newIdx], newSections[idx]];
+    setData(d => ({ ...d, collections: d.collections.map(c => c.id === colId ? { ...c, sections: newSections } : c) }));
+  };
   const executeDelete = async () => {
   const { type, item } = confirmDelete;
   
@@ -2199,22 +2225,30 @@ const saveCollection = async (name) => {
           ))}
         </div>
         <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500">Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className="p-1 hover:bg-gray-100 rounded"><Plus size={16}/></button></div>
-        {data.collections.map(col => (
+        {data.collections.map((col, colIdx) => (
           <div key={col.id} className="mb-1">
             <div className={`flex items-center gap-1 p-2 rounded-lg cursor-pointer group ${currentCollection?.id === col.id && !currentSection ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}>
               <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className="p-0.5">{expandedCollections.includes(col.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
               <span className="text-base">{col.icon || '📚'}</span>
               <span onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className="flex-1 truncate text-sm">{col.name}</span>
-              <button onClick={() => setModal({ type: 'collection', data: col })} className="p-1 opacity-0 group-hover:opacity-100"><Edit2 size={12}/></button>
-              <button onClick={() => requestDelete('collection', col)} className="p-1 opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
+              <div className="flex opacity-0 group-hover:opacity-100">
+                {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className="p-1 hover:bg-gray-200 rounded" title="Move up"><ChevronUp size={12}/></button>}
+                {colIdx < data.collections.length - 1 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'down'); }} className="p-1 hover:bg-gray-200 rounded" title="Move down"><ChevronDown size={12}/></button>}
+                <button onClick={() => setModal({ type: 'collection', data: col })} className="p-1 hover:bg-gray-200 rounded"><Edit2 size={12}/></button>
+                <button onClick={() => requestDelete('collection', col)} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={12}/></button>
+              </div>
             </div>
             {expandedCollections.includes(col.id) && <div className="ml-6 space-y-1">
-              {col.sections.map(sec => (
+              {col.sections.map((sec, secIdx) => (
                 <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer group text-sm ${currentSection?.id === sec.id ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}>
                   <span className="text-base">{sec.icon || '📖'}</span>
                   <span className="flex-1 truncate">{sec.name}</span>
-                  <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className="p-1 opacity-0 group-hover:opacity-100"><Edit2 size={12}/></button>
-                  <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className="p-1 opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
+                  <div className="flex opacity-0 group-hover:opacity-100">
+                    {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className="p-1 hover:bg-gray-200 rounded" title="Move up"><ChevronUp size={12}/></button>}
+                    {secIdx < col.sections.length - 1 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'down'); }} className="p-1 hover:bg-gray-200 rounded" title="Move down"><ChevronDown size={12}/></button>}
+                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className="p-1 hover:bg-gray-200 rounded"><Edit2 size={12}/></button>
+                    <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={12}/></button>
+                  </div>
                 </div>
               ))}
               <button onClick={() => setModal({ type: 'section', data: { colId: col.id, section: null } })} className="flex items-center gap-2 p-2 text-gray-400 hover:text-gray-600 text-sm"><Plus size={14}/> Add section</button>
