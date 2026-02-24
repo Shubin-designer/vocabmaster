@@ -1685,10 +1685,10 @@ useEffect(() => {
  
   const saveSong = async (sd) => {
   console.log('Saving song:', sd);
-  
+
   const { data: newSong, error } = await supabase
     .from('songs')
-    .insert([{ 
+    .insert([{
       user_id: user.id,
       folder_id: sd.folderId,
       title: sd.title,
@@ -1696,14 +1696,16 @@ useEffect(() => {
     }])
     .select()
     .single();
-  
+
   console.log('Result:', newSong, 'Error:', error);
-  
+
   if (!error && newSong) {
-    setData(d => ({ ...d, songs: [...d.songs, newSong] })); 
-    setCurrentSong(newSong); 
-    setView('song'); 
+    const song = { ...newSong, folderId: newSong.folder_id };
+    setData(d => ({ ...d, songs: [...d.songs, song] }));
+    setCurrentSong(song);
+    setView('song');
   }
+  setModal({ type: null, data: null });
 };
 
 const updateSong = async (s) => {
