@@ -1631,18 +1631,20 @@ console.log('=== Rendering VocabApp ===', {
   wordsCount: data.words.length
 });
 
-  // Калі view="song" але няма песні - вяртаемся на dashboard
-if (view === 'song' && !currentSong) {
-  console.log('Song view but no song - redirecting to dashboard');
-  setView('dashboard');
-}
+  // Fallback: калі view патрабуе дадзеныя якіх няма - вяртаемся на dashboard
+useEffect(() => {
+  if (!stateRestored) return;
 
-// Калі view патрабуе калекцыю/секцыю але іх няма - вяртаемся на dashboard
-// Толькі пасля таго як state адноўлены
-if (stateRestored && ['list', 'cards', 'quiz', 'write'].includes(view) && !currentCollection && !currentSection) {
-  console.log('List/cards/quiz/write view but no collection/section - redirecting to dashboard');
-  setView('dashboard');
-}
+  if (view === 'song' && !currentSong) {
+    console.log('Song view but no song - redirecting to dashboard');
+    setView('dashboard');
+  }
+
+  if (['list', 'cards', 'quiz', 'write'].includes(view) && !currentCollection && !currentSection) {
+    console.log('List/cards/quiz/write view but no collection/section - redirecting to dashboard');
+    setView('dashboard');
+  }
+}, [stateRestored, view, currentSong, currentCollection, currentSection]);
 
 
   const playPronunciation = w => { const u = new SpeechSynthesisUtterance(w); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); };
