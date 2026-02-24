@@ -2026,7 +2026,59 @@ const saveCollection = async (name) => {
         </div>
       </div>
       {modal.type === 'word' && <WordForm word={modal.data} allTags={data.allTags} existingWords={data.words} sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} onSave={saveWord} onCancel={() => setModal({ type: null, data: null })} onAddTag={t => { if (!data.allTags.includes(t)) setData(d => ({ ...d, allTags: [...d.allTags, t] })); }} onDuplicateFound={msg => setAlert(msg)} />}
-      {modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id} onImport={words => { setData(d => ({ ...d, words: [...d.words, ...words] })); setToast({ message: `${words.length} words imported!`, canUndo: false }); }} onCancel={() => setModal({ type: null, data: null })} />}
+      {modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id} 
+      
+      onImport={async (words) => {
+  const savedWords = [];
+  for (const w of words) {
+    const { data: newWord, error } = await supabase
+      .from('words')
+      .insert([{
+        user_id: user.id,
+        section_id: w.sectionId,
+        word: w.word,
+        type: w.type,
+        level: w.level,
+        forms: w.forms || '',
+        meaning_en: w.meaningEn || '',
+        meaning_ru: w.meaningRu || '',
+        example: w.example || '',
+        my_example: w.myExample || '',
+        single_root_words: w.singleRootWords || '',
+        synonyms: w.synonyms || '',
+        tags: w.tags || [],
+        status: STATUS.NEW,
+        passed_modes: []
+      }])
+      .select()
+      .single();
+    
+    if (!error && newWord) {
+      savedWords.push({
+        id: newWord.id,
+        sectionId: newWord.section_id,
+        word: newWord.word,
+        type: newWord.type,
+        level: newWord.level,
+        forms: newWord.forms,
+        meaningEn: newWord.meaning_en,
+        meaningRu: newWord.meaning_ru,
+        example: newWord.example,
+        myExample: newWord.my_example,
+        singleRootWords: newWord.single_root_words,
+        synonyms: newWord.synonyms,
+        tags: newWord.tags,
+        status: newWord.status,
+        passedModes: newWord.passed_modes
+      });
+    }
+  }
+  
+  setData(d => ({ ...d, words: [...d.words, ...savedWords] })); 
+  setToast({ message: `${savedWords.length} words imported!`, canUndo: false }); 
+}}
+      
+      onCancel={() => setModal({ type: null, data: null })} />}
       {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} />}
       {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })}><h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className="w-full h-10 px-3 border rounded-lg mb-4" autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button></div></Modal>}
       {modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })}>
