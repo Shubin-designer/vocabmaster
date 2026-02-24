@@ -311,49 +311,19 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       console.log('Level:', data.level);
       console.log('Meanings:', data.meanings);
 
-      // НЕ применяем первый meaning автоматически - пусть пользователь выберет
-      // Только обновляем level, phonetic и однокоренные
-      setForm(f => {
-        // Проверяем: если в meaningEn есть кириллица - это ошибка импорта, переносим в meaningRu
-        const hasCyrillic = /[а-яёА-ЯЁ]/.test(f.meaningEn);
-        let newMeaningRu = f.meaningRu;
-        let newMeaningEn = f.meaningEn;
-
-        if (hasCyrillic && f.meaningEn) {
-          // Переносим кириллический текст в meaningRu
-          newMeaningRu = f.meaningRu
-            ? `${f.meaningRu}, ${f.meaningEn}`
-            : f.meaningEn;
-          newMeaningEn = ''; // Очищаем meaningEn
-        }
-
-        return {
-          ...f,
-          // type НЕ меняем автоматически - пользователь выберет при клике на перевод
-          level: data.level || f.level,
-          forms: data.phonetic || f.forms,
-          singleRootWords: data.singleRootWords || f.singleRootWords,
-          synonyms: data.synonyms || f.synonyms,
-          meaningRu: newMeaningRu,
-          meaningEn: newMeaningEn
-        };
-      });
-      
       if (data.meanings && Array.isArray(data.meanings)) {
-        // Собираем переводы пользователя
-        const hasCyrillic = /[а-яёА-ЯЁ]/.test(form.meaningEn);
-        const userTranslationsStr = hasCyrillic
-          ? (form.meaningRu ? `${form.meaningRu}, ${form.meaningEn}` : form.meaningEn)
-          : form.meaningRu;
-        const userTranslationsList = userTranslationsStr
-          ? userTranslationsStr.split(',').map(s => s.trim()).filter(Boolean)
-          : [];
-
-        // Определяем основной тип из API (первый meaning)
-        const primaryApiType = data.meanings[0]?.type || 'noun';
-
         // Собираем все уникальные типы из API
         const apiTypes = [...new Set(data.meanings.map(m => m.type).filter(Boolean))];
+        const primaryApiType = data.meanings[0]?.type || 'noun';
+
+        // Проверяем кириллицу в meaningEn и собираем переводы пользователя
+        const hasCyrillic = /[а-яёА-ЯЁ]/.test(form.meaningEn);
+        const userMeaningRu = hasCyrillic
+          ? (form.meaningRu ? `${form.meaningRu}, ${form.meaningEn}` : form.meaningEn)
+          : form.meaningRu;
+        const userTranslationsList = userMeaningRu
+          ? userMeaningRu.split(',').map(s => s.trim()).filter(Boolean)
+          : [];
 
         // Объединяем: если "мой" перевод есть в API - берём данные API
         const allMeanings = [...data.meanings];
@@ -361,12 +331,11 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         userTranslationsList.forEach(userRu => {
           const existsInApi = data.meanings.some(m => m.ru.toLowerCase() === userRu.toLowerCase());
           if (!existsInApi) {
-            // Добавляем "мой" перевод с типом из API (не из формы!)
             allMeanings.push({
               ru: userRu,
               meaningEn: '',
               example: '',
-              type: primaryApiType, // Берём основной тип из API
+              type: primaryApiType,
               isUserAdded: true
             });
           }
@@ -374,23 +343,34 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
 
         setTranslationsWithExamples(allMeanings);
 
+        // Находим совпадение с API для заполнения meaningEn/example
+        const firstMatchingApi = data.meanings.find(m =>
+          userTranslationsList.some(u => u.toLowerCase() === m.ru.toLowerCase())
+        );
+
+        // Если нет совпадения - берём первый API meaning
+        const meaningToUse = firstMatchingApi || data.meanings[0];
+
         // Помечаем переводы пользователя как добавленные
         if (userTranslationsList.length > 0) {
           setAddedTranslations(new Set(userTranslationsList.map(t => t.toLowerCase())));
-
-          // Автоматически заполняем meaningEn, example И type из API
-          const firstMatchingApi = data.meanings.find(m =>
-            userTranslationsList.some(u => u.toLowerCase() === m.ru.toLowerCase())
-          );
-
-          // Обновляем type на типы из API (а не старый phrase/etc)
-          setForm(f => ({
-            ...f,
-            type: apiTypes.join(', ') || f.type, // Ставим типы из API
-            meaningEn: f.meaningEn || (firstMatchingApi?.meaningEn ?? ''),
-            example: f.example || (firstMatchingApi?.example ?? '')
-          }));
         }
+
+        // Обновляем форму ОДИН раз со всеми данными
+        setForm(f => ({
+          ...f,
+          level: data.level || f.level,
+          forms: data.phonetic || f.forms,
+          singleRootWords: data.singleRootWords || f.singleRootWords,
+          synonyms: data.synonyms || f.synonyms,
+          // Типы из API
+          type: apiTypes.join(', ') || f.type,
+          // Переносим кириллицу в meaningRu
+          meaningRu: userMeaningRu || f.meaningRu,
+          // MeaningEn и example из API (очищаем если была кириллица)
+          meaningEn: hasCyrillic ? (meaningToUse?.meaningEn || '') : (f.meaningEn || meaningToUse?.meaningEn || ''),
+          example: f.example || meaningToUse?.example || ''
+        }));
       }
       setHasLookedUp(true);
     } catch (e) {
