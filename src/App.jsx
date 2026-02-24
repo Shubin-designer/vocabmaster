@@ -1451,29 +1451,20 @@ const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Применение темы
+  // Применение темы - v2
   useEffect(() => {
-    const applyTheme = () => {
-      console.log('=== Applying theme ===', theme);
-      localStorage.setItem('vocabmaster_theme', theme);
-      const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      console.log('isDark:', isDark);
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      console.log('documentElement classes:', document.documentElement.className);
-    };
-    applyTheme();
+    console.log('[THEME v2] Applying:', theme);
+    localStorage.setItem('vocabmaster_theme', theme);
 
-    // Слушаем изменения системной темы
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      if (theme === 'system') applyTheme();
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    // Принудительно убираем/добавляем класс
+    document.documentElement.classList.remove('dark');
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    }
+
+    console.log('[THEME v2] isDark:', isDark, 'classes:', document.documentElement.className);
   }, [theme]);
 
   const handleLogout = async () => {
