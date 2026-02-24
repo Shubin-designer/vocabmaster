@@ -1526,45 +1526,28 @@ const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
 }, [user]);
 
 // Загрузка сохранённого состояния
-useEffect(() => { 
+useEffect(() => {
   if (!user) return;
-    console.log('=== Loading saved state ===');
+  console.log('=== Loading saved state ===');
 
   try {
     const saved = localStorage.getItem('vocabmaster_state');
-        console.log('Saved state:', saved);
+    console.log('Saved state:', saved);
 
     if (saved) {
       const state = JSON.parse(saved);
-      
-        console.log('Parsed state:', state);
+
+      console.log('Parsed state:', state);
       if (state.view) setView(state.view);
-        console.log('Setting view to:', state.view);
+      console.log('Setting view to:', state.view);
 
       if (state.expandedCollections) setExpandedCollections(state.expandedCollections);
       if (state.expandedSongFolders) setExpandedSongFolders(state.expandedSongFolders);
-      
-      // Восстанавливаем текущую коллекцию/секцию/песню после загрузки данных
-      setTimeout(() => {
-        if (state.currentCollectionId) {
-          const col = data.collections.find(c => c.id === state.currentCollectionId);
-          if (col) setCurrentCollection(col);
-        }
-        if (state.currentSectionId) {
-          const sections = data.collections.flatMap(c => c.sections);
-          const sec = sections.find(s => s.id === state.currentSectionId);
-          if (sec) setCurrentSection(sec);
-        }
-        if (state.currentSongId) {
-          const song = data.songs.find(s => s.id === state.currentSongId);
-          if (song) setCurrentSong(song);
-        }
-      }, 100);
     }
   } catch (e) {
     console.error('Failed to load state:', e);
   }
-}, [user, data.collections, data.songs]);
+}, [user]);
 
 // Сохранение состояния при изменениях
 useEffect(() => {
@@ -1587,26 +1570,43 @@ useEffect(() => {
 // Обновлени текущей коллекции/секциии/песни после загрузки данных
 useEffect(() => {
   if (!user || isLoading) return;
-  
+
   console.log('=== Restoring current items ===');
+  console.log('Collections available:', data.collections.map(c => c.id));
+
   try {
     const saved = localStorage.getItem('vocabmaster_state');
     if (saved) {
       const state = JSON.parse(saved);
-      
+      console.log('State to restore:', state);
+
+      let restoredCollection = false;
+      let restoredSection = false;
+
       if (state.currentCollectionId) {
         const col = data.collections.find(c => c.id === state.currentCollectionId);
+        console.log('Looking for collection:', state.currentCollectionId, 'Found:', col?.name);
         if (col) {
-          console.log('Restoring collection:', col.name);
           setCurrentCollection(col);
+          restoredCollection = true;
         }
       }
       if (state.currentSectionId) {
         const sections = data.collections.flatMap(c => c.sections);
+        console.log('Sections available:', sections.map(s => s.id));
         const sec = sections.find(s => s.id === state.currentSectionId);
+        console.log('Looking for section:', state.currentSectionId, 'Found:', sec?.name);
         if (sec) {
-          console.log('Restoring section:', sec.name);
           setCurrentSection(sec);
+          restoredSection = true;
+          // Также восстанавливаем родительскую коллекцию
+          if (!restoredCollection) {
+            const parentCol = data.collections.find(c => c.sections.some(s => s.id === state.currentSectionId));
+            if (parentCol) {
+              console.log('Restoring parent collection:', parentCol.name);
+              setCurrentCollection(parentCol);
+            }
+          }
         }
       }
       if (state.currentSongId) {
@@ -1620,7 +1620,9 @@ useEffect(() => {
   } catch (e) {
     console.error('Failed to restore items:', e);
   }
-  setStateRestored(true);
+
+  // Даём React время обработать state updates перед установкой stateRestored
+  setTimeout(() => setStateRestored(true), 50);
 }, [user, isLoading, data.collections, data.songs]);
 
 console.log('=== Rendering VocabApp ===', {
