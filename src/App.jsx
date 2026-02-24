@@ -1397,6 +1397,7 @@ export default function VocabApp() {
   }
   return 'dashboard';
 });
+  const [stateRestored, setStateRestored] = useState(false);
   const [modal, setModal] = useState({ type: null, data: null });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
@@ -1619,6 +1620,7 @@ useEffect(() => {
   } catch (e) {
     console.error('Failed to restore items:', e);
   }
+  setStateRestored(true);
 }, [user, isLoading, data.collections, data.songs]);
 
 console.log('=== Rendering VocabApp ===', {
@@ -1636,7 +1638,8 @@ if (view === 'song' && !currentSong) {
 }
 
 // Калі view патрабуе калекцыю/секцыю але іх няма - вяртаемся на dashboard
-if (['list', 'cards', 'quiz', 'write'].includes(view) && !currentCollection && !currentSection) {
+// Толькі пасля таго як state адноўлены
+if (stateRestored && ['list', 'cards', 'quiz', 'write'].includes(view) && !currentCollection && !currentSection) {
   console.log('List/cards/quiz/write view but no collection/section - redirecting to dashboard');
   setView('dashboard');
 }
