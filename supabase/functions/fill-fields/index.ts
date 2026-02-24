@@ -35,6 +35,11 @@ Return ONLY valid JSON (no markdown, no extra text):
   ]
 }
 
+If the word "${word}" is misspelled or doesn't exist:
+- Try to find the correct spelling and use that
+- If you can identify the intended word, generate roots for it
+- Add "corrected": "correct_spelling" to the response
+
 CRITICAL:
 - "ru" field = ONE Russian word only (no commas, no newlines, no multiple translations)
 - "ipa" field = IPA transcription in slashes

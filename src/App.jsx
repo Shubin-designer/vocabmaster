@@ -15,7 +15,7 @@ const initialData = { collections: [{ id: 'c1', name: 'English', icon: '📚', s
 
 const Modal = ({ children, onClose, preventClose, wide, medium }) => (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={preventClose ? undefined : onClose}>
-    <div className={`bg-white rounded-xl p-6 w-full ${wide ? 'max-w-6xl' : medium ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>{children}</div>
+    <div className={`relative bg-white rounded-xl p-6 w-full ${wide ? 'max-w-6xl' : medium ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>{children}</div>
   </div>
 );
 
@@ -183,15 +183,15 @@ const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }
         if (!error && result) {
           const value = fieldName === 'singleRootWords' ? result.words : result.synonyms;
           if (value) {
-            filled.push({ ...word, [fieldName]: value });
+            filled.push({ ...word, [fieldName]: value, _corrected: result.corrected || null });
           } else {
-            failedWords.push(word);
+            failedWords.push({ ...word, _error: 'No data returned' });
           }
         } else {
-          failedWords.push(word);
+          failedWords.push({ ...word, _error: error?.message || 'API error' });
         }
       } catch (e) {
-        failedWords.push(word);
+        failedWords.push({ ...word, _error: e.message || 'Network error' });
       }
       setResults([...filled]);
       setFailed([...failedWords]);
@@ -264,11 +264,14 @@ const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }
             </div>
           </div>
 
-          {results.length > 0 && (
+          {(results.length > 0 || failed.length > 0) && (
             <div className="max-h-48 overflow-y-auto border rounded-lg mb-4">
               {results.map((w, i) => (
                 <div key={i} className="p-2 border-b">
-                  <div className="font-medium">{w.word}</div>
+                  <div className="font-medium">
+                    {w.word}
+                    {w._corrected && <span className="text-orange-500 text-sm ml-2">(corrected: {w._corrected})</span>}
+                  </div>
                   {w[fieldName] ? (
                     <div className="text-sm text-green-600">✓ {w[fieldName]}</div>
                   ) : (
@@ -279,7 +282,7 @@ const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }
               {failed.map((w, i) => (
                 <div key={`f-${i}`} className="p-2 border-b bg-red-50">
                   <div className="font-medium">{w.word}</div>
-                  <div className="text-sm text-red-500">✗ Failed</div>
+                  <div className="text-sm text-red-500">✗ {w._error || 'Failed'}</div>
                 </div>
               ))}
             </div>
