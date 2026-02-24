@@ -1589,22 +1589,22 @@ const saveCollection = async (name) => {
       .update({ name, icon })
       .eq('id', modal.data.section.id);
     
-    if (!error) {
-      const u = { ...modal.data.section, name, icon }; 
-      setData(d => ({ ...d, collections: d.collections.map(c => ({ ...c, sections: c.sections.map(s => s.id === modal.data.section.id ? u : s) })) })); 
-      if (currentSection?.id === modal.data.section.id) setCurrentSection(u); 
-    }
-  } else {
-    // Создание
-    const { data: newSection, error } = await supabase
-      .from('sections')
-      .insert([{ collection_id: modal.data.colId, name, icon }])
-      .select()
-      .single();
-    
-    if (!error && newSection) {
-      setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.colId ? { ...c, sections: [...c.sections, newSection] } : c) })); 
-    }
+      if (!error) {
+        const u = { ...modal.data.section, name, icon }; 
+        setData(d => ({ ...d, collections: d.collections.map(c => ({ ...c, sections: c.sections.map(s => s.id === modal.data.section.id ? u : s) })) })); 
+        if (currentSection?.id === modal.data.section.id) setCurrentSection(u); 
+      }
+    } else {
+      // Создание
+      const { data: newSection, error } = await supabase
+        .from('sections')
+        .insert([{ collection_id: modal.data.colId, name, icon }])
+        .select()
+        .single();
+      
+      if (!error && newSection) {
+        setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.colId ? { ...c, sections: [...c.sections, newSection] } : c) })); 
+      }
   } 
   setModal({ type: null, data: null }); 
 };
@@ -1684,8 +1684,146 @@ const saveCollection = async (name) => {
 };
 
   const exportData = () => { const j = JSON.stringify({ ...data, exportedAt: new Date().toISOString(), version: 'v7' }, null, 2); const a = document.createElement('a'); a.href = 'data:application/json;base64,' + btoa(unescape(encodeURIComponent(j))); a.download = `vocabmaster-backup-${new Date().toISOString().split('T')[0]}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); setToast({ message: 'Backup downloaded!', canUndo: false }); };
-  const importData = e => { const f = e.target.files?.[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { try { const i = JSON.parse(ev.target.result); if (i.collections && i.words) { setData({ collections: i.collections, words: i.words, allTags: i.allTags || [], songs: i.songs || [], songFolders: i.songFolders || [{ id: 'sf1', name: 'My Songs' }] }); setToast({ message: `Restored!`, canUndo: false }); } } catch (e) { setToast({ message: 'Error', canUndo: false }); } }; r.readAsText(f); e.target.value = ''; };
-
+ const importData = async (e) => { 
+  const f = e.target.files?.[0]; 
+  if (!f) return; 
+  
+  const r = new FileReader(); 
+  r.onload = async (ev) => { 
+    try { 
+      const imported = JSON.parse(ev.target.result); 
+      if (!imported.collections || !imported.words) {
+        setToast({ message: 'Invalid backup file', canUndo: false });
+        return;
+      }
+      
+      console.log('=== Starting full import ===');
+      console.log('Collections:', imported.collections.length);
+      console.log('Words:', imported.words.length);
+      
+      // Маппінг старых ID → новыя UUID
+      const collectionMap = new Map(); // oldId → newId
+      const sectionMap = new Map();     // oldId → newId
+      
+      // 1. Імпарт калекцый
+      for (const col of imported.collections) {
+        const { data: newCol, error } = await supabase
+          .from('collections')
+          .insert([{ 
+            user_id: user.id, 
+            name: col.name, 
+            icon: col.icon 
+          }])
+          .select()
+          .single();
+        
+        if (!error && newCol) {
+          collectionMap.set(col.id, newCol.id);
+          console.log(`Collection "${col.name}": ${col.id} → ${newCol.id}`);
+          
+          // 2. Імпарт секцый гэтай калекцыі
+          for (const sec of col.sections) {
+            const { data: newSec, error: secError } = await supabase
+              .from('sections')
+              .insert([{ 
+                collection_id: newCol.id, 
+                name: sec.name, 
+                icon: sec.icon 
+              }])
+              .select()
+              .single();
+            
+            if (!secError && newSec) {
+              sectionMap.set(sec.id, newSec.id);
+              console.log(`  Section "${sec.name}": ${sec.id} → ${newSec.id}`);
+            }
+          }
+        }
+      }
+      
+      // 3. Імпарт слоў
+      let importedCount = 0;
+      for (const word of imported.words) {
+        const newSectionId = sectionMap.get(word.sectionId);
+        if (!newSectionId) {
+          console.log(`Skipping word "${word.word}" - section not found`);
+          continue;
+        }
+        
+        const { error } = await supabase
+          .from('words')
+          .insert([{
+            user_id: user.id,
+            section_id: newSectionId,
+            word: word.word,
+            type: word.type,
+            level: word.level,
+            forms: word.forms || '',
+            meaning_en: word.meaningEn || '',
+            meaning_ru: word.meaningRu || '',
+            example: word.example || '',
+            my_example: word.myExample || '',
+            single_root_words: word.singleRootWords || '',
+            synonyms: word.synonyms || '',
+            tags: word.tags || [],
+            status: word.status || STATUS.NEW,
+            passed_modes: word.passedModes || []
+          }]);
+        
+        if (!error) {
+          importedCount++;
+        }
+      }
+      
+      console.log(`=== Import complete: ${importedCount} words ===`);
+      
+      // 4. Перачытваем усё з базы
+      const { data: collections } = await supabase
+        .from('collections')
+        .select('*, sections(*)')
+        .order('created_at');
+      
+      const { data: wordsData } = await supabase
+        .from('words')
+        .select('*')
+        .order('created_at');
+      
+      const words = (wordsData || []).map(w => ({
+        id: w.id,
+        sectionId: w.section_id,
+        word: w.word,
+        type: w.type,
+        level: w.level,
+        forms: w.forms,
+        meaningEn: w.meaning_en,
+        meaningRu: w.meaning_ru,
+        example: w.example,
+        myExample: w.my_example,
+        singleRootWords: w.single_root_words,
+        synonyms: w.synonyms,
+        tags: w.tags,
+        status: w.status,
+        passedModes: w.passed_modes
+      }));
+      
+      setData({
+        collections: collections || [],
+        words: words || [],
+        allTags: imported.allTags || [],
+        songFolders: imported.songFolders || [{ id: 'sf1', name: 'My Songs' }],
+        songs: imported.songs || []
+      });
+      
+      setToast({ message: `Imported ${importedCount} words!`, canUndo: false });
+      
+    } catch (e) { 
+      console.error('Import error:', e);
+      setToast({ message: 'Import failed', canUndo: false }); 
+    } 
+  }; 
+  r.readAsText(f); 
+  e.target.value = ''; 
+};
   const handleNavigationWithCheck = (navFunc) => {
     if (hasUnsavedWords && view === 'song') {
       const confirmed = window.confirm('⚠️ You have unsaved words in the list.\n\nAre you sure you want to leave?\n\nProgress will be lost.');
