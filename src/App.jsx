@@ -1464,7 +1464,9 @@ const saveWord = async (w) => {
     return;
   }
   
-  if (w.id) {
+  const isValidUUID = w.id && typeof w.id === 'string' && w.id.length > 30;
+
+  if (isValidUUID) {
     // Обновление
     const { error } = await supabase
       .from('words')
