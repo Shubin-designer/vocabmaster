@@ -313,12 +313,13 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       console.log('Meanings:', data.meanings);
 
       const firstRu = data.meanings?.[0]?.ru || '';
-      const firstExample = data.meanings?.[0]?.example || '';
-      const firstMeaningEn = data.meanings?.[0]?.meaningEn || '';
-      
-      setForm(f => ({ 
+const firstExample = data.meanings?.[0]?.example || '';
+const firstMeaningEn = data.meanings?.[0]?.meaningEn || '';
+const firstType = data.meanings?.[0]?.type || f.type;  // ← ДАДАЙ ГЭТ РАДОК
+
+setForm(f => ({ 
   ...f, 
-  type: data.type || f.type, 
+  type: firstType,  // ← ЗАМЯНІ ТУТ
   level: data.level || f.level,
   forms: data.phonetic || f.forms,
   
