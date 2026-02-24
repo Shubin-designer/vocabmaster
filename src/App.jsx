@@ -1513,7 +1513,12 @@ const saveWord = async (w) => {
       }])
       .select()
       .single();
-    
+    console.log('=== Save word result ===');
+console.log('Word:', w.word);
+console.log('isValidUUID:', isValidUUID);
+console.log('currentSection:', currentSection);
+console.log('Error:', error);
+
     if (!error && newWord) {
     const converted = {
       id: newWord.id,
