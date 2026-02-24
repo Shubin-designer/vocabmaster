@@ -340,33 +340,49 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       });
       
       if (data.meanings && Array.isArray(data.meanings)) {
-        // Добавляем переводы пользователя (из meaningRu или перенесённые из meaningEn) в начало списка
+        // Собираем переводы пользователя
         const hasCyrillic = /[а-яёА-ЯЁ]/.test(form.meaningEn);
-        const userTranslations = hasCyrillic
+        const userTranslationsStr = hasCyrillic
           ? (form.meaningRu ? `${form.meaningRu}, ${form.meaningEn}` : form.meaningEn)
           : form.meaningRu;
+        const userTranslationsList = userTranslationsStr
+          ? userTranslationsStr.split(',').map(s => s.trim()).filter(Boolean)
+          : [];
 
-        const userMeanings = userTranslations
-          ? userTranslations.split(',').map(s => s.trim()).filter(Boolean).map(ru => ({
-              ru,
+        // Объединяем: если "мой" перевод есть в API - берём данные API, иначе создаём с типом из формы
+        const allMeanings = [...data.meanings];
+
+        userTranslationsList.forEach(userRu => {
+          const existsInApi = data.meanings.some(m => m.ru.toLowerCase() === userRu.toLowerCase());
+          if (!existsInApi) {
+            // Добавляем "мой" перевод с типом из формы
+            allMeanings.push({
+              ru: userRu,
               meaningEn: '',
               example: '',
               type: form.type?.split(',')[0]?.trim() || 'noun',
               isUserAdded: true
-            }))
-          : [];
+            });
+          }
+        });
 
-        // Убираем дубликаты - если API вернул такой же перевод, не дублируем
-        const apiMeanings = data.meanings.filter(m =>
-          !userMeanings.some(u => u.ru.toLowerCase() === m.ru.toLowerCase())
-        );
-
-        setTranslationsWithExamples([...userMeanings, ...apiMeanings]);
+        setTranslationsWithExamples(allMeanings);
 
         // Помечаем переводы пользователя как добавленные
-        if (userTranslations) {
-          const existing = userTranslations.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-          setAddedTranslations(new Set(existing));
+        if (userTranslationsList.length > 0) {
+          setAddedTranslations(new Set(userTranslationsList.map(t => t.toLowerCase())));
+
+          // Автоматически заполняем meaningEn и example из первого совпавшего API перевода
+          const firstMatchingApi = data.meanings.find(m =>
+            userTranslationsList.some(u => u.toLowerCase() === m.ru.toLowerCase())
+          );
+          if (firstMatchingApi) {
+            setForm(f => ({
+              ...f,
+              meaningEn: f.meaningEn || firstMatchingApi.meaningEn,
+              example: f.example || firstMatchingApi.example
+            }));
+          }
         }
       }
       setHasLookedUp(true);
@@ -483,8 +499,27 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                         const newTypes = types.filter(x => x !== t);
                         setForm({ ...form, type: newTypes.join(', ') || 'noun' });
                       } else {
-                        // Добавляем тип
-                        setForm({ ...form, type: [...types, t].join(', ') });
+                        // Добавляем тип + подтягиваем данные из первого перевода этого типа
+                        const meaningOfType = translationsWithExamples.find(m => m.type === t);
+                        const newForm = { ...form, type: [...types, t].join(', ') };
+                        if (meaningOfType && meaningOfType.meaningEn) {
+                          // Добавляем перевод если ещё не добавлен
+                          if (!addedTranslations.has(meaningOfType.ru.toLowerCase())) {
+                            const currentRu = form.meaningRu.trim();
+                            newForm.meaningRu = currentRu ? `${currentRu}, ${meaningOfType.ru}` : meaningOfType.ru;
+                            setAddedTranslations(prev => new Set([...prev, meaningOfType.ru.toLowerCase()]));
+                          }
+                          // Добавляем meaningEn и example
+                          const currentEn = form.meaningEn.trim();
+                          const currentEx = form.example.trim();
+                          newForm.meaningEn = currentEn
+                            ? `${currentEn}\n${meaningOfType.meaningEn}`
+                            : meaningOfType.meaningEn;
+                          newForm.example = meaningOfType.example
+                            ? (currentEx ? `${currentEx}\n${meaningOfType.example}` : meaningOfType.example)
+                            : currentEx;
+                        }
+                        setForm(newForm);
                       }
                     }}
                     className={`px-2 py-1 text-xs rounded-full border ${
@@ -523,14 +558,11 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
             </div>
             {translationsWithExamples.length > 0 && (
               <div className="mt-2 space-y-2">
-                {/* Сначала показываем "Мои переводы" */}
+                {/* Все переводы группируем по типам */}
                 {(() => {
-                  const userMeanings = translationsWithExamples.filter(m => m.isUserAdded);
-                  const apiMeanings = translationsWithExamples.filter(m => !m.isUserAdded);
-
-                  // Группируем API переводы по типам
+                  // Группируем ВСЕ переводы по типам (включая "мои")
                   const grouped = {};
-                  apiMeanings.forEach(m => {
+                  translationsWithExamples.forEach(m => {
                     const type = m.type || 'other';
                     if (!grouped[type]) grouped[type] = [];
                     grouped[type].push(m);
@@ -546,24 +578,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
 
                   return (
                     <>
-                      {/* Мои переводы */}
-                      {userMeanings.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-1">
-                          <span className="text-xs font-medium px-2 py-0.5 rounded bg-orange-100 text-orange-700">
-                            📝 мои
-                          </span>
-                          {userMeanings.map((m, idx) => (
-                            <button
-                              key={`user-${idx}`}
-                              onClick={() => addTranslation(m.ru)}
-                              className="text-sm px-3 py-1 rounded-full bg-green-100 text-green-700 border border-green-300"
-                            >
-                              ✓ {m.ru}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      {/* API переводы по типам */}
+                      {/* Все переводы по типам */}
                       {Object.entries(grouped).map(([type, meanings]) => {
                         const info = typeLabels[type] || typeLabels.other;
                         return (
@@ -575,14 +590,14 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                               <button
                                 key={`${type}-${idx}`}
                                 onClick={() => addTranslation(m.ru)}
-                                title={m.meaningEn}
+                                title={m.meaningEn || (m.isUserAdded ? 'Мой перевод' : '')}
                                 className={`text-sm px-3 py-1 rounded-full ${
                                   isTranslationAdded(m.ru)
                                     ? 'bg-green-100 text-green-700 border border-green-300'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                               >
-                                {isTranslationAdded(m.ru) ? '✓ ' : ''}{m.ru}
+                                {isTranslationAdded(m.ru) ? '✓ ' : ''}{m.isUserAdded ? '★ ' : ''}{m.ru}
                               </button>
                             ))}
                           </div>
