@@ -67,13 +67,19 @@ serve(async (req) => {
     let text = data.choices?.[0]?.message?.content || '';
     text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
-    // Пытаемся извлечь JSON из текста
+
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.log('ERROR: No JSON found in response');
+      console.log('Full text:', text);
       throw new Error('No valid JSON found in response');
     }
 
+    console.log('JSON extracted, parsing...');
+
     const parsed = JSON.parse(jsonMatch[0]);
+    console.log('Parsed successfully:', Object.keys(parsed));
+
 
     // Конвертируем массив в строку нужного формата
     if (Array.isArray(parsed.singleRootWords)) {

@@ -1743,13 +1743,24 @@ const saveCollection = async (name) => {
       
       // 3. Імпарт слоў
       let importedCount = 0;
+      let skippedCount = 0;
+
+      console.log('=== Importing words ===');
+      console.log('Total words to import:', imported.words.length);
+      console.log('Section map size:', sectionMap.size);
+
+
       for (const word of imported.words) {
         const newSectionId = sectionMap.get(word.sectionId);
         if (!newSectionId) {
-          console.log(`Skipping word "${word.word}" - section not found`);
+    console.log(`Skipping word "${word.word}" - section ${word.sectionId} not found in map`);
+              skippedCount++;
+
           continue;
         }
-        
+          console.log(`Importing word #${importedCount + 1}: "${word.word}" to section ${newSectionId}`);
+
+
         const { error } = await supabase
           .from('words')
           .insert([{
@@ -1775,8 +1786,10 @@ const saveCollection = async (name) => {
         }
       }
       
-      console.log(`=== Import complete: ${importedCount} words ===`);
-      
+      console.log(`=== Import complete ===`);
+      console.log(`Imported: ${importedCount}`);
+      console.log(`Skipped: ${skippedCount}`);
+
       // 4. Перачытваем усё з базы
       const { data: collections } = await supabase
         .from('collections')
