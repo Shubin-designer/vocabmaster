@@ -33,25 +33,35 @@ serve(async (req) => {
         temperature: 0.3,
         messages: [{
           role: 'user',
-          content: `Analyze the word "${word}". Return ONLY valid JSON (no markdown):
+          content: `Analyze the English word "${word}". Return ONLY valid JSON (no markdown):
 {
   "level": "A1/A2/B1/B2/C1/C2",
   "phonetic": "/ipa_transcription/",
   "meanings": [
-    {"type": "noun", "ru": "перевод 1", "meaningEn": "definition 1", "example": "natural example (10-15 words)"},
-    {"type": "verb", "ru": "перевод 2", "meaningEn": "definition 2", "example": "natural example (10-15 words)"}
+    {"type": "verb", "ru": "основной перевод", "meaningEn": "definition in English", "example": "example sentence 10-15 words"},
+    {"type": "verb", "ru": "другой перевод", "meaningEn": "another definition", "example": "another example"},
+    {"type": "noun", "ru": "перевод как сущ.", "meaningEn": "noun definition", "example": "noun example"}
   ],
   "singleRootWords": [
-    {"word": "teacher", "type": "noun", "ipa": "/ˈtiːtʃər/", "ru": "учитель"},
-    {"word": "teaching", "type": "noun", "ipa": "/ˈtiːtʃɪŋ/", "ru": "обучение"}
+    {"word": "related1", "type": "noun", "ipa": "/ipa/", "ru": "перевод"},
+    {"word": "related2", "type": "verb", "ipa": "/ipa/", "ru": "перевод"}
   ],
   "synonyms": "synonym1, synonym2, synonym3"
 }
-CRITICAL: 
-- Each meaning MUST include "type" field (noun/verb/adjective/etc)
-- Include ALL different word types (if "run" is both noun and verb - provide both)
-- singleRootWords MUST be an array of objects with word, type, ipa, ru fields!
-- ru field must be ONE word only, no commas!`
+
+CRITICAL REQUIREMENTS:
+1. MEANINGS - provide 4-8 meanings covering:
+   - ALL common Russian translations (e.g. for "choke": подавиться, задыхаться, душить, давиться, захлебнуться)
+   - ALL parts of speech the word can be (verb, noun, adjective, etc.)
+   - Each meaning = separate object with its own type, ru, meaningEn, example
+   - "ru" field = ONE Russian word only (no commas, no multiple words)
+   - Start with most common/basic translations first!
+
+2. TYPE field is REQUIRED for each meaning (noun/verb/adjective/adverb/phrasal verb/idiom/phrase/preposition/conjunction/interjection)
+
+3. singleRootWords = array of objects with word, type, ipa, ru fields
+
+4. Provide REAL, NATURAL examples (not artificial)`
 
 
         }]
