@@ -379,6 +379,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   const [hasLookedUp, setHasLookedUp] = useState(false);
   const [lookupError, setLookupError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
+  const [pendingLookup, setPendingLookup] = useState(false);
   
   const doLookup = async (auto = false) => {
     if (!form.word.trim() || loading) return;
@@ -498,6 +499,14 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       doLookup(true);
     }
   };
+
+  // Авто-lookup после выбора suggestion
+  useEffect(() => {
+    if (pendingLookup && form.word && !loading) {
+      setPendingLookup(false);
+      doLookup(false);
+    }
+  }, [pendingLookup, form.word, loading]);
   
  const addTranslation = (t) => {
   // Если уже добавлен - УДАЛЯЕМ
@@ -594,27 +603,23 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                   {suggestions.map((s, i) => (
                     <button
                       key={i}
-                      onClick={async () => {
-                        // Проверяем: есть ли у пользователя свои данные (не мусор от ошибки)
-                        const hasUserData = form.meaningEn &&
-                          !form.meaningEn.includes('Not a valid') &&
-                          !form.meaningEn.includes('misspelling') &&
-                          !form.meaningEn.includes('N/A');
-
-                        // Очищаем мусорные поля если нет своих данных
-                        const cleanedForm = hasUserData
-                          ? { ...form, word: s }
-                          : { ...form, word: s, meaningEn: '', meaningRu: '', example: '' };
-
-                        setForm(cleanedForm);
+                      onClick={() => {
+                        // Слово было с ошибкой - очищаем все поля и ставим новое слово
+                        setForm(f => ({
+                          ...f,
+                          word: s,
+                          meaningEn: '',
+                          meaningRu: '',
+                          example: '',
+                          type: 'noun'
+                        }));
                         setLookupError(null);
                         setSuggestions([]);
                         setHasLookedUp(false);
                         setTranslationsWithExamples([]);
                         setAddedTranslations(new Set());
-
-                        // Автоматически запускаем lookup для нового слова
-                        setTimeout(() => doLookup(false), 100);
+                        // Запустит lookup автоматически через useEffect
+                        setPendingLookup(true);
                       }}
                       className="ml-1 text-sm text-blue-600 hover:underline"
                     >
