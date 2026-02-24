@@ -2058,7 +2058,10 @@ const saveCollection = async (name) => {
       .single();
         console.log('Result:', { newWord: newWord?.word, error });
 
+        
     if (!error && newWord) {
+        console.error('Supabase error details:', error);
+
       savedWords.push({
         id: newWord.id,
         sectionId: newWord.section_id,
