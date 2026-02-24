@@ -150,7 +150,7 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
           </div>
           <div className="flex gap-2">
             <button onClick={onCancel} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">Cancel</button>
-            <button onClick={() => { onImport(preview); onCancel(); }} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">Import {preview.length} words</button>
+            <button onClick={async () => { await onImport(preview); onCancel(); }} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">Import {preview.length} words</button>
           </div>
         </>
       )}
