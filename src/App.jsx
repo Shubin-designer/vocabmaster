@@ -377,6 +377,8 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   const [translationsWithExamples, setTranslationsWithExamples] = useState([]);
   const [addedTranslations, setAddedTranslations] = useState(new Set());
   const [hasLookedUp, setHasLookedUp] = useState(false);
+  const [lookupError, setLookupError] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
   
   const doLookup = async (auto = false) => {
     if (!form.word.trim() || loading) return;
@@ -394,18 +396,28 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
     }
     
     setLoading(true);
+    setLookupError(null);
+    setSuggestions([]);
     try {
       const { data, error } = await supabase.functions.invoke('lookup-word', {
         body: { word: form.word.trim() }
       });
-      
+
       if (error) throw error;
-      
+
       console.log('=== Lookup result ===');
       console.log('Full data:', data);
       console.log('Type:', data.type);
       console.log('Level:', data.level);
       console.log('Meanings:', data.meanings);
+
+      // Проверяем на ошибку (неправильное слово)
+      if (data.error) {
+        setLookupError(data.error);
+        if (data.suggestions && Array.isArray(data.suggestions)) {
+          setSuggestions(data.suggestions);
+        }
+      }
 
       if (data.meanings && Array.isArray(data.meanings)) {
         // Собираем все уникальные типы из API
@@ -471,6 +483,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       setHasLookedUp(true);
     } catch (e) {
       console.error('Lookup error:', e);
+      setLookupError(e.message || 'Failed to lookup word');
     }
     setLoading(false);
   };
@@ -566,7 +579,32 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               {loading ? <Loader size={16} className="animate-spin" /> : <Search size={16} />}
             </button>
           </div>
-          
+
+          {/* Показ ошибки и suggestions */}
+          {lookupError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="text-red-600 text-sm font-medium">{lookupError}</div>
+              {suggestions.length > 0 && (
+                <div className="mt-2">
+                  <span className="text-sm text-gray-600">Did you mean: </span>
+                  {suggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setForm(f => ({ ...f, word: s }));
+                        setLookupError(null);
+                        setSuggestions([]);
+                      }}
+                      className="ml-1 text-sm text-blue-600 hover:underline"
+                    >
+                      {s}{i < suggestions.length - 1 ? ',' : '?'}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex gap-2">
             <div className="flex-1 flex flex-wrap gap-1">
               {WORD_TYPES.map(t => {

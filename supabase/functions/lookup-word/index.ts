@@ -61,7 +61,12 @@ CRITICAL REQUIREMENTS:
 
 3. singleRootWords = array of objects with word, type, ipa, ru fields
 
-4. Provide REAL, NATURAL examples (not artificial)`
+4. Provide REAL, NATURAL examples (not artificial)
+
+5. IF THE WORD IS MISSPELLED OR DOESN'T EXIST:
+   - Add "error": "Word not found or misspelled"
+   - Add "suggestions": ["correct1", "correct2", "correct3"] with possible correct spellings
+   - Still try to provide meanings if you can guess the intended word`
 
 
         }]
@@ -104,10 +109,7 @@ CRITICAL REQUIREMENTS:
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
-
-    console.error('=== ERROR in fill-fields ===');
-    console.error('Word:', word);
-    console.error('Field:', fieldName);
+    console.error('=== ERROR in lookup-word ===');
     console.error('Error:', error.message);
     console.error('Stack:', error.stack);
 
