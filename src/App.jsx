@@ -1454,13 +1454,16 @@ const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
   // Применение темы
   useEffect(() => {
     const applyTheme = () => {
+      console.log('=== Applying theme ===', theme);
       localStorage.setItem('vocabmaster_theme', theme);
       const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      console.log('isDark:', isDark);
       if (isDark) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
+      console.log('documentElement classes:', document.documentElement.className);
     };
     applyTheme();
 
@@ -2459,7 +2462,7 @@ const saveCollection = async (name) => {
                       <div className="text-sm font-medium truncate">{user.email}</div>
                     </div>
                     <div className="py-1">
-                      <button onClick={() => { setTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'); }} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
+                      <button onClick={() => { const newTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'; console.log('Switching theme from', theme, 'to', newTheme); setTheme(newTheme); }} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
                         {theme === 'light' ? <Sun size={16}/> : theme === 'dark' ? <Moon size={16}/> : <Monitor size={16}/>}
                         Theme: {theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'System'}
                       </button>
