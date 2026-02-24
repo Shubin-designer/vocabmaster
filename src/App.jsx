@@ -99,7 +99,6 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
         const meaningEn = parts.length === 3 ? parts[2] : parts[1];
         
         parsed.push({
-          id: Date.now() + idx,
           sectionId: currentSectionId,
           word,
           type: 'phrase',
