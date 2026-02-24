@@ -317,16 +317,26 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       const firstMeaningEn = data.meanings?.[0]?.meaningEn || '';
       
       setForm(f => ({ 
-        ...f, 
-        type: data.type || f.type, 
-        level: data.level || f.level,
-        forms: data.phonetic || f.forms,
-        meaningEn: auto ? (f.meaningEn || firstMeaningEn) : (firstMeaningEn || f.meaningEn),  // ← ИСПРАВЛЕНО
-        meaningRu: auto ? (f.meaningRu || firstRu) : (firstRu || f.meaningRu),
-        example: auto ? (f.example || firstExample) : (firstExample || f.example),
-        singleRootWords: data.singleRootWords || f.singleRootWords,
-        synonyms: data.synonyms || f.synonyms
-      }));
+  ...f, 
+  type: data.type || f.type, 
+  level: data.level || f.level,
+  forms: data.phonetic || f.forms,
+  
+  // meaningEn: дадаём калі пуста, інакш пакідаем існы
+  meaningEn: f.meaningEn || firstMeaningEn,
+  
+  // meaningRu: аб'ядноўваем існы + новы
+  meaningRu: f.meaningRu 
+    ? (f.meaningRu + (firstRu && !f.meaningRu.includes(firstRu) ? ', ' + firstRu : ''))
+    : firstRu,
+  
+  // example: калі ёсць існы example → перамяшчаем яго ў myExample
+  myExample: f.example && !auto ? f.example : f.myExample,
+  example: firstExample || (auto ? f.example : ''),
+  
+  singleRootWords: data.singleRootWords || f.singleRootWords,
+  synonyms: data.synonyms || f.synonyms
+}));
       
       if (data.meanings && Array.isArray(data.meanings)) {
         setTranslationsWithExamples(data.meanings);

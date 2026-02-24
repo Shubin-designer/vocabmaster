@@ -92,6 +92,13 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
+
+    console.error('=== ERROR in fill-fields ===');
+    console.error('Word:', word);
+    console.error('Field:', fieldName);
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
