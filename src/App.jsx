@@ -349,18 +349,24 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
           ? userTranslationsStr.split(',').map(s => s.trim()).filter(Boolean)
           : [];
 
-        // Объединяем: если "мой" перевод есть в API - берём данные API, иначе создаём с типом из формы
+        // Определяем основной тип из API (первый meaning)
+        const primaryApiType = data.meanings[0]?.type || 'noun';
+
+        // Собираем все уникальные типы из API
+        const apiTypes = [...new Set(data.meanings.map(m => m.type).filter(Boolean))];
+
+        // Объединяем: если "мой" перевод есть в API - берём данные API
         const allMeanings = [...data.meanings];
 
         userTranslationsList.forEach(userRu => {
           const existsInApi = data.meanings.some(m => m.ru.toLowerCase() === userRu.toLowerCase());
           if (!existsInApi) {
-            // Добавляем "мой" перевод с типом из формы
+            // Добавляем "мой" перевод с типом из API (не из формы!)
             allMeanings.push({
               ru: userRu,
               meaningEn: '',
               example: '',
-              type: form.type?.split(',')[0]?.trim() || 'noun',
+              type: primaryApiType, // Берём основной тип из API
               isUserAdded: true
             });
           }
@@ -372,17 +378,18 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         if (userTranslationsList.length > 0) {
           setAddedTranslations(new Set(userTranslationsList.map(t => t.toLowerCase())));
 
-          // Автоматически заполняем meaningEn и example из первого совпавшего API перевода
+          // Автоматически заполняем meaningEn, example И type из API
           const firstMatchingApi = data.meanings.find(m =>
             userTranslationsList.some(u => u.toLowerCase() === m.ru.toLowerCase())
           );
-          if (firstMatchingApi) {
-            setForm(f => ({
-              ...f,
-              meaningEn: f.meaningEn || firstMatchingApi.meaningEn,
-              example: f.example || firstMatchingApi.example
-            }));
-          }
+
+          // Обновляем type на типы из API (а не старый phrase/etc)
+          setForm(f => ({
+            ...f,
+            type: apiTypes.join(', ') || f.type, // Ставим типы из API
+            meaningEn: f.meaningEn || (firstMatchingApi?.meaningEn ?? ''),
+            example: f.example || (firstMatchingApi?.example ?? '')
+          }));
         }
       }
       setHasLookedUp(true);
