@@ -161,58 +161,151 @@ const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }
   const [filling, setFilling] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: words.length });
   const [results, setResults] = useState([]);
+  const [failed, setFailed] = useState([]);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-const doFill = async () => {  
-  console.log('=== doFill started ===', words.length, 'words');
-  setFilling(true);
-  const filled = [];
-  for (let i = 0; i < words.length; i++) {
-    setProgress({ current: i + 1, total: words.length });
-    const word = words[i];
-    try {
-      const { data: result, error } = await supabase.functions.invoke('fill-fields', {
-        body: { word: word.word, fieldName }
-      });
-      console.log('Fill result for', word.word, ':', result, error);
+  const doFill = async (wordsToFill) => {
+    console.log('=== doFill started ===', wordsToFill.length, 'words');
+    setFilling(true);
+    setFailed([]);
+    const filled = [...results.filter(r => r[fieldName])]; // Keep successful
+    const failedWords = [];
 
-      
-      if (!error && result) {
-        const value = fieldName === 'singleRootWords' ? result.words : result.synonyms;
-        filled.push({ ...word, [fieldName]: value || word[fieldName] });
-      } else {
-        filled.push(word);
+    for (let i = 0; i < wordsToFill.length; i++) {
+      setProgress({ current: i + 1, total: wordsToFill.length });
+      const word = wordsToFill[i];
+      try {
+        const { data: result, error } = await supabase.functions.invoke('fill-fields', {
+          body: { word: word.word, fieldName }
+        });
+        console.log('Fill result for', word.word, ':', result, error);
+
+        if (!error && result) {
+          const value = fieldName === 'singleRootWords' ? result.words : result.synonyms;
+          if (value) {
+            filled.push({ ...word, [fieldName]: value });
+          } else {
+            failedWords.push(word);
+          }
+        } else {
+          failedWords.push(word);
+        }
+      } catch (e) {
+        failedWords.push(word);
       }
-    } catch (e) { 
-      filled.push(word); 
+      setResults([...filled]);
+      setFailed([...failedWords]);
+      await new Promise(r => setTimeout(r, 500));
     }
-    setResults([...filled]);
-    await new Promise(r => setTimeout(r, 500));
-  }
-  setFilling(false);
-};
+    setFilling(false);
+  };
+
+  const handleClose = () => {
+    if (results.length > 0 && !showConfirm) {
+      setShowConfirm(true);
+    } else {
+      onCancel();
+    }
+  };
+
+  const successCount = results.filter(r => r[fieldName]).length;
+  const failedCount = failed.length;
 
   return (
-    <Modal onClose={onCancel} preventClose>
-      <h3 className="text-lg font-semibold mb-4">{icon} {fieldLabel} for {words.length} words</h3>
+    <Modal onClose={handleClose} preventClose>
+      {/* Крестик закрытия */}
+      <button
+        onClick={handleClose}
+        className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+      >
+        <X size={20} />
+      </button>
+
+      {/* Подтверждение закрытия */}
+      {showConfirm && (
+        <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center rounded-lg z-10">
+          <p className="text-lg font-medium mb-4">Close without saving?</p>
+          <p className="text-gray-600 mb-6">{successCount} words will not be saved</p>
+          <div className="flex gap-3">
+            <button onClick={() => setShowConfirm(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+              Continue editing
+            </button>
+            <button onClick={onCancel} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+              Close anyway
+            </button>
+          </div>
+        </div>
+      )}
+
+      <h3 className="text-lg font-semibold mb-4 pr-8">{icon} {fieldLabel} for {words.length} words</h3>
+
       {!filling && results.length === 0 ? (
         <>
           <p className="text-gray-600 mb-4">This will generate {fieldLabel.toLowerCase()} for {words.length} words.</p>
-          <div className="max-h-48 overflow-y-auto border rounded-lg p-3 mb-4 bg-gray-50">{words.map((w, i) => <div key={i} className="text-sm">{w.word}</div>)}</div>
-          <div className="flex gap-2"><button onClick={onCancel} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">Cancel</button><button 
-  onClick={() => {
-    console.log('=== Start button clicked ===');
-    doFill();
-  }} 
-  className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
->
-  Start
-</button></div>
+          <div className="max-h-48 overflow-y-auto border rounded-lg p-3 mb-4 bg-gray-50">
+            {words.map((w, i) => <div key={i} className="text-sm">{w.word}</div>)}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleClose} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">Cancel</button>
+            <button onClick={() => doFill(words)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+              Start
+            </button>
+          </div>
         </>
       ) : (
         <>
-          <div className="mb-4"><div className="flex justify-between text-sm text-gray-600 mb-2"><span>Generating...</span><span>{progress.current}/{progress.total}</span></div><div className="w-full bg-gray-200 rounded-full h-2"><div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${(progress.current / progress.total) * 100}%` }}></div></div></div>
-          {results.length > 0 && <div className="max-h-48 overflow-y-auto border rounded-lg mb-4">{results.map((w, i) => <div key={i} className="p-2 border-b"><div className="font-medium">{w.word}</div>{w[fieldName] && <div className="text-sm text-blue-600">→ {w[fieldName]}</div>}</div>)}</div>}
-          {!filling && <div className="flex gap-2"><button onClick={onCancel} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">Cancel</button><button onClick={() => { onFill(results); onCancel(); }} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">Save {results.length}</button></div>}
+          <div className="mb-4">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>{filling ? 'Generating...' : 'Done'}</span>
+              <span>{progress.current}/{progress.total}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${(progress.current / progress.total) * 100}%` }}></div>
+            </div>
+          </div>
+
+          {results.length > 0 && (
+            <div className="max-h-48 overflow-y-auto border rounded-lg mb-4">
+              {results.map((w, i) => (
+                <div key={i} className="p-2 border-b">
+                  <div className="font-medium">{w.word}</div>
+                  {w[fieldName] ? (
+                    <div className="text-sm text-green-600">✓ {w[fieldName]}</div>
+                  ) : (
+                    <div className="text-sm text-red-500">✗ Failed</div>
+                  )}
+                </div>
+              ))}
+              {failed.map((w, i) => (
+                <div key={`f-${i}`} className="p-2 border-b bg-red-50">
+                  <div className="font-medium">{w.word}</div>
+                  <div className="text-sm text-red-500">✗ Failed</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!filling && (
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={handleClose} className="flex-1 h-10 px-4 border rounded-lg hover:bg-gray-50">
+                Cancel
+              </button>
+              {failedCount > 0 && (
+                <button
+                  onClick={() => doFill(failed)}
+                  className="flex-1 h-10 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                >
+                  Retry {failedCount} failed
+                </button>
+              )}
+              <button
+                onClick={() => { onFill(results.filter(r => r[fieldName])); onCancel(); }}
+                className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Save {successCount}
+              </button>
+            </div>
+          )}
         </>
       )}
     </Modal>
