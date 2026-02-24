@@ -1635,6 +1635,12 @@ if (view === 'song' && !currentSong) {
   setView('dashboard');
 }
 
+// Калі view патрабуе калекцыю/секцыю але іх няма - вяртаемся на dashboard
+if (['list', 'cards', 'quiz', 'write'].includes(view) && !currentCollection && !currentSection) {
+  console.log('List/cards/quiz/write view but no collection/section - redirecting to dashboard');
+  setView('dashboard');
+}
+
 
   const playPronunciation = w => { const u = new SpeechSynthesisUtterance(w); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); };
 
