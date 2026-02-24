@@ -313,15 +313,31 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
 
       // НЕ применяем первый meaning автоматически - пусть пользователь выберет
       // Только обновляем level, phonetic и однокоренные
-      setForm(f => ({
-        ...f,
-        // type НЕ меняем автоматически - пользователь выберет при клике на перевод
-        level: data.level || f.level,
-        forms: data.phonetic || f.forms,
-        singleRootWords: data.singleRootWords || f.singleRootWords,
-        synonyms: data.synonyms || f.synonyms
-        // meaningEn, meaningRu, example - НЕ трогаем, пользователь добавит кликом
-      }));
+      setForm(f => {
+        // Проверяем: если в meaningEn есть кириллица - это ошибка импорта, переносим в meaningRu
+        const hasCyrillic = /[а-яёА-ЯЁ]/.test(f.meaningEn);
+        let newMeaningRu = f.meaningRu;
+        let newMeaningEn = f.meaningEn;
+
+        if (hasCyrillic && f.meaningEn) {
+          // Переносим кириллический текст в meaningRu
+          newMeaningRu = f.meaningRu
+            ? `${f.meaningRu}, ${f.meaningEn}`
+            : f.meaningEn;
+          newMeaningEn = ''; // Очищаем meaningEn
+        }
+
+        return {
+          ...f,
+          // type НЕ меняем автоматически - пользователь выберет при клике на перевод
+          level: data.level || f.level,
+          forms: data.phonetic || f.forms,
+          singleRootWords: data.singleRootWords || f.singleRootWords,
+          synonyms: data.synonyms || f.synonyms,
+          meaningRu: newMeaningRu,
+          meaningEn: newMeaningEn
+        };
+      });
       
       if (data.meanings && Array.isArray(data.meanings)) {
         setTranslationsWithExamples(data.meanings);
@@ -359,23 +375,21 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
     newSet.delete(t.toLowerCase());
     setAddedTranslations(newSet);
     
-    // Если остались другие переводы - берём их данные (включая type)
+    // При удалении type НЕ меняем - пользователь может убрать вручную кликом
+    // Пересобираем meaningEn и example из оставшихся переводов
     if (newSet.size > 0) {
       const remainingTranslations = Array.from(newSet);
-      const firstRemaining = translationsWithExamples.find(m =>
+      const remainingMeanings = translationsWithExamples.filter(m =>
         remainingTranslations.includes(m.ru.toLowerCase())
       );
 
-      if (firstRemaining) {
-        setForm(f => ({
-          ...f,
-          type: firstRemaining.type || f.type,
-          meaningEn: firstRemaining.meaningEn || '',
-          example: firstRemaining.example || ''
-        }));
-      }
+      setForm(f => ({
+        ...f,
+        meaningEn: remainingMeanings.map(m => m.meaningEn).join('\n'),
+        example: remainingMeanings.map(m => m.example).filter(Boolean).join('\n')
+      }));
     } else {
-      // Если не осталось переводов - очищаем (type оставляем)
+      // Если не осталось переводов - очищаем meaningEn/example (type оставляем)
       setForm(f => ({ ...f, meaningEn: '', example: '' }));
     }
     
@@ -387,22 +401,29 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   setForm(f => ({ ...f, meaningRu: current ? `${current}, ${t}` : t }));
   setAddedTranslations(prev => new Set([...prev, t.toLowerCase()]));
   
-  // Заменяем meaningEn и example на выбранный перевод
   // Добавляем meaningEn и example с новой строки
   const meaning = translationsWithExamples.find(m => m.ru === t);
   if (meaning) {
     setForm(f => {
       const currentMeaningEn = f.meaningEn.trim();
       const currentExample = f.example.trim();
-      
+
+      // Добавляем type к существующим (мультивыбор)
+      const currentTypes = (f.type || '').split(',').map(s => s.trim()).filter(Boolean);
+      const newType = meaning.type;
+      let updatedTypes = currentTypes;
+      if (newType && !currentTypes.includes(newType)) {
+        updatedTypes = [...currentTypes, newType];
+      }
+
       return {
         ...f,
-        type: meaning.type || f.type,  // ← ДАДАЙ ГЭТ РАДОК
+        type: updatedTypes.join(', ') || 'noun',
         meaningEn: currentMeaningEn
-          ? `${currentMeaningEn}\n${meaning.meaningEn}` 
+          ? `${currentMeaningEn}\n${meaning.meaningEn}`
           : meaning.meaningEn,
-        example: currentExample 
-          ? `${currentExample}\n${meaning.example}` 
+        example: currentExample
+          ? `${currentExample}\n${meaning.example}`
           : meaning.example
       };
     });
@@ -427,13 +448,34 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
           </div>
           
           <div className="flex gap-2">
-            <div className="relative flex-1">
-              <select className="w-full h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white text-sm hover:bg-gray-50 appearance-none" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
-                {WORD_TYPES.map(t => <option key={t}>{t}</option>)}
-              </select>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </div>
+            <div className="flex-1 flex flex-wrap gap-1">
+              {WORD_TYPES.map(t => {
+                const types = (form.type || '').split(',').map(s => s.trim()).filter(Boolean);
+                const isSelected = types.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        // Убираем тип
+                        const newTypes = types.filter(x => x !== t);
+                        setForm({ ...form, type: newTypes.join(', ') || 'noun' });
+                      } else {
+                        // Добавляем тип
+                        setForm({ ...form, type: [...types, t].join(', ') });
+                      }
+                    }}
+                    className={`px-2 py-1 text-xs rounded-full border ${
+                      isSelected
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
             </div>
             <div className="relative w-20">
               <select className="w-full h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white text-sm hover:bg-gray-50 appearance-none" value={form.level} onChange={e => setForm({ ...form, level: e.target.value })}>
