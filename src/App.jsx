@@ -2029,8 +2029,12 @@ const saveCollection = async (name) => {
       {modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id} 
       
       onImport={async (words) => {
+          console.log('=== Starting import ===', words.length, 'words');
+
   const savedWords = [];
   for (const w of words) {
+        console.log('Importing word:', w.word);
+
     const { data: newWord, error } = await supabase
       .from('words')
       .insert([{
@@ -2052,7 +2056,8 @@ const saveCollection = async (name) => {
       }])
       .select()
       .single();
-    
+        console.log('Result:', { newWord: newWord?.word, error });
+
     if (!error && newWord) {
       savedWords.push({
         id: newWord.id,
