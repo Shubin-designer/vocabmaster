@@ -417,6 +417,10 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         if (data.suggestions && Array.isArray(data.suggestions)) {
           setSuggestions(data.suggestions);
         }
+        // НЕ обрабатываем meanings если слово с ошибкой
+        setHasLookedUp(true);
+        setLoading(false);
+        return;
       }
 
       if (data.meanings && Array.isArray(data.meanings)) {
@@ -590,10 +594,27 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                   {suggestions.map((s, i) => (
                     <button
                       key={i}
-                      onClick={() => {
-                        setForm(f => ({ ...f, word: s }));
+                      onClick={async () => {
+                        // Проверяем: есть ли у пользователя свои данные (не мусор от ошибки)
+                        const hasUserData = form.meaningEn &&
+                          !form.meaningEn.includes('Not a valid') &&
+                          !form.meaningEn.includes('misspelling') &&
+                          !form.meaningEn.includes('N/A');
+
+                        // Очищаем мусорные поля если нет своих данных
+                        const cleanedForm = hasUserData
+                          ? { ...form, word: s }
+                          : { ...form, word: s, meaningEn: '', meaningRu: '', example: '' };
+
+                        setForm(cleanedForm);
                         setLookupError(null);
                         setSuggestions([]);
+                        setHasLookedUp(false);
+                        setTranslationsWithExamples([]);
+                        setAddedTranslations(new Set());
+
+                        // Автоматически запускаем lookup для нового слова
+                        setTimeout(() => doLookup(false), 100);
                       }}
                       className="ml-1 text-sm text-blue-600 hover:underline"
                     >
