@@ -340,11 +340,32 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       });
       
       if (data.meanings && Array.isArray(data.meanings)) {
-        setTranslationsWithExamples(data.meanings);
-        // НЕ помечаем автоматически - пользователь сам выберет
-        // Но если уже есть переводы в форме, отметим их
-        if (form.meaningRu) {
-          const existing = form.meaningRu.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+        // Добавляем переводы пользователя (из meaningRu или перенесённые из meaningEn) в начало списка
+        const hasCyrillic = /[а-яёА-ЯЁ]/.test(form.meaningEn);
+        const userTranslations = hasCyrillic
+          ? (form.meaningRu ? `${form.meaningRu}, ${form.meaningEn}` : form.meaningEn)
+          : form.meaningRu;
+
+        const userMeanings = userTranslations
+          ? userTranslations.split(',').map(s => s.trim()).filter(Boolean).map(ru => ({
+              ru,
+              meaningEn: '',
+              example: '',
+              type: form.type?.split(',')[0]?.trim() || 'noun',
+              isUserAdded: true
+            }))
+          : [];
+
+        // Убираем дубликаты - если API вернул такой же перевод, не дублируем
+        const apiMeanings = data.meanings.filter(m =>
+          !userMeanings.some(u => u.ru.toLowerCase() === m.ru.toLowerCase())
+        );
+
+        setTranslationsWithExamples([...userMeanings, ...apiMeanings]);
+
+        // Помечаем переводы пользователя как добавленные
+        if (userTranslations) {
+          const existing = userTranslations.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
           setAddedTranslations(new Set(existing));
         }
       }
@@ -502,10 +523,14 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
             </div>
             {translationsWithExamples.length > 0 && (
               <div className="mt-2 space-y-2">
-                {/* Группируем по частям речи */}
+                {/* Сначала показываем "Мои переводы" */}
                 {(() => {
+                  const userMeanings = translationsWithExamples.filter(m => m.isUserAdded);
+                  const apiMeanings = translationsWithExamples.filter(m => !m.isUserAdded);
+
+                  // Группируем API переводы по типам
                   const grouped = {};
-                  translationsWithExamples.forEach(m => {
+                  apiMeanings.forEach(m => {
                     const type = m.type || 'other';
                     if (!grouped[type]) grouped[type] = [];
                     grouped[type].push(m);
@@ -519,30 +544,52 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                     other: { label: 'other', emoji: '⚪', cls: 'bg-gray-100 text-gray-700' }
                   };
 
-                  return Object.entries(grouped).map(([type, meanings]) => {
-                    const info = typeLabels[type] || typeLabels.other;
-                    return (
-                      <div key={type} className="flex flex-wrap items-center gap-1">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${info.cls}`}>
-                          {info.emoji} {info.label}
-                        </span>
-                        {meanings.map((m, idx) => (
-                          <button
-                            key={`${type}-${idx}`}
-                            onClick={() => addTranslation(m.ru)}
-                            title={m.meaningEn}
-                            className={`text-sm px-3 py-1 rounded-full ${
-                              isTranslationAdded(m.ru)
-                                ? 'bg-green-100 text-green-700 border border-green-300'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            {isTranslationAdded(m.ru) ? '✓ ' : ''}{m.ru}
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  });
+                  return (
+                    <>
+                      {/* Мои переводы */}
+                      {userMeanings.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-xs font-medium px-2 py-0.5 rounded bg-orange-100 text-orange-700">
+                            📝 мои
+                          </span>
+                          {userMeanings.map((m, idx) => (
+                            <button
+                              key={`user-${idx}`}
+                              onClick={() => addTranslation(m.ru)}
+                              className="text-sm px-3 py-1 rounded-full bg-green-100 text-green-700 border border-green-300"
+                            >
+                              ✓ {m.ru}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {/* API переводы по типам */}
+                      {Object.entries(grouped).map(([type, meanings]) => {
+                        const info = typeLabels[type] || typeLabels.other;
+                        return (
+                          <div key={type} className="flex flex-wrap items-center gap-1">
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${info.cls}`}>
+                              {info.emoji} {info.label}
+                            </span>
+                            {meanings.map((m, idx) => (
+                              <button
+                                key={`${type}-${idx}`}
+                                onClick={() => addTranslation(m.ru)}
+                                title={m.meaningEn}
+                                className={`text-sm px-3 py-1 rounded-full ${
+                                  isTranslationAdded(m.ru)
+                                    ? 'bg-green-100 text-green-700 border border-green-300'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                              >
+                                {isTranslationAdded(m.ru) ? '✓ ' : ''}{m.ru}
+                              </button>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </>
+                  );
                 })()}
               </div>
             )}
