@@ -278,7 +278,6 @@ const TranslateEmptyModal = ({ words, onTranslate, onCancel }) => {
 const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, onAddTag, onDuplicateFound }) => {
   const [form, setForm] = useState({ ...word, tags: word.tags || [] });
   const [loading, setLoading] = useState(false);
-  const [translations, setTranslations] = useState([]);
   const [translationsWithExamples, setTranslationsWithExamples] = useState([]);
   const [addedTranslations, setAddedTranslations] = useState(new Set());
   const [hasLookedUp, setHasLookedUp] = useState(false);
@@ -312,38 +311,25 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       console.log('Level:', data.level);
       console.log('Meanings:', data.meanings);
 
-      const firstRu = data.meanings?.[0]?.ru || '';
-const firstExample = data.meanings?.[0]?.example || '';
-const firstMeaningEn = data.meanings?.[0]?.meaningEn || '';
-const firstType = data.meanings?.[0]?.type || f.type;  // ← ДАДАЙ ГЭТ РАДОК
-
-setForm(f => ({ 
-  ...f, 
-  type: firstType,  // ← ЗАМЯНІ ТУТ
-  level: data.level || f.level,
-  forms: data.phonetic || f.forms,
-  
-  // meaningEn: дадаём калі пуста, інакш пакідаем існы
-  meaningEn: f.meaningEn || firstMeaningEn,
-  
-  // meaningRu: аб'ядноўваем існы + новы
-  meaningRu: f.meaningRu 
-    ? (f.meaningRu + (firstRu && !f.meaningRu.includes(firstRu) ? ', ' + firstRu : ''))
-    : firstRu,
-  
-  // example: калі ёсць існы example → перамяшчаем яго ў myExample
-  myExample: f.example && !auto ? f.example : f.myExample,
-  example: firstExample || (auto ? f.example : ''),
-  
-  singleRootWords: data.singleRootWords || f.singleRootWords,
-  synonyms: data.synonyms || f.synonyms
-}));
+      // НЕ применяем первый meaning автоматически - пусть пользователь выберет
+      // Только обновляем level, phonetic и однокоренные
+      setForm(f => ({
+        ...f,
+        // type НЕ меняем автоматически - пользователь выберет при клике на перевод
+        level: data.level || f.level,
+        forms: data.phonetic || f.forms,
+        singleRootWords: data.singleRootWords || f.singleRootWords,
+        synonyms: data.synonyms || f.synonyms
+        // meaningEn, meaningRu, example - НЕ трогаем, пользователь добавит кликом
+      }));
       
       if (data.meanings && Array.isArray(data.meanings)) {
         setTranslationsWithExamples(data.meanings);
-        setTranslations(data.meanings.map(m => m.ru));
-        if (firstRu) {
-          setAddedTranslations(new Set([firstRu.toLowerCase()]));
+        // НЕ помечаем автоматически - пользователь сам выберет
+        // Но если уже есть переводы в форме, отметим их
+        if (form.meaningRu) {
+          const existing = form.meaningRu.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+          setAddedTranslations(new Set(existing));
         }
       }
       setHasLookedUp(true);
@@ -355,7 +341,7 @@ setForm(f => ({
   
   // Авто-lookup при фокусе на поле перевода
   const handleTranslationFocus = () => {
-    if (form.word.trim() && !hasLookedUp && translations.length === 0) {
+    if (form.word.trim() && !hasLookedUp && translationsWithExamples.length === 0) {
       doLookup(true);
     }
   };
@@ -373,25 +359,23 @@ setForm(f => ({
     newSet.delete(t.toLowerCase());
     setAddedTranslations(newSet);
     
-    // Удаляем/обновляем пример и meaningEn
-    const meaning = translationsWithExamples.find(m => m.ru === t);
-    
-    // Если остались другие переводы - берём их данные
+    // Если остались другие переводы - берём их данные (включая type)
     if (newSet.size > 0) {
       const remainingTranslations = Array.from(newSet);
-      const firstRemaining = translationsWithExamples.find(m => 
+      const firstRemaining = translationsWithExamples.find(m =>
         remainingTranslations.includes(m.ru.toLowerCase())
       );
-      
+
       if (firstRemaining) {
-        setForm(f => ({ 
-          ...f, 
+        setForm(f => ({
+          ...f,
+          type: firstRemaining.type || f.type,
           meaningEn: firstRemaining.meaningEn || '',
           example: firstRemaining.example || ''
         }));
       }
     } else {
-      // Если не осталось переводов - очищаем
+      // Если не осталось переводов - очищаем (type оставляем)
       setForm(f => ({ ...f, meaningEn: '', example: '' }));
     }
     
@@ -474,27 +458,50 @@ setForm(f => ({
               />
               {loading && <Loader size={16} className="animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />}
             </div>
-            {translations.length > 0 && (
-              <div className="mt-1">
-                <span className="text-xs text-gray-500 mr-1">Click to add:</span>
-                {translations.map((t, idx) => {
-                  const meaning = translationsWithExamples[idx];
-                  const typeEmoji = meaning?.type === 'noun' ? '🔵' : meaning?.type === 'verb' ? '🔴' : meaning?.type === 'adjective' ? '🟡' : '⚪';
-                  
-                  return (
-                    <button
-                      key={t}
-                      onClick={() => addTranslation(t)}
-                      className={`text-sm px-3 py-1 rounded-full ${
-                        isTranslationAdded(t) 
-                          ? 'bg-green-100 text-green-700 border border-green-300' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {isTranslationAdded(t) ? '✓ ' : ''}{typeEmoji} {t}
-                    </button>
-                  );
-                })}
+            {translationsWithExamples.length > 0 && (
+              <div className="mt-2 space-y-2">
+                {/* Группируем по частям речи */}
+                {(() => {
+                  const grouped = {};
+                  translationsWithExamples.forEach(m => {
+                    const type = m.type || 'other';
+                    if (!grouped[type]) grouped[type] = [];
+                    grouped[type].push(m);
+                  });
+
+                  const typeLabels = {
+                    noun: { label: 'noun', emoji: '🔵', cls: 'bg-blue-100 text-blue-700' },
+                    verb: { label: 'verb', emoji: '🔴', cls: 'bg-red-100 text-red-700' },
+                    adjective: { label: 'adj', emoji: '🟡', cls: 'bg-yellow-100 text-yellow-700' },
+                    adverb: { label: 'adv', emoji: '🟣', cls: 'bg-purple-100 text-purple-700' },
+                    other: { label: 'other', emoji: '⚪', cls: 'bg-gray-100 text-gray-700' }
+                  };
+
+                  return Object.entries(grouped).map(([type, meanings]) => {
+                    const info = typeLabels[type] || typeLabels.other;
+                    return (
+                      <div key={type} className="flex flex-wrap items-center gap-1">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${info.cls}`}>
+                          {info.emoji} {info.label}
+                        </span>
+                        {meanings.map((m, idx) => (
+                          <button
+                            key={`${type}-${idx}`}
+                            onClick={() => addTranslation(m.ru)}
+                            title={m.meaningEn}
+                            className={`text-sm px-3 py-1 rounded-full ${
+                              isTranslationAdded(m.ru)
+                                ? 'bg-green-100 text-green-700 border border-green-300'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {isTranslationAdded(m.ru) ? '✓ ' : ''}{m.ru}
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
