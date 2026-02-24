@@ -20,20 +20,25 @@ serve(async (req) => {
     let prompt = '';
 
     if (fieldName === 'singleRootWords') {
-      prompt = `Generate 5-10 words that share the SAME ROOT as "${word}". 
+      prompt = `Generate 5-10 words that share the SAME ROOT as "${word}".
 Examples:
 - For "teach" → teacher, teaching, taught, teachable (same root "teach")
 - For "strange" → stranger, strangely, strangeness, estranged (same root "strange")
 
 DO NOT provide synonyms! Only words with the same morphological root.
 
-Return JSON:
+Return ONLY valid JSON (no markdown, no extra text):
 {
   "words": [
     {"word": "teacher", "type": "noun", "ipa": "/ˈtiːtʃər/", "ru": "учитель"},
     {"word": "teaching", "type": "noun", "ipa": "/ˈtiːtʃɪŋ/", "ru": "обучение"}
   ]
-}`;
+}
+
+CRITICAL:
+- "ru" field = ONE Russian word only (no commas, no newlines, no multiple translations)
+- "ipa" field = IPA transcription in slashes
+- "type" field = noun/verb/adjective/adverb`;
     } else {
       prompt = `List 5-8 synonyms for "${word}". Return JSON: {"synonyms":"syn1, syn2, syn3"}`;
     }
@@ -61,17 +66,38 @@ Return JSON:
 
     text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const parsed = JSON.parse(jsonMatch[0]);
+
+    if (!jsonMatch) {
+      console.log('No JSON found in response:', text);
+      return new Response(JSON.stringify({ error: 'No valid JSON in response' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.log('JSON parse error:', parseError.message, 'Text:', jsonMatch[0]);
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     // Конвертируем массив объектов в строку нужного формата
     if (fieldName === 'singleRootWords' && Array.isArray(parsed.words)) {
       parsed.words = parsed.words
         .map(w => {
-          if (typeof w === 'string') return w; // Якщо вже строка
-          if (!w || !w.word) return null; // Якщо невалідний об'єкт - пропускаємо
-          return `${w.word} (${w.type || 'word'}) /${w.ipa || ''}/ - ${w.ru || ''}`;
+          if (typeof w === 'string') return w.replace(/\n/g, ' ').trim();
+          if (!w || !w.word) return null;
+          // Очищаем от переносов строк и берём только первое слово перевода
+          const ruClean = (w.ru || '').replace(/\n/g, ' ').split(',')[0].trim();
+          const ipaClean = (w.ipa || '').replace(/\n/g, '').trim();
+          return `${w.word} (${w.type || 'word'}) /${ipaClean}/ - ${ruClean}`;
         })
-        .filter(w => w !== null) // Видаляємо null
+        .filter(w => w !== null)
         .join(', ');
     }
 
