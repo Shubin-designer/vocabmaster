@@ -1627,14 +1627,17 @@ useEffect(() => {
 
 console.log('=== Rendering VocabApp ===', {
   view,
+  stateRestored,
   currentCollection: currentCollection?.name,
   currentSection: currentSection?.name,
   isLoading,
+  user: !!user,
   wordsCount: data.words.length
 });
 
   // Fallback: калі view патрабуе дадзеныя якіх няма - вяртаемся на dashboard
 useEffect(() => {
+  console.log('=== Fallback check ===', { stateRestored, view, currentCollection: currentCollection?.name, currentSection: currentSection?.name });
   if (!stateRestored) return;
 
   if (view === 'song' && !currentSong) {
