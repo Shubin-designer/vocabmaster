@@ -1502,56 +1502,57 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           <div className="text-xs text-gray-600 mb-2 flex-shrink-0">Select text to see translation and add words</div>
           <div className="bg-transparent text-gray-200 text-lg leading-relaxed p-4 rounded-xl flex-1 overflow-y-auto min-h-0">{highlightText()}</div>
 
-          {hoveredWord && (
-            <div className="fixed liquid-glass text-white rounded-2xl shadow-2xl p-4 z-50 min-w-48 max-w-xs animate-scaleIn" style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
-              {hoveredWord.phrases ? (
-                <>
-                  <div className="font-semibold mb-1">{hoveredWord.word}</div>
-                  <div className="text-xs text-gray-300 mb-1">Part of {hoveredWord.phrases.length} phrase(s):</div>
-                  {hoveredWord.phrases.map((p, i) => (
-                    <div key={i} className="text-sm border-t border-gray-600 pt-1 mt-1">
-                      <div className="font-medium">{p.phrase}</div>
-                      {p.translation && <div className="text-blue-300">→ {p.translation}</div>}
-                      <div className="text-xs text-gray-400">{p.collection} › {p.section}</div>
-                    </div>
-                  ))}
-                </>
-              ) : hoveredWord.matches ? (
-                hoveredWord.matches.map((m, idx) => (
-                  <div key={idx} className={idx > 0 ? 'border-t border-gray-600 mt-2 pt-2' : ''}>
-                    <div className="font-semibold mb-1">{m.word}</div>
-                    {m.forms && <div className="text-xs text-gray-400 mb-1">{m.forms}</div>}
-                    {m.translation && <div className="text-blue-300 text-sm mb-1">→ {m.translation}</div>}
-                    <div className="text-xs text-gray-400">{m.collection} › {m.section}</div>
-                  </div>
-                ))
-              ) : null}
-            </div>
-          )}
-          {popup && (
-            <div className="song-popup fixed liquid-glass border border-white/20 text-white rounded-2xl shadow-2xl p-4 z-50 min-w-48 animate-scaleIn" style={{ left: popup.pos.x, top: popup.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
-              <div className="font-semibold">{popup.original}</div>
-              <div className="text-sm text-blue-600 mb-2">→ {translating ? <Loader size={14} className="inline animate-spin" /> : popup.translation}</div>
-              {existingSet.has(popup.word) ? (
-                <>
-                  {(() => {
-                    const existingWord = existingWords.find(w => w.word.toLowerCase() === popup.word);
-                    if (existingWord) {
-                      const sec = sections.find(s => s.id === existingWord.sectionId);
-                      const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown';
-                      return <div className="text-xs text-gray-300 bg-green-900/30 px-2 py-1 rounded border border-green-200 ">✓ In vocabulary: <span className="font-medium">{location}</span></div>;
-                    }
-                    return <div className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">✓ Already in vocabulary</div>;
-                  })()}
-                </>
-              ) : selected.includes(popup.word) ? (
-                <button onClick={() => removeFromList(popup.word)} className="w-full px-3 py-1 bg-red-100  text-red-700  rounded text-sm">✗ Remove from list</button>
-              ) : (
-                <button onClick={() => addToList(popup.word)} className="w-full px-3 py-1 bg-blue-500 text-white rounded text-sm">+ Add to list</button>
-              )}
-            </div>
-          )}
         </div>
+
+        {hoveredWord && (
+          <div className="fixed liquid-glass text-white rounded-2xl shadow-2xl p-4 z-[90] min-w-48 max-w-xs animate-scaleIn" style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10, pointerEvents: 'none' }}>
+            {hoveredWord.phrases ? (
+              <>
+                <div className="font-semibold mb-1">{hoveredWord.word}</div>
+                <div className="text-xs text-gray-300 mb-1">Part of {hoveredWord.phrases.length} phrase(s):</div>
+                {hoveredWord.phrases.map((p, i) => (
+                  <div key={i} className="text-sm border-t border-gray-600 pt-1 mt-1">
+                    <div className="font-medium">{p.phrase}</div>
+                    {p.translation && <div className="text-blue-300">→ {p.translation}</div>}
+                    <div className="text-xs text-gray-400">{p.collection} › {p.section}</div>
+                  </div>
+                ))}
+              </>
+            ) : hoveredWord.matches ? (
+              hoveredWord.matches.map((m, idx) => (
+                <div key={idx} className={idx > 0 ? 'border-t border-gray-600 mt-2 pt-2' : ''}>
+                  <div className="font-semibold mb-1">{m.word}</div>
+                  {m.forms && <div className="text-xs text-gray-400 mb-1">{m.forms}</div>}
+                  {m.translation && <div className="text-blue-300 text-sm mb-1">→ {m.translation}</div>}
+                  <div className="text-xs text-gray-400">{m.collection} › {m.section}</div>
+                </div>
+              ))
+            ) : null}
+          </div>
+        )}
+        {popup && (
+          <div className="song-popup fixed liquid-glass border border-white/20 text-white rounded-2xl shadow-2xl p-4 z-[90] min-w-48 animate-scaleIn" style={{ left: popup.pos.x, top: popup.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
+            <div className="font-semibold">{popup.original}</div>
+            <div className="text-sm text-blue-600 mb-2">→ {translating ? <Loader size={14} className="inline animate-spin" /> : popup.translation}</div>
+            {existingSet.has(popup.word) ? (
+              <>
+                {(() => {
+                  const existingWord = existingWords.find(w => w.word.toLowerCase() === popup.word);
+                  if (existingWord) {
+                    const sec = sections.find(s => s.id === existingWord.sectionId);
+                    const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown';
+                    return <div className="text-xs text-gray-300 bg-green-900/30 px-2 py-1 rounded border border-green-200 ">✓ In vocabulary: <span className="font-medium">{location}</span></div>;
+                  }
+                  return <div className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">✓ Already in vocabulary</div>;
+                })()}
+              </>
+            ) : selected.includes(popup.word) ? (
+              <button onClick={() => removeFromList(popup.word)} className="w-full px-3 py-1 bg-red-100  text-red-700  rounded text-sm">✗ Remove from list</button>
+            ) : (
+              <button onClick={() => addToList(popup.word)} className="w-full px-3 py-1 bg-blue-500 text-white rounded text-sm">+ Add to list</button>
+            )}
+          </div>
+        )}
 
         {selected.length > 0 && (
           <div className="liquid-glass rounded-3xl p-6 flex-shrink-0 max-h-64 overflow-y-auto">
