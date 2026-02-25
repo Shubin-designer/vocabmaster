@@ -3408,44 +3408,44 @@ export default function VocabApp() {
       {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} isDark={isDark} />}
       {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}><h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button></div></Modal>}
       {
-        modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })}>
-          <h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
+        modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
           <div className="mb-3">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
-            <div className="grid grid-cols-10 gap-2 p-3 border rounded-lg bg-gray-50 max-h-32 overflow-y-auto">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
+            <div className={`grid grid-cols-10 gap-2 p-3 rounded-xl max-h-32 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               {COLLECTION_ICONS.map(icon => (
-                <button key={icon} type="button" onClick={() => document.getElementById('col-icon').textContent = icon} className="text-2xl hover:bg-white rounded p-1 transition">{icon}</button>
+                <button key={icon} type="button" onClick={() => document.getElementById('col-icon').textContent = icon} className={`text-2xl rounded p-1 transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'}`}>{icon}</button>
               ))}
             </div>
             <div className="mt-2 text-center">
               <span className="text-3xl" id="col-icon">{modal.data?.icon || '📚'}</span>
             </div>
           </div>
-          <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus />
+          <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
-            <button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
-            <button onClick={() => saveCollection(document.getElementById('col-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+            <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+            <button onClick={() => saveCollection(document.getElementById('col-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
       {
-        modal.type === 'section' && <Modal onClose={() => setModal({ type: null, data: null })}>
-          <h3 className="text-lg font-semibold mb-4">{modal.data?.section ? 'Edit Section' : 'New Section'}</h3>
+        modal.type === 'section' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data?.section ? 'Edit Section' : 'New Section'}</h3>
           <div className="mb-3">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
-            <div className="grid grid-cols-10 gap-2 p-3 border rounded-lg bg-gray-50 max-h-32 overflow-y-auto">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
+            <div className={`grid grid-cols-10 gap-2 p-3 rounded-xl max-h-32 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               {SECTION_ICONS.map(icon => (
-                <button key={icon} type="button" onClick={() => document.getElementById('sec-icon').textContent = icon} className="text-2xl hover:bg-white rounded p-1 transition">{icon}</button>
+                <button key={icon} type="button" onClick={() => document.getElementById('sec-icon').textContent = icon} className={`text-2xl rounded p-1 transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'}`}>{icon}</button>
               ))}
             </div>
             <div className="mt-2 text-center">
               <span className="text-3xl" id="sec-icon">{modal.data?.section?.icon || '📖'}</span>
             </div>
           </div>
-          <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus />
+          <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
-            <button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
-            <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+            <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+            <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
@@ -3609,8 +3609,8 @@ export default function VocabApp() {
       }
       {
         modal.type === 'changePassword' && (
-          <Modal onClose={() => setModal({ type: null, data: null })}>
-            <h3 className="text-lg font-semibold mb-4">Change Password</h3>
+          <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Change Password</h3>
             <form onSubmit={(e) => {
               e.preventDefault();
               const newPass = e.target.newPassword.value;
@@ -3625,11 +3625,11 @@ export default function VocabApp() {
               }
               handleChangePassword(newPass);
             }}>
-              <input name="newPassword" type="password" placeholder="New password" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-3" required minLength={6} />
-              <input name="confirmPassword" type="password" placeholder="Confirm password" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" required minLength={6} />
+              <input name="newPassword" type="password" placeholder="New password" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-3 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} required minLength={6} />
+              <input name="confirmPassword" type="password" placeholder="Confirm password" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} required minLength={6} />
               <div className="flex gap-2">
-                <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border  rounded-lg hover:bg-white/5">Cancel</button>
-                <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change</button>
+                <button type="button" onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+                <button type="submit" className="flex-1 h-10 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Change</button>
               </div>
             </form>
           </Modal>
@@ -3637,8 +3637,8 @@ export default function VocabApp() {
       }
       {
         modal.type === 'dailyGoals' && (
-          <Modal onClose={() => setModal({ type: null, data: null })}>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Target size={20} /> Daily Goals</h3>
+          <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}>
+            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}><Target size={20} /> Daily Goals</h3>
             <form onSubmit={async (e) => {
               e.preventDefault();
               const newWords = parseInt(e.target.newWords.value) || 5;
@@ -3663,31 +3663,31 @@ export default function VocabApp() {
             }}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">New words per day</label>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>New words per day</label>
                   <input
                     name="newWords"
                     type="number"
                     min="1"
                     max="100"
                     defaultValue={userGoals.daily_new_words}
-                    className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl focus:outline-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Words to review per day</label>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Words to review per day</label>
                   <input
                     name="reviewWords"
                     type="number"
                     min="1"
                     max="100"
                     defaultValue={userGoals.daily_review_words}
-                    className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl focus:outline-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`}
                   />
                 </div>
               </div>
               <div className="flex gap-2 mt-6">
-                <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border  rounded-lg hover:bg-white/5">Cancel</button>
-                <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+                <button type="button" onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+                <button type="submit" className="flex-1 h-10 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
               </div>
             </form>
           </Modal>
