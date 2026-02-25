@@ -691,8 +691,28 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         return;
       }
 
-      // Если есть error от supabase но нет data.error - выбрасываем
-      if (error) throw error;
+      // Если есть error от supabase - пробуем извлечь данные из error.context
+      if (error) {
+        // FunctionsHttpError содержит context с ответом сервера
+        if (error.context) {
+          try {
+            const errorBody = await error.context.json();
+            console.log('Error body:', errorBody);
+            if (errorBody?.error) {
+              setLookupError(errorBody.error);
+              if (errorBody.suggestions && Array.isArray(errorBody.suggestions)) {
+                setSuggestions(errorBody.suggestions);
+              }
+              setHasLookedUp(true);
+              setLoading(false);
+              return;
+            }
+          } catch (parseErr) {
+            console.log('Could not parse error context:', parseErr);
+          }
+        }
+        throw error;
+      }
 
       console.log('Type:', data?.type);
       console.log('Level:', data?.level);
@@ -763,19 +783,22 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
     } catch (e) {
       console.error('Lookup error:', e);
       // Пробуем извлечь suggestions из ошибки если они есть
-      try {
-        const errorData = typeof e.context?.body === 'string' ? JSON.parse(e.context.body) : e.context?.body;
-        if (errorData?.error) {
-          setLookupError(errorData.error);
-          if (errorData.suggestions && Array.isArray(errorData.suggestions)) {
-            setSuggestions(errorData.suggestions);
+      if (e.context) {
+        try {
+          const errorBody = await e.context.json();
+          if (errorBody?.error) {
+            setLookupError(errorBody.error);
+            if (errorBody.suggestions && Array.isArray(errorBody.suggestions)) {
+              setSuggestions(errorBody.suggestions);
+            }
+            setLoading(false);
+            return;
           }
-        } else {
-          setLookupError(e.message || 'Failed to lookup word');
+        } catch {
+          // не удалось распарсить
         }
-      } catch {
-        setLookupError(e.message || 'Failed to lookup word');
       }
+      setLookupError(e.message || 'Failed to lookup word');
     }
     setLoading(false);
   };
