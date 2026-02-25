@@ -13,13 +13,19 @@ const COLLECTION_ICONS = ['📚', '📖', '🎬', '💼', '✈️', '🍕', '�
 // Подсветка слова в примере
 const highlightWord = (text, word) => {
   if (!text || !word) return text;
-  const baseWord = word.toLowerCase().replace(/\s+/g, '\\s+');
-  // Ищем слово и его формы (с окончаниями)
-  const regex = new RegExp(`(${baseWord}\\w*|\\w*${baseWord})`, 'gi');
-  const parts = text.split(regex);
-  return parts.map((part, i) =>
-    regex.test(part) ? <span key={i} className="text-blue-600 dark:text-blue-400 font-medium not-italic">{part}</span> : part
-  );
+  // Экранируем специальные regex символы
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const baseWord = escaped.toLowerCase().replace(/\s+/g, '\\s+');
+  try {
+    // Ищем слово и его формы (с окончаниями)
+    const regex = new RegExp(`(${baseWord}\\w*|\\w*${baseWord})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, i) =>
+      regex.test(part) ? <span key={i} className="text-blue-600 dark:text-blue-400 font-medium not-italic">{part}</span> : part
+    );
+  } catch {
+    return text; // Если regex не работает - возвращаем текст как есть
+  }
 };
 const SECTION_ICONS = ['📖', '📝', '🎬', '🎥', '💼', '🏢', '✈️', '🌍', '🍕', '🍔', '🎵', '🎸', '⚽', '🏀', '💻', '🖥️', '🎓', '📚', '🏥', '⚕️', '🎨', '🖼️', '🏠', '🏡', '🚗', '🚙', '👔', '👗', '🌳', '🌺', '🎯', '⭐'];
 
