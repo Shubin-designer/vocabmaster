@@ -1484,12 +1484,12 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-2xl font-bold">{song.title}</h2>
+        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{song.title}</h2>
         <div className="flex gap-2">
-          {onClose && <button onClick={onClose} className="px-4 py-2 border  rounded-lg hover:bg-white/5">← Back</button>}
+          {onClose && <button onClick={onClose} className={`px-4 py-2.5 rounded-full font-medium transition-colors ${isDark ? 'bg-white/[0.06] text-white/80 hover:bg-white/[0.1] border border-white/[0.08]' : 'bg-white text-gray-700 hover:bg-gray-50 border border-black/[0.08] shadow-sm'}`}>← Back</button>}
           <button
             onClick={explainSong}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
+            className="px-4 py-2.5 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110 flex items-center gap-2 transition-all"
           >
             {loadingExp ? <Loader size={16} className="animate-spin" /> : '💡'}
             {explanation ? (showExp ? 'Hide' : 'Show') + ' Explanation' : 'Explain Song'}
@@ -2929,7 +2929,7 @@ export default function VocabApp() {
     <div className={`min-h-screen flex ${isDark ? 'bg-theme-main text-gray-100 dark' : 'bg-[#f5f5f7] text-gray-900'}`}>
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 h-screen">
-        <header className={`${isDark ? 'bg-transparent border-white/5' : 'bg-white/80 border-black/5'} backdrop-blur-xl border-b px-8 py-3 h-auto flex items-center justify-between flex-shrink-0`}>
+        <header className={`${isDark ? 'bg-[#0d0d10]/80 border-white/5' : 'bg-white/90 border-black/5'} backdrop-blur-xl border-b px-8 py-3 h-auto flex items-center justify-between flex-shrink-0 relative z-[500]`}>
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`}>
               <Menu size={20} />
@@ -3309,29 +3309,29 @@ export default function VocabApp() {
           {showFilters && (
             <>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <h2 className="text-xl font-semibold">{currentSection?.name || currentCollection?.name}</h2>
+                <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentSection?.name || currentCollection?.name}</h2>
                 <div className="flex items-center gap-2">
-                  {currentSection && filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length > 0 && <button onClick={() => setModal({ type: 'fillCards', data: filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms) })} className="h-10 px-3 bg-purple-500 text-white rounded-lg text-sm flex items-center gap-1"><Search size={16} /> Fill {filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length} Cards</button>}
+                  {currentSection && filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length > 0 && <button onClick={() => setModal({ type: 'fillCards', data: filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms) })} className="h-10 px-4 bg-purple-vibrant text-white rounded-full text-sm font-medium flex items-center gap-1.5 hover:brightness-110 transition-all"><Search size={16} /> Fill {filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length} Cards</button>}
                   <div className="relative">
-                    <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none">
-                      <option value="all">All levels</option>{LEVELS.map(l => <option key={l}>{l}</option>)}
+                    <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className={`h-10 pl-4 pr-10 rounded-full text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]' : 'bg-white text-gray-800 border border-black/[0.06] shadow-sm hover:bg-gray-50'}`}>
+                      <option className="text-black" value="all">All levels</option>{LEVELS.map(l => <option className="text-black" key={l}>{l}</option>)}
                     </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                   <div className="relative">
-                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`h-10 pl-4 pr-10 rounded-2xl text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/5 text-white hover:bg-white/10 border border-white/10' : 'bg-black/5 text-gray-900 border border-transparent hover:bg-black/10'}`}>
+                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`h-10 pl-4 pr-10 rounded-full text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]' : 'bg-white text-gray-800 border border-black/[0.06] shadow-sm hover:bg-gray-50'}`}>
                       <option className="text-black" value="all">All status</option><option className="text-black" value="new">New</option><option className="text-black" value="learning">Learning</option><option className="text-black" value="learned">Learned</option>
                     </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                 </div>
               </div>
               {!currentSection && currentCollection && <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-800">Select a section to add words.</div>}
-              <div className="grid grid-cols-4 gap-4 mb-6">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-semibold transition-all ${view === m.id ? 'bg-pink-vibrant text-white shadow-lg shadow-pink-500/20' : isDark ? 'liquid-glass text-white/70 hover:text-white hover:brightness-110' : 'liquid-glass text-gray-600 hover:text-gray-900'}`}><m.icon size={20} /> {m.label}</button>)}</div>
+              <div className="grid grid-cols-4 gap-3 mb-6">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-5 py-3 rounded-full font-medium transition-all ${view === m.id ? 'bg-pink-vibrant text-white shadow-lg shadow-pink-500/20' : isDark ? 'bg-white/[0.04] border border-white/[0.06] text-white/70 hover:text-white hover:bg-white/[0.08]' : 'bg-white border border-black/[0.06] text-gray-600 hover:text-gray-900 shadow-sm'}`}><m.icon size={18} /> {m.label}</button>)}</div>
               {view === 'list' && <div className="space-y-3">{filteredWords.length ? filteredWords.map(w => <WordCard key={w.id} word={w} />) : <div className="text-center py-12 text-gray-400">No words</div>}</div>}
               {view === 'cards' && renderFlashcards()}
               {view === 'quiz' && renderQuiz()}
