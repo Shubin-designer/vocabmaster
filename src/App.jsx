@@ -93,87 +93,87 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true }) => 
     };
 
     if (status === 'complete') {
-      return { ...base, backgroundColor: '#f97316', boxShadow: '0 0 6px rgba(249, 115, 22, 0.6)' };
+      return { ...base, backgroundColor: '#fc3b74', boxShadow: '0 0 8px rgba(252, 59, 116, 0.6)' };
     } else if (status === 'partial') {
-      return { ...base, backgroundColor: '#fb923c', boxShadow: '0 0 4px rgba(251, 146, 60, 0.4)' };
+      return { ...base, backgroundColor: '#ff7597', boxShadow: '0 0 5px rgba(255, 117, 151, 0.4)' };
     } else if (status === 'started') {
-      return { ...base, backgroundColor: isDark ? 'rgba(249, 115, 22, 0.35)' : 'rgba(249, 115, 22, 0.4)' };
+      return { ...base, backgroundColor: isDark ? 'rgba(252, 59, 116, 0.35)' : 'rgba(252, 59, 116, 0.4)' };
     }
-    return { ...base, backgroundColor: isDark ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.08)' };
+    return { ...base, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)' };
   };
 
   return (
     <div
-      className={`rounded-3xl p-5 relative overflow-hidden backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+      className={`rounded-[2rem] p-6 relative overflow-hidden backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
       style={{
         background: isDark
-          ? 'linear-gradient(145deg, rgba(30, 27, 24, 0.95) 0%, rgba(35, 30, 25, 0.95) 100%)'
+          ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
           : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
         border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
       }}
     >
       {/* Ambient glow */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-40"
         style={{
           background: isDark
-            ? 'radial-gradient(ellipse at 80% 0%, rgba(249, 115, 22, 0.06) 0%, transparent 50%)'
-            : 'radial-gradient(ellipse at 80% 0%, rgba(249, 115, 22, 0.08) 0%, transparent 50%)'
+            ? 'radial-gradient(ellipse at 80% 0%, rgba(252, 59, 116, 0.12) 0%, transparent 50%)'
+            : 'radial-gradient(ellipse at 80% 0%, rgba(252, 59, 116, 0.1) 0%, transparent 50%)'
         }}
       />
 
       {/* Header */}
-      <div className="relative flex items-center justify-between mb-4">
+      <div className="relative flex items-center justify-between mb-6">
         <div>
-          <h3 className={`font-medium text-base ${isDark ? 'text-white/90' : 'text-gray-900'}`}>Activity</h3>
-          <p className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>Last 7 weeks</p>
+          <h3 className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Activity</h3>
+          <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>Last 7 weeks</p>
         </div>
         {streak > 0 && (
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${isDark ? 'bg-orange-500/10' : 'bg-orange-50'}`}>
-            <Flame size={14} className="text-orange-500" />
-            <span className="text-orange-500 font-semibold text-sm">{streak}</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/20">
+            <Flame size={14} className="text-pink-vibrant" />
+            <span className="text-pink-vibrant font-semibold text-sm">{streak}</span>
           </div>
         )}
       </div>
 
       {/* Today's Stats - Compact */}
-      <div className="relative grid grid-cols-2 gap-2 mb-4">
-        <div className={`rounded-2xl p-3 ${isDark ? 'bg-white/[0.03] border border-white/[0.04]' : 'bg-black/[0.02] border border-black/[0.04]'}`}>
-          <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-orange-400" style={{ boxShadow: '0 0 4px rgba(251, 146, 60, 0.5)' }} />
-            <span className={`text-[10px] uppercase tracking-wide ${isDark ? 'text-white/40' : 'text-gray-400'}`}>New</span>
+      <div className="relative grid grid-cols-2 gap-3 mb-6">
+        <div className={`rounded-2xl p-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.04]' : 'bg-black/[0.02] border border-black/[0.04]'}`}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-2 h-2 rounded-full bg-pink-vibrant glow-pink" />
+            <span className={`text-[11px] uppercase tracking-wide font-medium ${isDark ? 'text-white/50' : 'text-gray-500'}`}>New</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{todayNew}</span>
-            <span className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>/{goalNew}</span>
+            <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{todayNew}</span>
+            <span className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-400'}`}>/{goalNew}</span>
           </div>
-          <div className={`mt-1.5 h-1 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
+          <div className={`mt-2 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
             <div
               className="h-full rounded-full"
               style={{
                 width: `${Math.min((todayNew / goalNew) * 100, 100)}%`,
-                background: 'linear-gradient(90deg, #f97316, #fbbf24)',
-                boxShadow: todayNew > 0 ? '0 0 6px rgba(249, 115, 22, 0.4)' : 'none'
+                background: 'linear-gradient(90deg, #fc3b74, #ff7597)',
+                boxShadow: todayNew > 0 ? '0 0 8px rgba(252, 59, 116, 0.5)' : 'none'
               }}
             />
           </div>
         </div>
-        <div className={`rounded-2xl p-3 ${isDark ? 'bg-white/[0.03] border border-white/[0.04]' : 'bg-black/[0.02] border border-black/[0.04]'}`}>
-          <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 4px rgba(52, 211, 153, 0.5)' }} />
-            <span className={`text-[10px] uppercase tracking-wide ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Review</span>
+        <div className={`rounded-2xl p-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.04]' : 'bg-black/[0.02] border border-black/[0.04]'}`}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-2 h-2 rounded-full bg-mint-vibrant glow-green" />
+            <span className={`text-[11px] uppercase tracking-wide font-medium ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Review</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{todayReview}</span>
-            <span className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>/{goalReview}</span>
+            <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{todayReview}</span>
+            <span className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-400'}`}>/{goalReview}</span>
           </div>
-          <div className={`mt-1.5 h-1 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
+          <div className={`mt-2 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
             <div
               className="h-full rounded-full"
               style={{
                 width: `${Math.min((todayReview / goalReview) * 100, 100)}%`,
-                background: 'linear-gradient(90deg, #10b981, #34d399)',
-                boxShadow: todayReview > 0 ? '0 0 6px rgba(16, 185, 129, 0.4)' : 'none'
+                background: 'linear-gradient(90deg, #69e3a9, #8df5c2)',
+                boxShadow: todayReview > 0 ? '0 0 8px rgba(105, 227, 169, 0.5)' : 'none'
               }}
             />
           </div>
@@ -182,35 +182,35 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true }) => 
 
       {/* Dot Grid - 7 rows x 7 columns */}
       <div className="relative">
-        <div className="grid gap-[5px]" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+        <div className="grid gap-[6px]" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
           {days.map((day, i) => (
             <div
               key={i}
               title={`${day.date}${day.status !== 'none' ? ` • ${day.status}` : ''}`}
               style={getDotStyle(day.status, day.isToday)}
-              className={`mx-auto transition-transform hover:scale-125 ${day.isToday ? (isDark ? 'ring-1 ring-white/20' : 'ring-1 ring-black/10') : ''}`}
+              className={`mx-auto transition-transform hover:scale-125 ${day.isToday ? (isDark ? 'ring-1 ring-white/30 ring-offset-1 ring-offset-[#151515]' : 'ring-1 ring-black/20') : ''}`}
             />
           ))}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="relative flex items-center justify-center gap-3 mt-3 text-[9px]">
-        <div className="flex items-center gap-1">
-          <div className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-gray-600/30' : 'bg-black/10'}`} />
-          <span className={isDark ? 'text-white/25' : 'text-gray-400'}>None</span>
+      <div className="relative flex items-center justify-center gap-4 mt-5 text-[10px] font-medium">
+        <div className="flex items-center gap-1.5">
+          <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
+          <span className={isDark ? 'text-white/40' : 'text-gray-500'}>None</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-orange-500/40" />
-          <span className={isDark ? 'text-white/25' : 'text-gray-400'}>Started</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgba(252, 59, 116, 0.35)' }} />
+          <span className={isDark ? 'text-white/40' : 'text-gray-500'}>Started</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-          <span className={isDark ? 'text-white/25' : 'text-gray-400'}>Partial</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#ff7597' }} />
+          <span className={isDark ? 'text-white/40' : 'text-gray-500'}>Partial</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-orange-500" style={{ boxShadow: '0 0 4px rgba(249, 115, 22, 0.5)' }} />
-          <span className={isDark ? 'text-white/25' : 'text-gray-400'}>Complete</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full glow-pink" style={{ backgroundColor: '#fc3b74' }} />
+          <span className={isDark ? 'text-white/40' : 'text-gray-500'}>Complete</span>
         </div>
       </div>
     </div>
@@ -300,7 +300,7 @@ const CompletionScreen = ({ title, stats, onRestart, onBack, wrongWords }) => {
           <div><div className="text-3xl font-bold text-red-400">{stats.total - stats.correct}</div><div className="text-sm text-gray-400">Don't know</div></div>
         </div>
         {wrongWords.length > 0 && <div className="text-left mb-4 p-3 bg-red-900/30 rounded-lg"><div className="text-sm text-red-700  mb-2">To review:</div><div className="flex flex-wrap gap-1">{wrongWords.map(w => <span key={w.id} className="text-xs bg-red-100   px-2 py-1 rounded">{w.word}</span>)}</div></div>}
-        <div className="flex gap-3"><button onClick={onBack} className="flex-1 p-3 border  rounded-lg hover:bg-white/5">Back</button><button onClick={onRestart} className="flex-1 p-3 bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2"><RefreshCw size={18}/>Again</button></div>
+        <div className="flex gap-3"><button onClick={onBack} className="flex-1 p-3 border  rounded-lg hover:bg-white/5">Back</button><button onClick={onRestart} className="flex-1 p-3 bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2"><RefreshCw size={18} />Again</button></div>
       </div>
     </div>
   );
@@ -638,7 +638,7 @@ const FillCardsModal = ({ words, onSave, onCancel }) => {
           </div>
           <div className="flex gap-2">
             <button onClick={handleClose} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5 flex items-center justify-center gap-2">
-              <X size={16}/> Stop
+              <X size={16} /> Stop
             </button>
           </div>
         </>
@@ -675,11 +675,10 @@ const FillCardsModal = ({ words, onSave, onCancel }) => {
                         key={mi}
                         onClick={() => toggleTranslation(i, m.ru)}
                         title={m.meaningEn}
-                        className={`text-xs px-2 py-1 rounded-full border ${
-                          r.selectedTranslations.has(m.ru?.toLowerCase())
-                            ? 'bg-green-100  text-green-700  border-green-300 '
-                            : 'bg-gray-800 text-gray-700  border-gray-300  hover:border-gray-400'
-                        }`}
+                        className={`text-xs px-2 py-1 rounded-full border ${r.selectedTranslations.has(m.ru?.toLowerCase())
+                          ? 'bg-green-100  text-green-700  border-green-300 '
+                          : 'bg-gray-800 text-gray-700  border-gray-300  hover:border-gray-400'
+                          }`}
                       >
                         {r.selectedTranslations.has(m.ru?.toLowerCase()) ? '✓ ' : ''}{m.ru}
                         <span className="ml-1 text-gray-400">({m.type})</span>
@@ -718,22 +717,22 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   const [lookupError, setLookupError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [pendingLookup, setPendingLookup] = useState(false);
-  
+
   const doLookup = async (auto = false) => {
     if (!form.word.trim() || loading) return;
     if (auto && hasLookedUp) return;
-    
+
     // Проверка дубликата
     const cleaned = form.word.trim().toLowerCase();
     const existingWord = existingWords.find(w => w.word.toLowerCase() === cleaned);
-    
+
     if (existingWord && existingWord.id !== form.id) {
       const sec = sections.find(s => s.id === existingWord.sectionId);
       const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown section';
       onDuplicateFound(`"${form.word}" already exists in: ${location}`);
       return;
     }
-    
+
     setLoading(true);
     setLookupError(null);
     setSuggestions([]);
@@ -868,7 +867,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
     }
     setLoading(false);
   };
-  
+
   // Авто-lookup при фокусе на поле перевода
   const handleTranslationFocus = () => {
     if (form.word.trim() && !hasLookedUp && translationsWithExamples.length === 0) {
@@ -883,80 +882,80 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       doLookup(false);
     }
   }, [pendingLookup, form.word, loading]);
-  
- const addTranslation = (t) => {
-  // Если уже добавлен - УДАЛЯЕМ
-  if (addedTranslations.has(t.toLowerCase())) {
-    // Удаляем из meaningRu
-    const currentTranslations = form.meaningRu.split(',').map(s => s.trim()).filter(s => s);
-    const filtered = currentTranslations.filter(s => s.toLowerCase() !== t.toLowerCase());
-    setForm(f => ({ ...f, meaningRu: filtered.join(', ') }));
-    
-    // Удаляем из Set
-    const newSet = new Set(addedTranslations);
-    newSet.delete(t.toLowerCase());
-    setAddedTranslations(newSet);
-    
-    // При удалении type НЕ меняем - пользователь может убрать вручную кликом
-    // Пересобираем meaningEn и example из оставшихся переводов
-    if (newSet.size > 0) {
-      const remainingTranslations = Array.from(newSet);
-      const remainingMeanings = translationsWithExamples.filter(m =>
-        remainingTranslations.includes(m.ru.toLowerCase())
-      );
 
-      setForm(f => ({
-        ...f,
-        meaningEn: remainingMeanings.map(m => m.meaningEn).join('\n'),
-        example: remainingMeanings.map(m => m.example).filter(Boolean).join('\n')
-      }));
-    } else {
-      // Если не осталось переводов - очищаем meaningEn/example (type оставляем)
-      setForm(f => ({ ...f, meaningEn: '', example: '' }));
-    }
-    
-    return;
-  }
-  
-  // Добавляем
-  const current = form.meaningRu.trim();
-  setForm(f => ({ ...f, meaningRu: current ? `${current}, ${t}` : t }));
-  setAddedTranslations(prev => new Set([...prev, t.toLowerCase()]));
-  
-  // Добавляем meaningEn и example с новой строки
-  const meaning = translationsWithExamples.find(m => m.ru === t);
-  if (meaning) {
-    setForm(f => {
-      const currentMeaningEn = f.meaningEn.trim();
-      const currentExample = f.example.trim();
+  const addTranslation = (t) => {
+    // Если уже добавлен - УДАЛЯЕМ
+    if (addedTranslations.has(t.toLowerCase())) {
+      // Удаляем из meaningRu
+      const currentTranslations = form.meaningRu.split(',').map(s => s.trim()).filter(s => s);
+      const filtered = currentTranslations.filter(s => s.toLowerCase() !== t.toLowerCase());
+      setForm(f => ({ ...f, meaningRu: filtered.join(', ') }));
 
-      // Добавляем type к существующим (мультивыбор)
-      const currentTypes = (f.type || '').split(',').map(s => s.trim()).filter(Boolean);
-      const newType = meaning.type;
-      let updatedTypes = currentTypes;
-      if (newType && !currentTypes.includes(newType)) {
-        updatedTypes = [...currentTypes, newType];
+      // Удаляем из Set
+      const newSet = new Set(addedTranslations);
+      newSet.delete(t.toLowerCase());
+      setAddedTranslations(newSet);
+
+      // При удалении type НЕ меняем - пользователь может убрать вручную кликом
+      // Пересобираем meaningEn и example из оставшихся переводов
+      if (newSet.size > 0) {
+        const remainingTranslations = Array.from(newSet);
+        const remainingMeanings = translationsWithExamples.filter(m =>
+          remainingTranslations.includes(m.ru.toLowerCase())
+        );
+
+        setForm(f => ({
+          ...f,
+          meaningEn: remainingMeanings.map(m => m.meaningEn).join('\n'),
+          example: remainingMeanings.map(m => m.example).filter(Boolean).join('\n')
+        }));
+      } else {
+        // Если не осталось переводов - очищаем meaningEn/example (type оставляем)
+        setForm(f => ({ ...f, meaningEn: '', example: '' }));
       }
 
-      return {
-        ...f,
-        type: updatedTypes.join(', ') || 'noun',
-        meaningEn: currentMeaningEn
-          ? `${currentMeaningEn}\n${meaning.meaningEn}`
-          : meaning.meaningEn,
-        example: currentExample
-          ? `${currentExample}\n${meaning.example}`
-          : meaning.example
-      };
-    });
-  }
-};
-    
+      return;
+    }
+
+    // Добавляем
+    const current = form.meaningRu.trim();
+    setForm(f => ({ ...f, meaningRu: current ? `${current}, ${t}` : t }));
+    setAddedTranslations(prev => new Set([...prev, t.toLowerCase()]));
+
+    // Добавляем meaningEn и example с новой строки
+    const meaning = translationsWithExamples.find(m => m.ru === t);
+    if (meaning) {
+      setForm(f => {
+        const currentMeaningEn = f.meaningEn.trim();
+        const currentExample = f.example.trim();
+
+        // Добавляем type к существующим (мультивыбор)
+        const currentTypes = (f.type || '').split(',').map(s => s.trim()).filter(Boolean);
+        const newType = meaning.type;
+        let updatedTypes = currentTypes;
+        if (newType && !currentTypes.includes(newType)) {
+          updatedTypes = [...currentTypes, newType];
+        }
+
+        return {
+          ...f,
+          type: updatedTypes.join(', ') || 'noun',
+          meaningEn: currentMeaningEn
+            ? `${currentMeaningEn}\n${meaning.meaningEn}`
+            : meaning.meaningEn,
+          example: currentExample
+            ? `${currentExample}\n${meaning.example}`
+            : meaning.example
+        };
+      });
+    }
+  };
+
   const isTranslationAdded = (t) => {
     if (!t) return false;
     return addedTranslations.has(t.toLowerCase());
   };
-  
+
   return (
     <Modal onClose={onCancel} preventClose>
       <div style={{ maxHeight: '90vh', overflow: 'auto' }}>
@@ -1045,11 +1044,10 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                         setForm(newForm);
                       }
                     }}
-                    className={`px-2 py-1 text-xs rounded-full border ${
-                      isSelected
-                        ? 'bg-blue-500 text-white border-blue-500'
-                        : 'bg-white  text-gray-300 border-gray-300  hover:border-gray-400 :border-gray-500'
-                    }`}
+                    className={`px-2 py-1 text-xs rounded-full border ${isSelected
+                      ? 'bg-blue-500 text-white border-blue-500'
+                      : 'bg-white  text-gray-300 border-gray-300  hover:border-gray-400 :border-gray-500'
+                      }`}
                   >
                     {t}
                   </button>
@@ -1061,7 +1059,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                 {LEVELS.map(l => <option key={l}>{l}</option>)}
               </select>
               <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
             </div>
           </div>
@@ -1114,11 +1112,10 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                                 key={`${type}-${idx}`}
                                 onClick={() => addTranslation(m.ru)}
                                 title={m.meaningEn || (m.isUserAdded ? 'Мой перевод' : '')}
-                                className={`text-sm px-3 py-1 rounded-full ${
-                                  isTranslationAdded(m.ru)
-                                    ? 'bg-green-100 text-green-700 border border-green-300   '
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-700   '
-                                }`}
+                                className={`text-sm px-3 py-1 rounded-full ${isTranslationAdded(m.ru)
+                                  ? 'bg-green-100 text-green-700 border border-green-300   '
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-700   '
+                                  }`}
                               >
                                 {isTranslationAdded(m.ru) ? '✓ ' : ''}{m.isUserAdded ? '★ ' : ''}{m.ru}
                               </button>
@@ -1163,7 +1160,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   useEffect(() => {
     if (song.explanation) {
       setExplanation(song.explanation);
-    } 
+    }
   }, [song.id]);
 
   useEffect(() => {
@@ -1171,7 +1168,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       onUnsavedChange(selected.length > 0);
     }
   }, [selected.length, onUnsavedChange]);
-  
+
   const existingSet = useMemo(() => new Set(existingWords.map(w => w.word.toLowerCase())), [existingWords]);
 
   const complexWordsMap = useMemo(() => {
@@ -1191,84 +1188,84 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
 
   useEffect(() => { const h = e => { if (popup && !e.target.closest('.song-popup')) setPopup(null); }; document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h); }, [popup]);
 
- const explainSong = async () => {
-  if (explanation) { setShowExp(!showExp); return; }
-  setShowExp(true); setLoadingExp(true);
-  try {
-    const { data, error } = await supabase.functions.invoke('song-helper', {
-      body: { action: 'explain', title: song.title, text: song.text }
-    });
-    if (!error && data) {
-      const result = data.result || '';
-      setExplanation(result);
-      
-      // Сохраняем в базу
-      await supabase
-        .from('songs')
-        .update({ explanation: result })
-        .eq('id', song.id);
+  const explainSong = async () => {
+    if (explanation) { setShowExp(!showExp); return; }
+    setShowExp(true); setLoadingExp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('song-helper', {
+        body: { action: 'explain', title: song.title, text: song.text }
+      });
+      if (!error && data) {
+        const result = data.result || '';
+        setExplanation(result);
+
+        // Сохраняем в базу
+        await supabase
+          .from('songs')
+          .update({ explanation: result })
+          .eq('id', song.id);
+      }
+    } catch (e) {
+      setExplanation('Error');
     }
-  } catch (e) { 
-    setExplanation('Error'); 
-  }
-  setLoadingExp(false);
-};
+    setLoadingExp(false);
+  };
 
   const handleSelection = async () => {
-    const sel = window.getSelection(); 
+    const sel = window.getSelection();
     const txt = sel.toString().trim();
     if (!txt || txt.length < 2) { setPopup(null); return; }
-    
+
     const cleaned = txt.toLowerCase().replace(/[.,!?;:()"'\-–—\n]/g, ' ').replace(/\s+/g, ' ').trim();
     if (cleaned.length < 2) { setPopup(null); return; }
-    
-    const range = sel.getRangeAt(0); 
+
+    const range = sel.getRangeAt(0);
     const rect = range.getBoundingClientRect();
-    
+
     const wordExists = existingSet.has(cleaned);
-    
+
     if (wordExists) {
       const existingWord = existingWords.find(w => w.word.toLowerCase() === cleaned);
       const translation = existingWord?.meaningRu || 'No translation';
-      setPopup({ 
-        word: cleaned, 
-        original: txt, 
-        translation, 
-        pos: { x: rect.left + rect.width / 2, y: rect.top - 10 }, 
-        isExisting: true, 
-        isSelected: selected.includes(cleaned) 
+      setPopup({
+        word: cleaned,
+        original: txt,
+        translation,
+        pos: { x: rect.left + rect.width / 2, y: rect.top - 10 },
+        isExisting: true,
+        isSelected: selected.includes(cleaned)
       });
       return;
     }
-    
+
     // Проверяем кэш
     if (translationCache[cleaned]) {
-      setPopup({ 
-        word: cleaned, 
-        original: txt, 
-        translation: translationCache[cleaned], 
-        pos: { x: rect.left + rect.width / 2, y: rect.top - 10 }, 
-        isExisting: false, 
-        isSelected: selected.includes(cleaned) 
+      setPopup({
+        word: cleaned,
+        original: txt,
+        translation: translationCache[cleaned],
+        pos: { x: rect.left + rect.width / 2, y: rect.top - 10 },
+        isExisting: false,
+        isSelected: selected.includes(cleaned)
       });
       return;
     }
-    
-    setPopup({ 
-      word: cleaned, 
-      original: txt, 
-      translation: '...', 
-      pos: { x: rect.left + rect.width / 2, y: rect.top - 10 }, 
-      isExisting: false, 
-      isSelected: selected.includes(cleaned) 
+
+    setPopup({
+      word: cleaned,
+      original: txt,
+      translation: '...',
+      pos: { x: rect.left + rect.width / 2, y: rect.top - 10 },
+      isExisting: false,
+      isSelected: selected.includes(cleaned)
     });
-    
+
     setTranslating(true);
     try {
       const { data, error } = await supabase.functions.invoke('song-helper', {
         body: { action: 'translate', word: cleaned }
       });
-      
+
       if (!error && data) {
         const translation = (data.result || '').trim();
         setTranslationCache(prev => ({ ...prev, [cleaned]: translation }));
@@ -1280,7 +1277,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
     setTranslating(false);
   };
 
-  const addToList = w => { 
+  const addToList = w => {
     if (existingSet.has(w)) {
       const existingWord = existingWords.find(word => word.word.toLowerCase() === w);
       if (existingWord) {
@@ -1300,21 +1297,21 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       window.getSelection().removeAllRanges();
       return;
     }
-    setSelected([...selected, w]); 
-    setWordSections({ ...wordSections, [w]: sections[0]?.id || '' }); 
-    setPopup(null); 
-    window.getSelection().removeAllRanges(); 
+    setSelected([...selected, w]);
+    setWordSections({ ...wordSections, [w]: sections[0]?.id || '' });
+    setPopup(null);
+    window.getSelection().removeAllRanges();
   };
-  
+
   const removeFromList = w => { setSelected(selected.filter(x => x !== w)); setCheckedWords(checkedWords.filter(x => x !== w)); const ns = { ...wordSections }; delete ns[w]; setWordSections(ns); };
   const toggleCheck = w => setCheckedWords(checkedWords.includes(w) ? checkedWords.filter(x => x !== w) : [...checkedWords, w]);
   const toggleCheckAll = () => setCheckedWords(checkedWords.length === selected.length ? [] : [...selected]);
-  
+
   const handleSectionChange = (word, value) => {
     if (value === 'new') setShowNewSection({ forWord: word });
     else setWordSections({ ...wordSections, [word]: value });
   };
-  
+
   const handleBulkSectionChange = value => {
     if (value === 'new') setShowNewSection({ forChecked: true });
     else { const u = {}; checkedWords.forEach(w => u[w] = value); setWordSections({ ...wordSections, ...u }); }
@@ -1322,7 +1319,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
 
   const addSelectedWords = () => {
     const toAdd = selected.filter(w => wordSections[w] && !existingSet.has(w));
-    
+
     const duplicates = selected.filter(w => existingSet.has(w));
     if (duplicates.length > 0) {
       const dupInfo = duplicates.map(w => {
@@ -1336,16 +1333,16 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       }).join(', ');
       setAlert(`Already exists: ${dupInfo}`);
     }
-    
-    if (!toAdd.length) { 
+
+    if (!toAdd.length) {
       if (duplicates.length === 0) {
-        setAlert('Select sections for words'); 
+        setAlert('Select sections for words');
       }
       setSelected(selected.filter(w => !existingSet.has(w)));
       setCheckedWords(checkedWords.filter(w => !existingSet.has(w)));
-      return; 
+      return;
     }
-    
+
     onAddWords(toAdd.map((w, i) => ({ id: Date.now() + i, sectionId: wordSections[w], word: w, type: 'word', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [song.title.toLowerCase().replace(/\s+/g, '-')], status: STATUS.NEW, passedModes: [] })));
     setSelected([]); setWordSections({}); setCheckedWords([]);
     if (onUnsavedChange) {
@@ -1391,11 +1388,11 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   const highlightText = () => {
     const result = []; let i = 0; const text = song.text;
     const existingWordsLower = existingWords.map(w => w.word.toLowerCase());
-    
+
     while (i < text.length) {
       let matched = false;
-      
-      for (const sel of selected.filter(s => s.includes(' ')).sort((a,b) => b.length - a.length)) {
+
+      for (const sel of selected.filter(s => s.includes(' ')).sort((a, b) => b.length - a.length)) {
         const remaining = text.slice(i).toLowerCase();
         const cleanRemaining = remaining.replace(/^[^a-z]+/, '');
         if (cleanRemaining.startsWith(sel)) {
@@ -1407,9 +1404,9 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           break;
         }
       }
-      
+
       if (!matched) {
-        for (const exist of existingWordsLower.filter(w => w.includes(' ')).sort((a,b) => b.length - a.length)) {
+        for (const exist of existingWordsLower.filter(w => w.includes(' ')).sort((a, b) => b.length - a.length)) {
           const remaining = text.slice(i).toLowerCase();
           const cleanRemaining = remaining.replace(/^[^a-z]+/, '');
           if (cleanRemaining.startsWith(exist)) {
@@ -1417,30 +1414,30 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             const matches = findMatchingWords(exist);
             result.push(<span key={i}>{text.slice(i, i + startOffset)}</span>);
             result.push(
-                <span 
-                  key={i + startOffset} 
-                  className="border-b-2 border-dashed border-gray-400 cursor-help"
-                  onMouseEnter={e => { 
-                    const r = e.currentTarget.getBoundingClientRect(); 
-                    setHoveredWord({ 
-                      matches, 
-                      phonetic: matches[0]?.forms || '',  // ← ДОБАВЛЕНО
-                      translation: matches[0]?.translation || '',  // ← ДОБАВЛЕНО
-                      pos: { x: r.left + r.width/2, y: r.top } 
-                    }); 
-                  }}
-                  onMouseLeave={() => setHoveredWord(null)}
-                >
-                  {text.slice(i + startOffset, i + startOffset + exist.length)}
-                </span>
-              );
+              <span
+                key={i + startOffset}
+                className="border-b-2 border-dashed border-gray-400 cursor-help"
+                onMouseEnter={e => {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setHoveredWord({
+                    matches,
+                    phonetic: matches[0]?.forms || '',  // ← ДОБАВЛЕНО
+                    translation: matches[0]?.translation || '',  // ← ДОБАВЛЕНО
+                    pos: { x: r.left + r.width / 2, y: r.top }
+                  });
+                }}
+                onMouseLeave={() => setHoveredWord(null)}
+              >
+                {text.slice(i + startOffset, i + startOffset + exist.length)}
+              </span>
+            );
             i += startOffset + exist.length;
             matched = true;
             break;
           }
         }
       }
-      
+
       if (!matched) {
         const char = text[i];
         if (char.match(/[a-zA-Z]/)) {
@@ -1449,33 +1446,33 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           const isSelected = isSelectedMatch(cleaned);
           const matches = findMatchingWords(cleaned);
           const isComplexFromPhrase = complexWordsMap.has(cleaned) && matches.length === 0;
-          
+
           if (isSelected) {
-            result.push(<span key={i} className="bg-blue-200 rounded-sm px-0.5">{word}</span>);          
-              } else if (matches.length > 0) {
-                result.push(
-                  <span 
-                    key={i} 
-                    className="border-b-2 border-dashed border-gray-400 cursor-help"
-                    onMouseEnter={e => { 
-                      const r = e.currentTarget.getBoundingClientRect(); 
-                      setHoveredWord({ 
-                        matches, 
-                        phonetic: matches[0]?.forms || '',
-                        translation: matches[0]?.translation || '',
-                        pos: { x: r.left + r.width/2, y: r.top } 
-                      }); 
-                    }}
-                    onMouseLeave={() => setHoveredWord(null)}
-                  >
-                    {word}
-                  </span>
-                );
-              }  
+            result.push(<span key={i} className="bg-blue-200 rounded-sm px-0.5">{word}</span>);
+          } else if (matches.length > 0) {
+            result.push(
+              <span
+                key={i}
+                className="border-b-2 border-dashed border-gray-400 cursor-help"
+                onMouseEnter={e => {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setHoveredWord({
+                    matches,
+                    phonetic: matches[0]?.forms || '',
+                    translation: matches[0]?.translation || '',
+                    pos: { x: r.left + r.width / 2, y: r.top }
+                  });
+                }}
+                onMouseLeave={() => setHoveredWord(null)}
+              >
+                {word}
+              </span>
+            );
+          }
           else if (isComplexFromPhrase) {
             result.push(
               <span key={i} className="border-b border-dotted border-gray-400 cursor-help"
-                onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setHoveredWord({ word: cleaned, phrases: complexWordsMap.get(cleaned), pos: { x: r.left + r.width/2, y: r.top } }); }}
+                onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setHoveredWord({ word: cleaned, phrases: complexWordsMap.get(cleaned), pos: { x: r.left + r.width / 2, y: r.top } }); }}
                 onMouseLeave={() => setHoveredWord(null)}
               >{word}</span>
             );
@@ -1487,7 +1484,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       }
     }
     return <div className="whitespace-pre-wrap leading-relaxed select-text" onMouseUp={handleSelection}>{result}</div>;
-  }; 
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -1495,21 +1492,21 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         <h2 className="text-2xl font-bold">{song.title}</h2>
         <div className="flex gap-2">
           {onClose && <button onClick={onClose} className="px-4 py-2 border  rounded-lg hover:bg-white/5">← Back</button>}
-          <button 
-            onClick={explainSong} 
+          <button
+            onClick={explainSong}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
           >
-            {loadingExp ? <Loader size={16} className="animate-spin" /> : '💡'} 
+            {loadingExp ? <Loader size={16} className="animate-spin" /> : '💡'}
             {explanation ? (showExp ? 'Hide' : 'Show') + ' Explanation' : 'Explain Song'}
           </button>
         </div>
       </div>
-      
+
       <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
         <div className="bg-[#1a1a1a] rounded-xl shadow-sm border border-gray-800 p-4 flex-1 min-h-0 flex flex-col relative">
           <div className="text-xs text-gray-600 mb-2 flex-shrink-0">Select text to see translation and add words</div>
           <div className="bg-gray-50 p-4 rounded-lg flex-1 overflow-y-auto min-h-0">{highlightText()}</div>
-  
+
           {hoveredWord && (
             <div className="fixed bg-gray-800 text-white rounded-lg shadow-xl p-3 z-50 min-w-48 max-w-xs" style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
               {hoveredWord.phrases ? (
@@ -1560,18 +1557,18 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             </div>
           )}
         </div>
-        
+
         {selected.length > 0 && (
           <div className="bg-[#1a1a1a] rounded-xl shadow-sm border border-gray-800 p-4 flex-shrink-0 max-h-64 overflow-y-auto">
             <div className="flex justify-between items-center mb-3 gap-2 flex-wrap">
               <h3 className="font-semibold">Selected ({selected.length})</h3>
               <div className="flex items-center gap-2">
-                {checkedWords.length > 0 && <select onChange={e => handleBulkSectionChange(e.target.value)} 
-                
-                
-                className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none" defaultValue=""><option value="">Set section for {checkedWords.length}...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select>
-                
-                
+                {checkedWords.length > 0 && <select onChange={e => handleBulkSectionChange(e.target.value)}
+
+
+                  className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none" defaultValue=""><option value="">Set section for {checkedWords.length}...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select>
+
+
                 }
                 <button onClick={addSelectedWords} className="px-4 py-2 bg-green-500 text-white rounded text-sm">Add to vocabulary</button>
               </div>
@@ -1586,16 +1583,16 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
                     <td className="p-2">
 
                       <div class="flex items-center justify-between"><div class="relative"><select class="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none"><option value="">Select section...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select><div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></div></div>
-                       <td className="p-2"><button onClick={() => removeFromList(w)} className="p-1 hover:bg-gray-700  rounded"><Trash2 size={14} /></button></td>
+                        <td className="p-2"><button onClick={() => removeFromList(w)} className="p-1 hover:bg-gray-700  rounded"><Trash2 size={14} /></button></td>
                       </div>
-                      
-                  
-                     </td>
-                     
+
+
+                    </td>
 
 
 
-                   
+
+
                   </tr>
                 ))}</tbody>
               </table>
@@ -1603,14 +1600,14 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           </div>
         )}
       </div>
-      
+
       {showNewSection && (
         <Modal onClose={() => setShowNewSection(null)}>
           <h3 className="text-lg font-semibold mb-4">Create New Section</h3>
           <div className="relative mb-3">
             <select id="new-sec-col" className="w-full h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none">{collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
             <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </div>
           </div>
           <input id="new-sec-name" placeholder="Section name" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" />
@@ -1629,31 +1626,31 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         </Modal>
       )}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
-        {showExp && (
-          <>
-            <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowExp(false)}></div>
-            <div className="fixed inset-y-0 right-0 w-1/2 bg-white shadow-2xl z-50 overflow-y-auto border-l-2 border-blue-500">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold">Song Explanation</h3>
-                  <button onClick={() => setShowExp(false)} className="p-2 hover:bg-white/5 rounded">
-                    <X size={20} />
-                  </button>
-                </div>
-                {loadingExp ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader size={32} className="animate-spin text-blue-500" />
-                  </div>
-                ) : (
-                  <div className="prose max-w-none whitespace-pre-wrap">{explanation}</div>
-                )}
+      {showExp && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowExp(false)}></div>
+          <div className="fixed inset-y-0 right-0 w-1/2 bg-white shadow-2xl z-50 overflow-y-auto border-l-2 border-blue-500">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Song Explanation</h3>
+                <button onClick={() => setShowExp(false)} className="p-2 hover:bg-white/5 rounded">
+                  <X size={20} />
+                </button>
               </div>
+              {loadingExp ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader size={32} className="animate-spin text-blue-500" />
+                </div>
+              ) : (
+                <div className="prose max-w-none whitespace-pre-wrap">{explanation}</div>
+              )}
             </div>
-          </>
-        )}
-      </div>
-    );
-  };
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
   const [title, setTitle] = useState(song?.title || '');
@@ -1661,12 +1658,12 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
 
   const handleSave = () => {
     const sd = { title, text };
-    if (song?.id) { 
-      const u = { ...song, ...sd }; 
-      onUpdateSong(u); 
-    } else { 
-      const n = { ...sd, folderId: folderId || 'sf1' }; 
-      onSave(n); 
+    if (song?.id) {
+      const u = { ...song, ...sd };
+      onUpdateSong(u);
+    } else {
+      const n = { ...sd, folderId: folderId || 'sf1' };
+      onSave(n);
     }
     onCancel();
   };
@@ -1754,7 +1751,7 @@ function AuthForm() {
 }
 
 export default function VocabApp() {
-  
+
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [data, setData] = useState(initialData);
@@ -1762,43 +1759,43 @@ export default function VocabApp() {
   const [currentSection, setCurrentSection] = useState(null);
   const [currentSong, setCurrentSong] = useState(null);
   const [view, setView] = useState(() => {
-  try {
-    const saved = localStorage.getItem('vocabmaster_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      return state.view || 'dashboard';
+    try {
+      const saved = localStorage.getItem('vocabmaster_state');
+      if (saved) {
+        const state = JSON.parse(saved);
+        return state.view || 'dashboard';
+      }
+    } catch (e) {
+      console.error('Failed to load view:', e);
     }
-  } catch (e) {
-    console.error('Failed to load view:', e);
-  }
-  return 'dashboard';
-});
+    return 'dashboard';
+  });
   const [stateRestored, setStateRestored] = useState(false);
   const [modal, setModal] = useState({ type: null, data: null });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
   const [deletedItem, setDeletedItem] = useState(null);
   const [expandedCollections, setExpandedCollections] = useState(() => {
-  try {
-    const saved = localStorage.getItem('vocabmaster_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      return state.expandedCollections || ['c1'];
-    }
-  } catch (e) {}
-  return ['c1'];
-});
+    try {
+      const saved = localStorage.getItem('vocabmaster_state');
+      if (saved) {
+        const state = JSON.parse(saved);
+        return state.expandedCollections || ['c1'];
+      }
+    } catch (e) { }
+    return ['c1'];
+  });
 
-const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
-  try {
-    const saved = localStorage.getItem('vocabmaster_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      return state.expandedSongFolders || ['sf1'];
-    }
-  } catch (e) {}
-  return ['sf1'];
-});
+  const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vocabmaster_state');
+      if (saved) {
+        const state = JSON.parse(saved);
+        return state.expandedSongFolders || ['sf1'];
+      }
+    } catch (e) { }
+    return ['sf1'];
+  });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -1862,250 +1859,250 @@ const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
   };
 
   useEffect(() => {
-  if (!user) return;
+    if (!user) return;
 
-  (async () => { 
+    (async () => {
+      try {
+        // Загружаем коллекции с секциями
+        const { data: collections } = await supabase
+          .from('collections')
+          .select('*, sections(*)')
+          .order('created_at');
+
+        console.log('Loaded collections:', collections);
+        // Загружаем слова
+        const { data: wordsData } = await supabase
+          .from('words')
+          .select('*')
+          .order('created_at');
+
+        // Конвертируем snake_case в camelCase
+        const words = (wordsData || []).map(w => ({
+          id: w.id,
+          sectionId: w.section_id,
+          word: w.word,
+          type: w.type,
+          level: w.level,
+          forms: w.forms,
+          meaningEn: w.meaning_en,
+          meaningRu: w.meaning_ru,
+          example: w.example,
+          myExample: w.my_example,
+          singleRootWords: w.single_root_words,
+          synonyms: w.synonyms,
+          tags: w.tags,
+          status: w.status,
+          passedModes: w.passed_modes
+        }));
+
+        // Загружаем папки песен
+        const { data: songFolders } = await supabase
+          .from('song_folders')
+          .select('*')
+          .order('created_at');
+
+        // Загружаем песни
+        // Загружаем песни
+        const { data: songsData } = await supabase
+          .from('songs')
+          .select('*')
+          .order('created_at');
+
+        // Конвертируем snake_case в camelCase
+        const songs = (songsData || []).map(s => ({
+          id: s.id,
+          folderId: s.folder_id,
+          title: s.title,
+          text: s.text,
+          explanation: s.explanation
+        }));
+
+        // Загружаем активность (последние 90 дней)
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+        const { data: activityRows } = await supabase
+          .from('activity_log')
+          .select('*')
+          .gte('date', ninetyDaysAgo.toISOString().split('T')[0])
+          .order('date');
+
+        if (activityRows) {
+          setActivityData(activityRows);
+          // Считаем streak
+          let currentStreak = 0;
+          const today = new Date().toISOString().split('T')[0];
+          const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+          for (let i = activityRows.length - 1; i >= 0; i--) {
+            const a = activityRows[i];
+            const newPct = a.goal_new > 0 ? a.new_words_learned / a.goal_new : 1;
+            const reviewPct = a.goal_review > 0 ? a.words_reviewed / a.goal_review : 1;
+            if ((newPct >= 1 && reviewPct >= 1) || a.date === today || a.date === yesterday) {
+              if (newPct >= 1 && reviewPct >= 1) currentStreak++;
+              else if (a.date !== today) break;
+            } else {
+              break;
+            }
+          }
+          setStreak(currentStreak);
+        }
+
+        // Загружаем цели пользователя
+        const { data: goalsData } = await supabase
+          .from('user_goals')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (goalsData) {
+          setUserGoals({
+            daily_new_words: goalsData.daily_new_words || 5,
+            daily_review_words: goalsData.daily_review_words || 10
+          });
+        }
+
+        setData({
+          collections: collections || [],
+          words: words || [],
+          allTags: [],
+          songFolders: songFolders || [],
+          songs: songs || []
+        });
+
+        console.log('State updated!');
+
+      } catch (e) {
+        console.error(e);
+      }
+      setIsLoading(false);
+    })();
+  }, [user]);
+
+  // Загрузка сохранённого состояния
+  useEffect(() => {
+    if (!user) return;
+    console.log('=== Loading saved state ===');
+
     try {
-      // Загружаем коллекции с секциями
-      const { data: collections } = await supabase
-        .from('collections')
-        .select('*, sections(*)')
-        .order('created_at');
+      const saved = localStorage.getItem('vocabmaster_state');
+      console.log('Saved state:', saved);
 
-      console.log('Loaded collections:', collections);
-      // Загружаем слова
-      const { data: wordsData } = await supabase
-        .from('words')
-        .select('*')
-        .order('created_at');
+      if (saved) {
+        const state = JSON.parse(saved);
 
-      // Конвертируем snake_case в camelCase
-      const words = (wordsData || []).map(w => ({
-        id: w.id,
-        sectionId: w.section_id,
-        word: w.word,
-        type: w.type,
-        level: w.level,
-        forms: w.forms,
-        meaningEn: w.meaning_en,
-        meaningRu: w.meaning_ru,
-        example: w.example,
-        myExample: w.my_example,
-        singleRootWords: w.single_root_words,
-        synonyms: w.synonyms,
-        tags: w.tags,
-        status: w.status,
-        passedModes: w.passed_modes
-      }));
+        console.log('Parsed state:', state);
+        if (state.view) setView(state.view);
+        console.log('Setting view to:', state.view);
 
-      // Загружаем папки песен
-      const { data: songFolders } = await supabase
-        .from('song_folders')
-        .select('*')
-        .order('created_at');
+        if (state.expandedCollections) setExpandedCollections(state.expandedCollections);
+        if (state.expandedSongFolders) setExpandedSongFolders(state.expandedSongFolders);
+      }
+    } catch (e) {
+      console.error('Failed to load state:', e);
+    }
+  }, [user]);
 
-      // Загружаем песни
-      // Загружаем песни
-      const { data: songsData } = await supabase
-        .from('songs')
-        .select('*')
-        .order('created_at');
+  // Сохранение состояния при изменениях
+  useEffect(() => {
+    if (!user) return;
 
-      // Конвертируем snake_case в camelCase
-      const songs = (songsData || []).map(s => ({
-        id: s.id,
-        folderId: s.folder_id,
-        title: s.title,
-        text: s.text,
-        explanation: s.explanation
-      }));
+    const state = {
+      view,
+      expandedCollections,
+      expandedSongFolders,
+      currentCollectionId: currentCollection?.id || null,
+      currentSectionId: currentSection?.id || null,
+      currentSongId: currentSong?.id || null
+    };
+    console.log('=== Saving state ===', state);
+    localStorage.setItem('vocabmaster_state', JSON.stringify(state));
+  }, [user, view, expandedCollections, expandedSongFolders, currentCollection, currentSection, currentSong]);
 
-      // Загружаем активность (последние 90 дней)
-      const ninetyDaysAgo = new Date();
-      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-      const { data: activityRows } = await supabase
-        .from('activity_log')
-        .select('*')
-        .gte('date', ninetyDaysAgo.toISOString().split('T')[0])
-        .order('date');
 
-      if (activityRows) {
-        setActivityData(activityRows);
-        // Считаем streak
-        let currentStreak = 0;
-        const today = new Date().toISOString().split('T')[0];
-        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-        for (let i = activityRows.length - 1; i >= 0; i--) {
-          const a = activityRows[i];
-          const newPct = a.goal_new > 0 ? a.new_words_learned / a.goal_new : 1;
-          const reviewPct = a.goal_review > 0 ? a.words_reviewed / a.goal_review : 1;
-          if ((newPct >= 1 && reviewPct >= 1) || a.date === today || a.date === yesterday) {
-            if (newPct >= 1 && reviewPct >= 1) currentStreak++;
-            else if (a.date !== today) break;
-          } else {
-            break;
+  // Обновлени текущей коллекции/секциии/песни после загрузки данных
+  useEffect(() => {
+    if (!user || isLoading) return;
+
+    console.log('=== Restoring current items ===');
+    console.log('Collections available:', data.collections.map(c => c.id));
+
+    try {
+      const saved = localStorage.getItem('vocabmaster_state');
+      if (saved) {
+        const state = JSON.parse(saved);
+        console.log('State to restore:', state);
+
+        let restoredCollection = false;
+        let restoredSection = false;
+
+        if (state.currentCollectionId) {
+          const col = data.collections.find(c => c.id === state.currentCollectionId);
+          console.log('Looking for collection:', state.currentCollectionId, 'Found:', col?.name);
+          if (col) {
+            setCurrentCollection(col);
+            restoredCollection = true;
           }
         }
-        setStreak(currentStreak);
-      }
-
-      // Загружаем цели пользователя
-      const { data: goalsData } = await supabase
-        .from('user_goals')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (goalsData) {
-        setUserGoals({
-          daily_new_words: goalsData.daily_new_words || 5,
-          daily_review_words: goalsData.daily_review_words || 10
-        });
-      }
-
-      setData({
-        collections: collections || [],
-        words: words || [],
-        allTags: [],
-        songFolders: songFolders || [],
-        songs: songs || []
-      });
-
-      console.log('State updated!');
-
-    } catch (e) {
-      console.error(e);
-    } 
-    setIsLoading(false); 
-  })(); 
-}, [user]);
-
-// Загрузка сохранённого состояния
-useEffect(() => {
-  if (!user) return;
-  console.log('=== Loading saved state ===');
-
-  try {
-    const saved = localStorage.getItem('vocabmaster_state');
-    console.log('Saved state:', saved);
-
-    if (saved) {
-      const state = JSON.parse(saved);
-
-      console.log('Parsed state:', state);
-      if (state.view) setView(state.view);
-      console.log('Setting view to:', state.view);
-
-      if (state.expandedCollections) setExpandedCollections(state.expandedCollections);
-      if (state.expandedSongFolders) setExpandedSongFolders(state.expandedSongFolders);
-    }
-  } catch (e) {
-    console.error('Failed to load state:', e);
-  }
-}, [user]);
-
-// Сохранение состояния при изменениях
-useEffect(() => {
-  if (!user) return;
-  
-  const state = {
-    view,
-    expandedCollections,
-    expandedSongFolders,
-    currentCollectionId: currentCollection?.id || null,
-    currentSectionId: currentSection?.id || null,
-    currentSongId: currentSong?.id || null
-  };
-  console.log('=== Saving state ===', state);
-  localStorage.setItem('vocabmaster_state', JSON.stringify(state));
-}, [user, view, expandedCollections, expandedSongFolders, currentCollection, currentSection, currentSong]);
-
- 
-
-// Обновлени текущей коллекции/секциии/песни после загрузки данных
-useEffect(() => {
-  if (!user || isLoading) return;
-
-  console.log('=== Restoring current items ===');
-  console.log('Collections available:', data.collections.map(c => c.id));
-
-  try {
-    const saved = localStorage.getItem('vocabmaster_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      console.log('State to restore:', state);
-
-      let restoredCollection = false;
-      let restoredSection = false;
-
-      if (state.currentCollectionId) {
-        const col = data.collections.find(c => c.id === state.currentCollectionId);
-        console.log('Looking for collection:', state.currentCollectionId, 'Found:', col?.name);
-        if (col) {
-          setCurrentCollection(col);
-          restoredCollection = true;
-        }
-      }
-      if (state.currentSectionId) {
-        const sections = data.collections.flatMap(c => c.sections);
-        console.log('Sections available:', sections.map(s => s.id));
-        const sec = sections.find(s => s.id === state.currentSectionId);
-        console.log('Looking for section:', state.currentSectionId, 'Found:', sec?.name);
-        if (sec) {
-          setCurrentSection(sec);
-          restoredSection = true;
-          // Также восстанавливаем родительскую коллекцию
-          if (!restoredCollection) {
-            const parentCol = data.collections.find(c => c.sections.some(s => s.id === state.currentSectionId));
-            if (parentCol) {
-              console.log('Restoring parent collection:', parentCol.name);
-              setCurrentCollection(parentCol);
+        if (state.currentSectionId) {
+          const sections = data.collections.flatMap(c => c.sections);
+          console.log('Sections available:', sections.map(s => s.id));
+          const sec = sections.find(s => s.id === state.currentSectionId);
+          console.log('Looking for section:', state.currentSectionId, 'Found:', sec?.name);
+          if (sec) {
+            setCurrentSection(sec);
+            restoredSection = true;
+            // Также восстанавливаем родительскую коллекцию
+            if (!restoredCollection) {
+              const parentCol = data.collections.find(c => c.sections.some(s => s.id === state.currentSectionId));
+              if (parentCol) {
+                console.log('Restoring parent collection:', parentCol.name);
+                setCurrentCollection(parentCol);
+              }
             }
           }
         }
-      }
-      if (state.currentSongId) {
-        const song = data.songs.find(s => s.id === state.currentSongId);
-        if (song) {
-          console.log('Restoring song:', song.title);
-          setCurrentSong(song);
+        if (state.currentSongId) {
+          const song = data.songs.find(s => s.id === state.currentSongId);
+          if (song) {
+            console.log('Restoring song:', song.title);
+            setCurrentSong(song);
+          }
         }
       }
+    } catch (e) {
+      console.error('Failed to restore items:', e);
     }
-  } catch (e) {
-    console.error('Failed to restore items:', e);
-  }
 
-  // Даём React время обработать state updates перед установкой stateRestored
-  setTimeout(() => setStateRestored(true), 50);
-}, [user, isLoading, data.collections, data.songs]);
+    // Даём React время обработать state updates перед установкой stateRestored
+    setTimeout(() => setStateRestored(true), 50);
+  }, [user, isLoading, data.collections, data.songs]);
 
-console.log('=== Rendering VocabApp ===', {
-  view,
-  stateRestored,
-  currentCollection: currentCollection?.name,
-  currentSection: currentSection?.name,
-  isLoading,
-  user: !!user,
-  wordsCount: data.words.length
-});
+  console.log('=== Rendering VocabApp ===', {
+    view,
+    stateRestored,
+    currentCollection: currentCollection?.name,
+    currentSection: currentSection?.name,
+    isLoading,
+    user: !!user,
+    wordsCount: data.words.length
+  });
 
   // Fallback: калі view патрабуе дадзеныя якіх няма - вяртаемся на dashboard
-useEffect(() => {
-  console.log('=== Fallback check ===', { stateRestored, view, currentCollection: currentCollection?.name, currentSection: currentSection?.name });
-  if (!stateRestored) return;
+  useEffect(() => {
+    console.log('=== Fallback check ===', { stateRestored, view, currentCollection: currentCollection?.name, currentSection: currentSection?.name });
+    if (!stateRestored) return;
 
-  if (view === 'song' && !currentSong) {
-    console.log('Song view but no song - redirecting to dashboard');
-    setView('dashboard');
-  }
+    if (view === 'song' && !currentSong) {
+      console.log('Song view but no song - redirecting to dashboard');
+      setView('dashboard');
+    }
 
-  if (['list', 'cards', 'quiz', 'write'].includes(view) && !currentCollection && !currentSection) {
-    console.log('List/cards/quiz/write view but no collection/section - redirecting to dashboard');
-    setView('dashboard');
-  }
-}, [stateRestored, view, currentSong, currentCollection, currentSection]);
+    if (['list', 'cards', 'quiz', 'write'].includes(view) && !currentCollection && !currentSection) {
+      console.log('List/cards/quiz/write view but no collection/section - redirecting to dashboard');
+      setView('dashboard');
+    }
+  }, [stateRestored, view, currentSong, currentCollection, currentSection]);
 
 
   const playPronunciation = w => { const u = new SpeechSynthesisUtterance(w); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); };
@@ -2118,12 +2115,12 @@ useEffect(() => {
     }
     if (filterLevel !== 'all') words = words.filter(w => w.level === filterLevel);
     if (filterStatus !== 'all') words = words.filter(w => w.status === filterStatus);
-    
+
     // Для Cards фильтруем слова, которые уже пройдены в этом режиме
     if (view === 'cards') {
       words = words.filter(w => !(w.passedModes || []).includes('cards'));
     }
-    
+
     return words;
   };
 
@@ -2138,212 +2135,212 @@ useEffect(() => {
   }, [view, filteredWords.length]);
 
   const createSectionFromSong = async (cid, name) => { const s = { id: 's' + Date.now(), name, icon: '📖' }; setData(d => ({ ...d, collections: d.collections.map(c => c.id === cid ? { ...c, sections: [...c.sections, s] } : c) })); return s.id; };
- 
+
   const saveSong = async (sd) => {
-  console.log('Saving song:', sd);
+    console.log('Saving song:', sd);
 
-  const { data: newSong, error } = await supabase
-    .from('songs')
-    .insert([{
-      user_id: user.id,
-      folder_id: sd.folderId,
-      title: sd.title,
-      text: sd.text
-    }])
-    .select()
-    .single();
-
-  console.log('Result:', newSong, 'Error:', error);
-
-  if (!error && newSong) {
-    const song = { ...newSong, folderId: newSong.folder_id };
-    setData(d => ({ ...d, songs: [...d.songs, song] }));
-    setCurrentSong(song);
-    setView('song');
-  }
-  setModal({ type: null, data: null });
-};
-
-const updateSong = async (s) => {
-  await supabase
-    .from('songs')
-    .update({ 
-      title: s.title,
-      text: s.text
-    })
-    .eq('id', s.id);
-  
-  setData(d => ({ ...d, songs: d.songs.map(x => x.id === s.id ? s : x) })); 
-  if (currentSong?.id === s.id) setCurrentSong(s); 
-};
-
-  const saveSongFolder = async (name) => { 
-  if (!name.trim()) return; 
-  
-  if (modal.data?.id) {
-    // Обновление
-    await supabase
-      .from('song_folders')
-      .update({ name })
-      .eq('id', modal.data.id);
-    
-    setData(d => ({ ...d, songFolders: d.songFolders.map(f => f.id === modal.data.id ? { ...modal.data, name } : f) })); 
-  } else { 
-    // Создание
-    const { data: newFolder, error } = await supabase
-      .from('song_folders')
-      .insert([{ user_id: user.id, name }])
-      .select()
-      .single();
-    
-    if (!error && newFolder) {
-      setData(d => ({ ...d, songFolders: [...d.songFolders, newFolder] })); 
-      setExpandedSongFolders(e => [...e, newFolder.id]); 
-    }
-  } 
-  setModal({ type: null, data: null }); 
-};
-
-const saveWord = async (w) => { 
-  const existingWord = data.words.find(word => word.word.toLowerCase() === w.word.toLowerCase());
-  if (existingWord && existingWord.id !== w.id) {
-    const sec = data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name }))).find(s => s.id === existingWord.sectionId);
-    const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown section';
-    setAlert(`"${w.word}" already exists in: ${location}`);
-    return;
-  }
-  
-  const isValidUUID = w.id && typeof w.id === 'string' && w.id.length > 30;
-
-  if (isValidUUID) {
-    // Обновление
-    const { error } = await supabase
-      .from('words')
-      .update({
-        word: w.word,
-        type: w.type,
-        level: w.level,
-        forms: w.forms,
-        meaning_en: w.meaningEn,
-        meaning_ru: w.meaningRu,
-        example: w.example,
-        my_example: w.myExample,
-        single_root_words: w.singleRootWords || '',
-        synonyms: w.synonyms || '',
-        tags: w.tags || [],
-        status: w.status,
-        passed_modes: w.passedModes || []
-      })
-      .eq('id', w.id);
-    
-    if (!error) {
-      setData(d => ({ ...d, words: d.words.map(x => x.id === w.id ? w : x) }));
-    }
-  } else {
-    // Создание
-    const { data: newWord, error } = await supabase
-      .from('words')
+    const { data: newSong, error } = await supabase
+      .from('songs')
       .insert([{
         user_id: user.id,
-        section_id: currentSection.id,
-        word: w.word,
-        type: w.type,
-        level: w.level,
-        forms: w.forms || '',
-        meaning_en: w.meaningEn || '',
-        meaning_ru: w.meaningRu || '',
-        example: w.example || '',
-        my_example: w.myExample || '',
-        single_root_words: w.singleRootWords || '',
-        synonyms: w.synonyms || '',
-        tags: w.tags || [],
-        status: STATUS.NEW,
-        passed_modes: []
+        folder_id: sd.folderId,
+        title: sd.title,
+        text: sd.text
       }])
       .select()
       .single();
-    console.log('=== Save word result ===');
-console.log('Word:', w.word);
-console.log('isValidUUID:', isValidUUID);
-console.log('currentSection:', currentSection);
-console.log('Error:', error);
 
-    if (!error && newWord) {
-    const converted = {
-      id: newWord.id,
-      sectionId: newWord.section_id,
-      word: newWord.word,
-      type: newWord.type,
-      level: newWord.level,
-      forms: newWord.forms,
-      meaningEn: newWord.meaning_en,
-      meaningRu: newWord.meaning_ru,
-      example: newWord.example,
-      myExample: newWord.my_example,
-      singleRootWords: newWord.single_root_words,
-      synonyms: newWord.synonyms,
-      tags: newWord.tags,
-      status: newWord.status,
-      passedModes: newWord.passed_modes
-    };
-    setData(d => ({ ...d, words: [...d.words, converted] }));
-    // Track new word
-    trackActivity(1, 0);
-  }
-  }
-  
-  setModal({ type: null, data: null }); 
-};
+    console.log('Result:', newSong, 'Error:', error);
 
-const saveCollection = async (name) => { 
-  if (!name.trim()) return; 
-  const icon = document.getElementById('col-icon')?.textContent || '📚';
-  
-  if (modal.data?.id) {
-    // Обновление
-    const { error } = await supabase
-      .from('collections')
-      .update({ name, icon })
-      .eq('id', modal.data.id);
-    
-    if (!error) {
-      const u = { ...modal.data, name, icon }; 
-      setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.id ? u : c) })); 
-      if (currentCollection?.id === modal.data.id) setCurrentCollection(u); 
+    if (!error && newSong) {
+      const song = { ...newSong, folderId: newSong.folder_id };
+      setData(d => ({ ...d, songs: [...d.songs, song] }));
+      setCurrentSong(song);
+      setView('song');
     }
-  } else {
-    // Создание
-    const { data: newCol, error } = await supabase
-      .from('collections')
-      .insert([{ user_id: user.id, name, icon }])
-      .select()
-      .single();
-    
-    if (!error && newCol) {
-      setData(d => ({ ...d, collections: [...d.collections, { ...newCol, sections: [] }] })); 
-      setExpandedCollections(e => [...e, newCol.id]); 
-    }
-  } 
-  setModal({ type: null, data: null }); 
-};
-  
-  const saveSection = async (name) => { 
-      console.log('Creating section:', name, modal.data?.colId);
+    setModal({ type: null, data: null });
+  };
 
-  if (!name.trim() || !modal.data?.colId) return; 
-  const icon = document.getElementById('sec-icon')?.textContent || '📖';
-  
-  if (modal.data.section?.id) {
-    // Обновление
-    const { error } = await supabase
-      .from('sections')
-      .update({ name, icon })
-      .eq('id', modal.data.section.id);
-    
+  const updateSong = async (s) => {
+    await supabase
+      .from('songs')
+      .update({
+        title: s.title,
+        text: s.text
+      })
+      .eq('id', s.id);
+
+    setData(d => ({ ...d, songs: d.songs.map(x => x.id === s.id ? s : x) }));
+    if (currentSong?.id === s.id) setCurrentSong(s);
+  };
+
+  const saveSongFolder = async (name) => {
+    if (!name.trim()) return;
+
+    if (modal.data?.id) {
+      // Обновление
+      await supabase
+        .from('song_folders')
+        .update({ name })
+        .eq('id', modal.data.id);
+
+      setData(d => ({ ...d, songFolders: d.songFolders.map(f => f.id === modal.data.id ? { ...modal.data, name } : f) }));
+    } else {
+      // Создание
+      const { data: newFolder, error } = await supabase
+        .from('song_folders')
+        .insert([{ user_id: user.id, name }])
+        .select()
+        .single();
+
+      if (!error && newFolder) {
+        setData(d => ({ ...d, songFolders: [...d.songFolders, newFolder] }));
+        setExpandedSongFolders(e => [...e, newFolder.id]);
+      }
+    }
+    setModal({ type: null, data: null });
+  };
+
+  const saveWord = async (w) => {
+    const existingWord = data.words.find(word => word.word.toLowerCase() === w.word.toLowerCase());
+    if (existingWord && existingWord.id !== w.id) {
+      const sec = data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name }))).find(s => s.id === existingWord.sectionId);
+      const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown section';
+      setAlert(`"${w.word}" already exists in: ${location}`);
+      return;
+    }
+
+    const isValidUUID = w.id && typeof w.id === 'string' && w.id.length > 30;
+
+    if (isValidUUID) {
+      // Обновление
+      const { error } = await supabase
+        .from('words')
+        .update({
+          word: w.word,
+          type: w.type,
+          level: w.level,
+          forms: w.forms,
+          meaning_en: w.meaningEn,
+          meaning_ru: w.meaningRu,
+          example: w.example,
+          my_example: w.myExample,
+          single_root_words: w.singleRootWords || '',
+          synonyms: w.synonyms || '',
+          tags: w.tags || [],
+          status: w.status,
+          passed_modes: w.passedModes || []
+        })
+        .eq('id', w.id);
+
       if (!error) {
-        const u = { ...modal.data.section, name, icon }; 
-        setData(d => ({ ...d, collections: d.collections.map(c => ({ ...c, sections: c.sections.map(s => s.id === modal.data.section.id ? u : s) })) })); 
-        if (currentSection?.id === modal.data.section.id) setCurrentSection(u); 
+        setData(d => ({ ...d, words: d.words.map(x => x.id === w.id ? w : x) }));
+      }
+    } else {
+      // Создание
+      const { data: newWord, error } = await supabase
+        .from('words')
+        .insert([{
+          user_id: user.id,
+          section_id: currentSection.id,
+          word: w.word,
+          type: w.type,
+          level: w.level,
+          forms: w.forms || '',
+          meaning_en: w.meaningEn || '',
+          meaning_ru: w.meaningRu || '',
+          example: w.example || '',
+          my_example: w.myExample || '',
+          single_root_words: w.singleRootWords || '',
+          synonyms: w.synonyms || '',
+          tags: w.tags || [],
+          status: STATUS.NEW,
+          passed_modes: []
+        }])
+        .select()
+        .single();
+      console.log('=== Save word result ===');
+      console.log('Word:', w.word);
+      console.log('isValidUUID:', isValidUUID);
+      console.log('currentSection:', currentSection);
+      console.log('Error:', error);
+
+      if (!error && newWord) {
+        const converted = {
+          id: newWord.id,
+          sectionId: newWord.section_id,
+          word: newWord.word,
+          type: newWord.type,
+          level: newWord.level,
+          forms: newWord.forms,
+          meaningEn: newWord.meaning_en,
+          meaningRu: newWord.meaning_ru,
+          example: newWord.example,
+          myExample: newWord.my_example,
+          singleRootWords: newWord.single_root_words,
+          synonyms: newWord.synonyms,
+          tags: newWord.tags,
+          status: newWord.status,
+          passedModes: newWord.passed_modes
+        };
+        setData(d => ({ ...d, words: [...d.words, converted] }));
+        // Track new word
+        trackActivity(1, 0);
+      }
+    }
+
+    setModal({ type: null, data: null });
+  };
+
+  const saveCollection = async (name) => {
+    if (!name.trim()) return;
+    const icon = document.getElementById('col-icon')?.textContent || '📚';
+
+    if (modal.data?.id) {
+      // Обновление
+      const { error } = await supabase
+        .from('collections')
+        .update({ name, icon })
+        .eq('id', modal.data.id);
+
+      if (!error) {
+        const u = { ...modal.data, name, icon };
+        setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.id ? u : c) }));
+        if (currentCollection?.id === modal.data.id) setCurrentCollection(u);
+      }
+    } else {
+      // Создание
+      const { data: newCol, error } = await supabase
+        .from('collections')
+        .insert([{ user_id: user.id, name, icon }])
+        .select()
+        .single();
+
+      if (!error && newCol) {
+        setData(d => ({ ...d, collections: [...d.collections, { ...newCol, sections: [] }] }));
+        setExpandedCollections(e => [...e, newCol.id]);
+      }
+    }
+    setModal({ type: null, data: null });
+  };
+
+  const saveSection = async (name) => {
+    console.log('Creating section:', name, modal.data?.colId);
+
+    if (!name.trim() || !modal.data?.colId) return;
+    const icon = document.getElementById('sec-icon')?.textContent || '📖';
+
+    if (modal.data.section?.id) {
+      // Обновление
+      const { error } = await supabase
+        .from('sections')
+        .update({ name, icon })
+        .eq('id', modal.data.section.id);
+
+      if (!error) {
+        const u = { ...modal.data.section, name, icon };
+        setData(d => ({ ...d, collections: d.collections.map(c => ({ ...c, sections: c.sections.map(s => s.id === modal.data.section.id ? u : s) })) }));
+        if (currentSection?.id === modal.data.section.id) setCurrentSection(u);
       }
     } else {
       // Создание
@@ -2352,13 +2349,13 @@ const saveCollection = async (name) => {
         .insert([{ collection_id: modal.data.colId, name, icon }])
         .select()
         .single();
-      
+
       if (!error && newSection) {
-        setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.colId ? { ...c, sections: [...c.sections, newSection] } : c) })); 
+        setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.colId ? { ...c, sections: [...c.sections, newSection] } : c) }));
       }
-  } 
-  setModal({ type: null, data: null }); 
-};
+    }
+    setModal({ type: null, data: null });
+  };
 
   const requestDelete = (type, item) => setConfirmDelete({ type, item, name: item.word || item.name || item.title });
 
@@ -2427,44 +2424,44 @@ const saveCollection = async (name) => {
     setData(d => ({ ...d, songs: newSongs }));
   };
   const executeDelete = async () => {
-  const { type, item } = confirmDelete;
-  
-  if (type === 'word') {
-    // Удаляем из базы
-    await supabase.from('words').delete().eq('id', item.id);
-    setDeletedItem({ type, data: item }); 
-    setData(d => ({ ...d, words: d.words.filter(w => w.id !== item.id) })); 
-  }
-  else if (type === 'section') {
-    // Удаляем секцию и все её слова
-    await supabase.from('sections').delete().eq('id', item.section.id);
-    setDeletedItem({ type, data: { section: item.section, colId: item.colId, words: data.words.filter(w => w.sectionId === item.section.id) } }); 
-    setData(d => ({ ...d, collections: d.collections.map(c => c.id === item.colId ? { ...c, sections: c.sections.filter(s => s.id !== item.section.id) } : c), words: d.words.filter(w => w.sectionId !== item.section.id) })); 
-    if (currentSection?.id === item.section.id) setCurrentSection(null);
-  }
-  else if (type === 'collection') {
-    // Удаляем коллекцию (секции и слова удалятся автоматически из-за CASCADE)
-    await supabase.from('collections').delete().eq('id', item.id);
-    const sIds = item.sections.map(s => s.id); 
-    setDeletedItem({ type, data: { collection: item, words: data.words.filter(w => sIds.includes(w.sectionId)) } }); 
-    setData(d => ({ ...d, collections: d.collections.filter(c => c.id !== item.id), words: d.words.filter(w => !sIds.includes(w.sectionId)) })); 
-    if (currentCollection?.id === item.id) { setCurrentCollection(null); setCurrentSection(null); }
-  }
-  else if (type === 'song') { 
-    await supabase.from('songs').delete().eq('id', item.id);
-    setDeletedItem({ type, data: item }); 
-    setData(d => ({ ...d, songs: d.songs.filter(s => s.id !== item.id) })); 
-    if (currentSong?.id === item.id) { setCurrentSong(null); setView('dashboard'); } 
-  }
-  else if (type === 'songFolder') {
-    await supabase.from('song_folders').delete().eq('id', item.id);
-    setDeletedItem({ type, data: { folder: item, songs: data.songs.filter(s => s.folderId === item.id) } }); 
-    setData(d => ({ ...d, songFolders: d.songFolders.filter(f => f.id !== item.id), songs: d.songs.filter(s => s.folderId !== item.id) })); 
-  }
-  
-  setToast({ message: `Deleted`, canUndo: true }); 
-  setConfirmDelete(null);
-};
+    const { type, item } = confirmDelete;
+
+    if (type === 'word') {
+      // Удаляем из базы
+      await supabase.from('words').delete().eq('id', item.id);
+      setDeletedItem({ type, data: item });
+      setData(d => ({ ...d, words: d.words.filter(w => w.id !== item.id) }));
+    }
+    else if (type === 'section') {
+      // Удаляем секцию и все её слова
+      await supabase.from('sections').delete().eq('id', item.section.id);
+      setDeletedItem({ type, data: { section: item.section, colId: item.colId, words: data.words.filter(w => w.sectionId === item.section.id) } });
+      setData(d => ({ ...d, collections: d.collections.map(c => c.id === item.colId ? { ...c, sections: c.sections.filter(s => s.id !== item.section.id) } : c), words: d.words.filter(w => w.sectionId !== item.section.id) }));
+      if (currentSection?.id === item.section.id) setCurrentSection(null);
+    }
+    else if (type === 'collection') {
+      // Удаляем коллекцию (секции и слова удалятся автоматически из-за CASCADE)
+      await supabase.from('collections').delete().eq('id', item.id);
+      const sIds = item.sections.map(s => s.id);
+      setDeletedItem({ type, data: { collection: item, words: data.words.filter(w => sIds.includes(w.sectionId)) } });
+      setData(d => ({ ...d, collections: d.collections.filter(c => c.id !== item.id), words: d.words.filter(w => !sIds.includes(w.sectionId)) }));
+      if (currentCollection?.id === item.id) { setCurrentCollection(null); setCurrentSection(null); }
+    }
+    else if (type === 'song') {
+      await supabase.from('songs').delete().eq('id', item.id);
+      setDeletedItem({ type, data: item });
+      setData(d => ({ ...d, songs: d.songs.filter(s => s.id !== item.id) }));
+      if (currentSong?.id === item.id) { setCurrentSong(null); setView('dashboard'); }
+    }
+    else if (type === 'songFolder') {
+      await supabase.from('song_folders').delete().eq('id', item.id);
+      setDeletedItem({ type, data: { folder: item, songs: data.songs.filter(s => s.folderId === item.id) } });
+      setData(d => ({ ...d, songFolders: d.songFolders.filter(f => f.id !== item.id), songs: d.songs.filter(s => s.folderId !== item.id) }));
+    }
+
+    setToast({ message: `Deleted`, canUndo: true });
+    setConfirmDelete(null);
+  };
   const undoDelete = () => { if (!deletedItem) return; if (deletedItem.type === 'word') setData(d => ({ ...d, words: [...d.words, deletedItem.data] })); else if (deletedItem.type === 'song') setData(d => ({ ...d, songs: [...d.songs, deletedItem.data] })); else if (deletedItem.type === 'songFolder') setData(d => ({ ...d, songFolders: [...d.songFolders, deletedItem.data.folder], songs: [...d.songs, ...deletedItem.data.songs] })); else if (deletedItem.type === 'collection') setData(d => ({ ...d, collections: [...d.collections, deletedItem.data.collection], words: [...d.words, ...deletedItem.data.words] })); else if (deletedItem.type === 'section') setData(d => ({ ...d, collections: d.collections.map(c => c.id === deletedItem.data.colId ? { ...c, sections: [...c.sections, deletedItem.data.section] } : c), words: [...d.words, ...deletedItem.data.words] })); setDeletedItem(null); setToast(null); };
 
   // Track activity (new words or reviewed words)
@@ -2526,194 +2523,194 @@ const saveCollection = async (name) => {
   };
 
   const updateWordProgress = async (id, mode, correct) => {
-  const word = data.words.find(w => w.id === id);
-  if (!word) return;
+    const word = data.words.find(w => w.id === id);
+    if (!word) return;
 
-  let pm = word.passedModes || [];
-  if (correct && !pm.includes(mode)) pm = [...pm, mode];
-  else if (!correct) {
-    pm = pm.filter(m => m !== mode && m !== 'cards');
-  }
+    let pm = word.passedModes || [];
+    if (correct && !pm.includes(mode)) pm = [...pm, mode];
+    else if (!correct) {
+      pm = pm.filter(m => m !== mode && m !== 'cards');
+    }
 
-  const newStatus = pm.length >= 3 ? STATUS.LEARNED : pm.length > 0 ? STATUS.LEARNING : STATUS.NEW;
+    const newStatus = pm.length >= 3 ? STATUS.LEARNED : pm.length > 0 ? STATUS.LEARNING : STATUS.NEW;
 
-  // Сохраняем в базу
-  await supabase
-    .from('words')
-    .update({
-      passed_modes: pm,
-      status: newStatus
-    })
-    .eq('id', id);
+    // Сохраняем в базу
+    await supabase
+      .from('words')
+      .update({
+        passed_modes: pm,
+        status: newStatus
+      })
+      .eq('id', id);
 
-  // Обновляем state
-  setData(d => ({
-    ...d,
-    words: d.words.map(w =>
-      w.id === id
-        ? { ...w, passedModes: pm, status: newStatus }
-        : w
-    )
-  }));
+    // Обновляем state
+    setData(d => ({
+      ...d,
+      words: d.words.map(w =>
+        w.id === id
+          ? { ...w, passedModes: pm, status: newStatus }
+          : w
+      )
+    }));
 
-  // Track reviewed word
-  trackActivity(0, 1);
-};
+    // Track reviewed word
+    trackActivity(0, 1);
+  };
 
   const exportData = () => { const j = JSON.stringify({ ...data, exportedAt: new Date().toISOString(), version: 'v7' }, null, 2); const a = document.createElement('a'); a.href = 'data:application/json;base64,' + btoa(unescape(encodeURIComponent(j))); a.download = `vocabmaster-backup-${new Date().toISOString().split('T')[0]}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); setToast({ message: 'Backup downloaded!', canUndo: false }); };
- const importData = async (e) => { 
-  const f = e.target.files?.[0]; 
-  if (!f) return; 
-  
-  const r = new FileReader(); 
-  r.onload = async (ev) => { 
-    try { 
-      const imported = JSON.parse(ev.target.result); 
-      if (!imported.collections || !imported.words) {
-        setToast({ message: 'Invalid backup file', canUndo: false });
-        return;
-      }
-      
-      console.log('=== Starting full import ===');
-      console.log('Collections:', imported.collections.length);
-      console.log('Words:', imported.words.length);
-      
-      // Маппінг старых ID → новыя UUID
-      const collectionMap = new Map(); // oldId → newId
-      const sectionMap = new Map();     // oldId → newId
-      
-      // 1. Імпарт калекцый
-      for (const col of imported.collections) {
-        const { data: newCol, error } = await supabase
-          .from('collections')
-          .insert([{ 
-            user_id: user.id, 
-            name: col.name, 
-            icon: col.icon 
-          }])
-          .select()
-          .single();
-        
-        if (!error && newCol) {
-          collectionMap.set(col.id, newCol.id);
-          console.log(`Collection "${col.name}": ${col.id} → ${newCol.id}`);
-          
-          // 2. Імпарт секцый гэтай калекцыі
-          for (const sec of col.sections) {
-            const { data: newSec, error: secError } = await supabase
-              .from('sections')
-              .insert([{ 
-                collection_id: newCol.id, 
-                name: sec.name, 
-                icon: sec.icon 
-              }])
-              .select()
-              .single();
-            
-            if (!secError && newSec) {
-              sectionMap.set(sec.id, newSec.id);
-              console.log(`  Section "${sec.name}": ${sec.id} → ${newSec.id}`);
+  const importData = async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+
+    const r = new FileReader();
+    r.onload = async (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!imported.collections || !imported.words) {
+          setToast({ message: 'Invalid backup file', canUndo: false });
+          return;
+        }
+
+        console.log('=== Starting full import ===');
+        console.log('Collections:', imported.collections.length);
+        console.log('Words:', imported.words.length);
+
+        // Маппінг старых ID → новыя UUID
+        const collectionMap = new Map(); // oldId → newId
+        const sectionMap = new Map();     // oldId → newId
+
+        // 1. Імпарт калекцый
+        for (const col of imported.collections) {
+          const { data: newCol, error } = await supabase
+            .from('collections')
+            .insert([{
+              user_id: user.id,
+              name: col.name,
+              icon: col.icon
+            }])
+            .select()
+            .single();
+
+          if (!error && newCol) {
+            collectionMap.set(col.id, newCol.id);
+            console.log(`Collection "${col.name}": ${col.id} → ${newCol.id}`);
+
+            // 2. Імпарт секцый гэтай калекцыі
+            for (const sec of col.sections) {
+              const { data: newSec, error: secError } = await supabase
+                .from('sections')
+                .insert([{
+                  collection_id: newCol.id,
+                  name: sec.name,
+                  icon: sec.icon
+                }])
+                .select()
+                .single();
+
+              if (!secError && newSec) {
+                sectionMap.set(sec.id, newSec.id);
+                console.log(`  Section "${sec.name}": ${sec.id} → ${newSec.id}`);
+              }
             }
           }
         }
-      }
-      
-      // 3. Імпарт слоў
-      let importedCount = 0;
-      let skippedCount = 0;
 
-      console.log('=== Importing words ===');
-      console.log('Total words to import:', imported.words.length);
-      console.log('Section map size:', sectionMap.size);
+        // 3. Імпарт слоў
+        let importedCount = 0;
+        let skippedCount = 0;
+
+        console.log('=== Importing words ===');
+        console.log('Total words to import:', imported.words.length);
+        console.log('Section map size:', sectionMap.size);
 
 
-      for (const word of imported.words) {
-        const newSectionId = sectionMap.get(word.sectionId);
-        if (!newSectionId) {
-    console.log(`Skipping word "${word.word}" - section ${word.sectionId} not found in map`);
-              skippedCount++;
+        for (const word of imported.words) {
+          const newSectionId = sectionMap.get(word.sectionId);
+          if (!newSectionId) {
+            console.log(`Skipping word "${word.word}" - section ${word.sectionId} not found in map`);
+            skippedCount++;
 
-          continue;
-        }
+            continue;
+          }
           console.log(`Importing word #${importedCount + 1}: "${word.word}" to section ${newSectionId}`);
 
 
-        const { error } = await supabase
-          .from('words')
-          .insert([{
-            user_id: user.id,
-            section_id: newSectionId,
-            word: word.word,
-            type: word.type,
-            level: word.level,
-            forms: word.forms || '',
-            meaning_en: word.meaningEn || '',
-            meaning_ru: word.meaningRu || '',
-            example: word.example || '',
-            my_example: word.myExample || '',
-            single_root_words: word.singleRootWords || '',
-            synonyms: word.synonyms || '',
-            tags: word.tags || [],
-            status: word.status || STATUS.NEW,
-            passed_modes: word.passedModes || []
-          }]);
-        
-        if (!error) {
-          importedCount++;
-        }
-      }
-      
-      console.log(`=== Import complete ===`);
-      console.log(`Imported: ${importedCount}`);
-      console.log(`Skipped: ${skippedCount}`);
+          const { error } = await supabase
+            .from('words')
+            .insert([{
+              user_id: user.id,
+              section_id: newSectionId,
+              word: word.word,
+              type: word.type,
+              level: word.level,
+              forms: word.forms || '',
+              meaning_en: word.meaningEn || '',
+              meaning_ru: word.meaningRu || '',
+              example: word.example || '',
+              my_example: word.myExample || '',
+              single_root_words: word.singleRootWords || '',
+              synonyms: word.synonyms || '',
+              tags: word.tags || [],
+              status: word.status || STATUS.NEW,
+              passed_modes: word.passedModes || []
+            }]);
 
-      // 4. Перачытваем усё з базы
-      const { data: collections } = await supabase
-        .from('collections')
-        .select('*, sections(*)')
-        .order('created_at');
-      
-      const { data: wordsData } = await supabase
-        .from('words')
-        .select('*')
-        .order('created_at');
-      
-      const words = (wordsData || []).map(w => ({
-        id: w.id,
-        sectionId: w.section_id,
-        word: w.word,
-        type: w.type,
-        level: w.level,
-        forms: w.forms,
-        meaningEn: w.meaning_en,
-        meaningRu: w.meaning_ru,
-        example: w.example,
-        myExample: w.my_example,
-        singleRootWords: w.single_root_words,
-        synonyms: w.synonyms,
-        tags: w.tags,
-        status: w.status,
-        passedModes: w.passed_modes
-      }));
-      
-      setData({
-        collections: collections || [],
-        words: words || [],
-        allTags: imported.allTags || [],
-        songFolders: imported.songFolders || [{ id: 'sf1', name: 'My Songs' }],
-        songs: imported.songs || []
-      });
-      
-      setToast({ message: `Imported ${importedCount} words!`, canUndo: false });
-      
-    } catch (e) { 
-      console.error('Import error:', e);
-      setToast({ message: 'Import failed', canUndo: false }); 
-    } 
-  }; 
-  r.readAsText(f); 
-  e.target.value = ''; 
-};
+          if (!error) {
+            importedCount++;
+          }
+        }
+
+        console.log(`=== Import complete ===`);
+        console.log(`Imported: ${importedCount}`);
+        console.log(`Skipped: ${skippedCount}`);
+
+        // 4. Перачытваем усё з базы
+        const { data: collections } = await supabase
+          .from('collections')
+          .select('*, sections(*)')
+          .order('created_at');
+
+        const { data: wordsData } = await supabase
+          .from('words')
+          .select('*')
+          .order('created_at');
+
+        const words = (wordsData || []).map(w => ({
+          id: w.id,
+          sectionId: w.section_id,
+          word: w.word,
+          type: w.type,
+          level: w.level,
+          forms: w.forms,
+          meaningEn: w.meaning_en,
+          meaningRu: w.meaning_ru,
+          example: w.example,
+          myExample: w.my_example,
+          singleRootWords: w.single_root_words,
+          synonyms: w.synonyms,
+          tags: w.tags,
+          status: w.status,
+          passedModes: w.passed_modes
+        }));
+
+        setData({
+          collections: collections || [],
+          words: words || [],
+          allTags: imported.allTags || [],
+          songFolders: imported.songFolders || [{ id: 'sf1', name: 'My Songs' }],
+          songs: imported.songs || []
+        });
+
+        setToast({ message: `Imported ${importedCount} words!`, canUndo: false });
+
+      } catch (e) {
+        console.error('Import error:', e);
+        setToast({ message: 'Import failed', canUndo: false });
+      }
+    };
+    r.readAsText(f);
+    e.target.value = '';
+  };
   const handleNavigationWithCheck = (navFunc) => {
     if (hasUnsavedWords && view === 'song') {
       const confirmed = window.confirm('⚠️ You have unsaved words in the list.\n\nAre you sure you want to leave?\n\nProgress will be lost.');
@@ -2799,68 +2796,69 @@ const saveCollection = async (name) => {
   const sidebarIsDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const Sidebar = () => (
-    <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all flex-shrink-0 overflow-hidden ${sidebarIsDark ? 'bg-[#0a0a0a] border-r border-white/5' : 'bg-white border-r border-black/5'}`}>
+    <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all flex-shrink-0 overflow-hidden ${sidebarIsDark ? 'bg-transparent border-r border-white/5' : 'bg-white border-r border-black/5'}`}>
       <div className="w-64 p-3 h-full overflow-y-auto">
-        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'dashboard' ? 'bg-orange-500/10 text-orange-500' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18}/> Dashboard</button>
+        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'dashboard' ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18} /> Dashboard</button>
         <div className={`mb-4 pb-3 border-b ${sidebarIsDark ? 'border-white/5' : 'border-black/5'}`}>
-          <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16}/></button></div>
+          <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
           {data.songFolders.map((folder, folderIdx) => {
             const folderSongs = data.songs.filter(s => s.folderId === folder.id);
             return (
-            <div key={folder.id} className="mb-1">
-              <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
-                <button onClick={() => setExpandedSongFolders(expandedSongFolders.includes(folder.id) ? expandedSongFolders.filter(id => id !== folder.id) : [...expandedSongFolders, folder.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedSongFolders.includes(folder.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
-                <span className="flex-1 truncate text-sm">{folder.name}</span>
-                <div className="flex opacity-0 group-hover:opacity-100">
-                  {folderIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12}/></button>}
-                  {folderIdx < data.songFolders.length - 1 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move down"><ChevronDown size={12}/></button>}
-                  <button onClick={() => setModal({ type: 'song', data: { folderId: folder.id } })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Plus size={12}/></button>
-                  <button onClick={() => setModal({ type: 'songFolder', data: folder })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Edit2 size={12}/></button>
-                  <button onClick={() => requestDelete('songFolder', folder)} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Trash2 size={12}/></button>
-                </div>
-              </div>
-              {expandedSongFolders.includes(folder.id) && <div className="ml-6 space-y-1">{folderSongs.map((song, songIdx) => (
-                <div key={song.id} onClick={() => handleNavigationWithCheck(() => { setCurrentSong(song); setCurrentCollection(null); setCurrentSection(null); setFilterStatus('all'); setView('song'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSong?.id === song.id ? 'bg-orange-500/10 text-orange-500' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
-                  <span className="flex-1 truncate">{song.title}</span>
+              <div key={folder.id} className="mb-1">
+                <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
+                  <button onClick={() => setExpandedSongFolders(expandedSongFolders.includes(folder.id) ? expandedSongFolders.filter(id => id !== folder.id) : [...expandedSongFolders, folder.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedSongFolders.includes(folder.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</button>
+                  <span className="flex-1 truncate text-sm">{folder.name}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
-                    {songIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12}/></button>}
-                    {songIdx < folderSongs.length - 1 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move down"><ChevronDown size={12}/></button>}
-                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'song', data: song }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Edit2 size={12}/></button>
-                    <button onClick={e => { e.stopPropagation(); requestDelete('song', song); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={12}/></button>
+                    {folderIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12} /></button>}
+                    {folderIdx < data.songFolders.length - 1 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move down"><ChevronDown size={12} /></button>}
+                    <button onClick={() => setModal({ type: 'song', data: { folderId: folder.id } })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Plus size={12} /></button>
+                    <button onClick={() => setModal({ type: 'songFolder', data: folder })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Edit2 size={12} /></button>
+                    <button onClick={() => requestDelete('songFolder', folder)} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Trash2 size={12} /></button>
                   </div>
                 </div>
-              ))}</div>}
-            </div>
-          );})}
+                {expandedSongFolders.includes(folder.id) && <div className="ml-6 space-y-1">{folderSongs.map((song, songIdx) => (
+                  <div key={song.id} onClick={() => handleNavigationWithCheck(() => { setCurrentSong(song); setCurrentCollection(null); setCurrentSection(null); setFilterStatus('all'); setView('song'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSong?.id === song.id ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
+                    <span className="flex-1 truncate">{song.title}</span>
+                    <div className="flex opacity-0 group-hover:opacity-100">
+                      {songIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12} /></button>}
+                      {songIdx < folderSongs.length - 1 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move down"><ChevronDown size={12} /></button>}
+                      <button onClick={e => { e.stopPropagation(); setModal({ type: 'song', data: song }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Edit2 size={12} /></button>
+                      <button onClick={e => { e.stopPropagation(); requestDelete('song', song); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={12} /></button>
+                    </div>
+                  </div>
+                ))}</div>}
+              </div>
+            );
+          })}
         </div>
-        <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16}/></button></div>
+        <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
         {data.collections.map((col, colIdx) => (
           <div key={col.id} className="mb-1">
-            <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-orange-500/10 text-orange-500' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
-              <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedCollections.includes(col.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
+            <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
+              <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedCollections.includes(col.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</button>
               <span className="text-base">{col.icon || '📚'}</span>
               <span onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className="flex-1 truncate text-sm">{col.name}</span>
               <div className="flex opacity-0 group-hover:opacity-100">
-                {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12}/></button>}
-                {colIdx < data.collections.length - 1 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move down"><ChevronDown size={12}/></button>}
-                <button onClick={() => setModal({ type: 'collection', data: col })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Edit2 size={12}/></button>
-                <button onClick={() => requestDelete('collection', col)} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Trash2 size={12}/></button>
+                {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12} /></button>}
+                {colIdx < data.collections.length - 1 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move down"><ChevronDown size={12} /></button>}
+                <button onClick={() => setModal({ type: 'collection', data: col })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Edit2 size={12} /></button>
+                <button onClick={() => requestDelete('collection', col)} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Trash2 size={12} /></button>
               </div>
             </div>
             {expandedCollections.includes(col.id) && <div className="ml-6 space-y-1">
               {col.sections.map((sec, secIdx) => (
-                <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSection?.id === sec.id ? 'bg-orange-500/10 text-orange-500' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
+                <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSection?.id === sec.id ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
                   <span className="text-base">{sec.icon || '📖'}</span>
                   <span className="flex-1 truncate">{sec.name}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
-                    {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12}/></button>}
-                    {secIdx < col.sections.length - 1 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move down"><ChevronDown size={12}/></button>}
-                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Edit2 size={12}/></button>
-                    <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={12}/></button>
+                    {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12} /></button>}
+                    {secIdx < col.sections.length - 1 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move down"><ChevronDown size={12} /></button>}
+                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Edit2 size={12} /></button>
+                    <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={12} /></button>
                   </div>
                 </div>
               ))}
-              <button onClick={() => setModal({ type: 'section', data: { colId: col.id, section: null } })} className={`flex items-center gap-2 p-2 text-sm transition-colors ${sidebarIsDark ? 'text-white/30 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}><Plus size={14}/> Add section</button>
+              <button onClick={() => setModal({ type: 'section', data: { colId: col.id, section: null } })} className={`flex items-center gap-2 p-2 text-sm transition-colors ${sidebarIsDark ? 'text-white/30 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}><Plus size={14} /> Add section</button>
             </div>}
           </div>
         ))}
@@ -2879,7 +2877,7 @@ const saveCollection = async (name) => {
         <ProgressBar current={cardSession.index} total={cardSession.words.length} correct={cardSession.correct} wrong={cardSession.wrong} />
         <div onClick={() => setCardSession({ ...cardSession, flipped: !cardSession.flipped })} className="cursor-pointer" style={{ perspective: 1000 }}>
           <div style={{ transformStyle: 'preserve-3d', transition: 'transform 0.5s', transform: cardSession.flipped ? 'rotateY(180deg)' : '' }} className="relative h-72">
-            <div style={{ backfaceVisibility: 'hidden' }} className="absolute inset-0 bg-[#1a1a1a] rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center border border-gray-800"><h2 className="text-3xl font-bold text-center text-white">{w.word}</h2><p className="text-gray-400">{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-orange-500/20 rounded-full"><Volume2 className="text-orange-400"/></button></div>
+            <div style={{ backfaceVisibility: 'hidden' }} className="absolute inset-0 bg-[#1a1a1a] rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center border border-gray-800"><h2 className="text-3xl font-bold text-center text-white">{w.word}</h2><p className="text-gray-400">{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-orange-500/20 rounded-full"><Volume2 className="text-orange-400" /></button></div>
             <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="absolute inset-0 bg-[#1f1a1a] rounded-2xl shadow-lg p-6 flex flex-col justify-center border border-orange-900/30">
               <p className="text-lg text-gray-200 mb-2">{w.meaningEn}</p>
               {w.meaningRu && <p className="text-orange-400 font-medium mb-2">→ {w.meaningRu}</p>}
@@ -2901,7 +2899,7 @@ const saveCollection = async (name) => {
             </div>
           </div>
         </div>
-        <div className="flex justify-center gap-4 mt-6"><button onClick={() => handleAnswer(false)} className="px-6 py-2 bg-red-100  text-red-600  rounded-lg flex items-center gap-2"><X size={18}/> Don't know</button><button onClick={() => handleAnswer(true)} className="px-6 py-2 bg-green-100  text-green-600  rounded-lg flex items-center gap-2"><Check size={18}/> Know it</button></div>
+        <div className="flex justify-center gap-4 mt-6"><button onClick={() => handleAnswer(false)} className="px-6 py-2 bg-red-100  text-red-600  rounded-lg flex items-center gap-2"><X size={18} /> Don't know</button><button onClick={() => handleAnswer(true)} className="px-6 py-2 bg-green-100  text-green-600  rounded-lg flex items-center gap-2"><Check size={18} /> Know it</button></div>
       </div>
     );
   };
@@ -2938,7 +2936,7 @@ const saveCollection = async (name) => {
     );
   };
 
-   console.log('Current data:', data);
+  console.log('Current data:', data);
   console.log('Collections:', data.collections);
   console.log('Is loading:', isLoading);
 
@@ -2947,35 +2945,35 @@ const saveCollection = async (name) => {
   if (!user) return <AuthForm />;
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading data...</div>;
 
-  
+
   const showFilters = ['list', 'cards', 'quiz', 'write'].includes(view) && (currentCollection || currentSection);
 
   const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   return (
-    <div className={`min-h-screen flex ${isDark ? 'bg-[#0a0a0a] text-gray-100' : 'bg-[#f5f5f7] text-gray-900'}`}>
+    <div className={`min-h-screen flex ${isDark ? 'bg-theme-main text-gray-100 dark' : 'bg-[#f5f5f7] text-gray-900'}`}>
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 h-screen">
-        <header className={`${isDark ? 'bg-[#0a0a0a]/80 border-white/5' : 'bg-white/80 border-black/5'} backdrop-blur-xl border-b px-4 h-14 flex items-center justify-between flex-shrink-0`}>
+        <header className={`${isDark ? 'bg-transparent border-white/5' : 'bg-white/80 border-black/5'} backdrop-blur-xl border-b px-8 py-3 h-auto flex items-center justify-between flex-shrink-0`}>
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`}>
-              <Menu size={20}/>
+              <Menu size={20} />
             </button>
-            <h1 className={`text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>VocabMaster</h1>
+            <h1 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>VocabMaster</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <input type="file" accept=".json" onChange={importData} className="hidden" id="import-backup" />
-            <button onClick={() => document.getElementById('import-backup').click()} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Restore"><Upload size={18}/></button>
-            <button onClick={exportData} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Backup"><Download size={18}/></button>
+            <button onClick={() => document.getElementById('import-backup').click()} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Restore"><Upload size={18} /></button>
+            <button onClick={exportData} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Backup"><Download size={18} /></button>
             {currentSection && (
               <>
-                <button onClick={() => setModal({ type: 'importText', data: null })} className={`h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium ${isDark ? 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'}`}><Upload size={16}/> Import</button>
-                <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className={`h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium ${isDark ? 'bg-green-500/15 text-green-400 hover:bg-green-500/25' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}><Plus size={16}/> Add</button>
+                <button onClick={() => setModal({ type: 'importText', data: null })} className={`h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium ${isDark ? 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'}`}><Upload size={16} /> Import</button>
+                <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className={`h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium ${isDark ? 'bg-green-500/15 text-green-400 hover:bg-green-500/25' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}><Plus size={16} /> Add</button>
               </>
             )}
             <div className="relative ml-2">
               <button onClick={() => setShowUserMenu(!showUserMenu)} className={`w-9 h-9 rounded-full flex items-center justify-center ${isDark ? 'bg-orange-500/15 text-orange-400 hover:bg-orange-500/25' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'}`}>
-                <User size={18}/>
+                <User size={18} />
               </button>
               {showUserMenu && (
                 <>
@@ -2986,23 +2984,23 @@ const saveCollection = async (name) => {
                     </div>
                     <div className="py-1">
                       <button onClick={() => {
-                          const newTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
-                          setTheme(newTheme);
-                          localStorage.setItem('vocabmaster_theme', newTheme);
-                        }} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-black/5 text-gray-700'}`}>
-                        {theme === 'light' ? <Sun size={16}/> : theme === 'dark' ? <Moon size={16}/> : <Monitor size={16}/>}
+                        const newTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
+                        setTheme(newTheme);
+                        localStorage.setItem('vocabmaster_theme', newTheme);
+                      }} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-black/5 text-gray-700'}`}>
+                        {theme === 'light' ? <Sun size={16} /> : theme === 'dark' ? <Moon size={16} /> : <Monitor size={16} />}
                         Theme: {theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'System'}
                       </button>
                       <button onClick={() => { setModal({ type: 'changePassword', data: null }); setShowUserMenu(false); }} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-black/5 text-gray-700'}`}>
-                        <Settings size={16}/> Change Password
+                        <Settings size={16} /> Change Password
                       </button>
                       <button onClick={() => { setModal({ type: 'dailyGoals', data: userGoals }); setShowUserMenu(false); }} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-black/5 text-gray-700'}`}>
-                        <Target size={16}/> Daily Goals
+                        <Target size={16} /> Daily Goals
                       </button>
                     </div>
                     <div className={`border-t pt-1 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
                       <button onClick={handleLogout} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}>
-                        <LogOut size={16}/> Sign Out
+                        <LogOut size={16} /> Sign Out
                       </button>
                     </div>
                   </div>
@@ -3011,7 +3009,7 @@ const saveCollection = async (name) => {
             </div>
           </div>
         </header>
-        <div className={`flex-1 overflow-auto p-5 ${isDark ? 'bg-[#0a0a0a]' : 'bg-[#f5f5f7]'}`}>
+        <div className={`flex-1 overflow-auto p-8 relative ${isDark ? 'bg-transparent' : 'bg-[#f5f5f7]'}`}>
           {view === 'dashboard' && (() => {
             const totalWords = data.words.length;
             const newWords = data.words.filter(w => w.status === STATUS.NEW).length;
@@ -3032,228 +3030,229 @@ const saveCollection = async (name) => {
             const wordsToReview = data.words.filter(w => w.status === STATUS.LEARNING).slice(0, 5);
 
             return (
-            <div className="space-y-5 max-w-6xl mx-auto animate-fadeIn">
-              {/* Stats row - clean pill buttons */}
-              <div className="grid grid-cols-4 gap-3">
-                <button
-                  onClick={() => { setFilterStatus('all'); setViewTitle('Total Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                  className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04]' : 'bg-white hover:bg-gray-50 border border-black/[0.04] shadow-sm'}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalWords}</div>
-                      <div className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-500'}`}>Total</div>
-                    </div>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
-                      <BookOpen size={18} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
-                    </div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => { setFilterStatus('new'); setViewTitle('New Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                  className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-blue-500/[0.08] hover:bg-blue-500/[0.12] border border-blue-500/10' : 'bg-blue-50 hover:bg-blue-100 border border-blue-100'}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className={`text-2xl font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{newWords}</div>
-                      <div className={`text-xs ${isDark ? 'text-blue-400/50' : 'text-blue-600/60'}`}>New</div>
-                    </div>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-blue-500/10' : 'bg-blue-100'}`}>
-                      <Target size={18} className={isDark ? 'text-blue-400/60' : 'text-blue-500'}/>
-                    </div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => { setFilterStatus('learning'); setViewTitle('Learning Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                  className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-orange-500/[0.08] hover:bg-orange-500/[0.12] border border-orange-500/10' : 'bg-orange-50 hover:bg-orange-100 border border-orange-100'}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className={`text-2xl font-semibold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{learningWords}</div>
-                      <div className={`text-xs ${isDark ? 'text-orange-400/50' : 'text-orange-600/60'}`}>Learning</div>
-                    </div>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-orange-500/10' : 'bg-orange-100'}`}>
-                      <Flame size={18} className={isDark ? 'text-orange-400/60' : 'text-orange-500'}/>
-                    </div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => { setFilterStatus('learned'); setViewTitle('Learned Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                  className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-green-500/[0.08] hover:bg-green-500/[0.12] border border-green-500/10' : 'bg-green-50 hover:bg-green-100 border border-green-100'}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className={`text-2xl font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{learnedWords}</div>
-                      <div className={`text-xs ${isDark ? 'text-green-400/50' : 'text-green-600/60'}`}>Learned</div>
-                    </div>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-green-500/10' : 'bg-green-100'}`}>
-                      <Award size={18} className={isDark ? 'text-green-400/60' : 'text-green-500'}/>
-                    </div>
-                  </div>
-                </button>
-              </div>
-
-              {/* Main Grid - Activity Tracker + Collections */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Activity Tracker - Left side */}
-                <ActivityTracker activityData={activityData} streak={streak} userGoals={userGoals} isDark={isDark} />
-
-                {/* Collections - Right side */}
-                <div
-                  className={`rounded-3xl p-5 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
-                  style={{
-                    background: isDark
-                      ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
-                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                    border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                    <BookOpen size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
-                    Collections
-                  </h3>
-                  {data.collections.length > 0 ? (
-                    <div className="space-y-1">
-                      {data.collections.slice(0, 6).map(col => {
-                        const colWords = data.words.filter(w => col.sections.some(s => s.id === w.sectionId));
-                        return (
-                          <button
-                            key={col.id}
-                            onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }}
-                            className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
-                          >
-                            <span className="text-lg">{col.icon || '📚'}</span>
-                            <span className={`flex-1 truncate text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{col.name}</span>
-                            <span className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{colWords.length}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No collections yet</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Second Row - Levels + Recent/Review */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Уровни */}
-                <div
-                  className={`rounded-3xl p-5 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
-                  style={{
-                    background: isDark
-                      ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
-                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                    border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                    <TrendingUp size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
-                    By Level
-                  </h3>
-                  {levelStats.length > 0 ? (
-                    <div className="space-y-2.5">
-                      {levelStats.map(({ level, count }) => (
-                        <div key={level} className="flex items-center gap-3">
-                          <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(level)}`}>{level}</span>
-                          <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
-                            <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" style={{ width: `${(count / totalWords) * 100}%` }}></div>
-                          </div>
-                          <span className={`text-sm w-8 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
-                  )}
-                </div>
-
-                {/* Recently Added / To Review */}
-                <div
-                  className={`rounded-3xl p-5 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
-                  style={{
-                    background: isDark
-                      ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
-                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                    border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                  }}
-                >
-                  {wordsToReview.length > 0 ? (
-                    <>
-                      <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                        <RotateCcw size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
-                        Review These
-                      </h3>
-                      <div className="space-y-1">
-                        {wordsToReview.map(w => (
-                          <div
-                            key={w.id}
-                            className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
-                            onClick={() => setModal({ type: 'word', data: w })}
-                          >
-                            <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
-                            <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
-                          </div>
-                        ))}
+              <div className="space-y-5 max-w-6xl mx-auto animate-fadeIn">
+                {/* Stats row - clean pill buttons */}
+                <div className="grid grid-cols-4 gap-3">
+                  <button
+                    onClick={() => { setFilterStatus('all'); setViewTitle('Total Words'); handleNavigationWithCheck(() => setView('all-words')); }}
+                    className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-purple-500/[0.08] hover:bg-purple-500/[0.12] border border-purple-500/10' : 'bg-purple-50 hover:bg-purple-100 border border-purple-100 shadow-sm'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className={`text-2xl font-semibold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{totalWords}</div>
+                        <div className={`text-xs ${isDark ? 'text-purple-400/50' : 'text-purple-600/60'}`}>Total</div>
                       </div>
-                      {learningWords > 5 && (
-                        <button onClick={() => { setFilterStatus('learning'); setView('all-words'); }} className="mt-3 text-sm text-orange-500 hover:text-orange-400 transition-colors">
-                          View all {learningWords} →
-                        </button>
-                      )}
-                    </>
-                  ) : recentWords.length > 0 ? (
-                    <>
-                      <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                        <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
-                        Recently Added
-                      </h3>
-                      <div className="space-y-1">
-                        {recentWords.slice(0, 5).map(w => (
-                          <div
-                            key={w.id}
-                            className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
-                            onClick={() => setModal({ type: 'word', data: w })}
-                          >
-                            <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
-                            <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${getLevelColor(w.level)}`}>{w.level}</span>
-                          </div>
-                        ))}
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-purple-500/10' : 'bg-purple-100'}`}>
+                        <BookOpen size={18} className={isDark ? 'text-purple-400/60' : 'text-purple-500'} />
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                        <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
-                        Recent
-                      </h3>
-                      <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {data.collections.length === 0 && totalWords === 0 && (
-                <div
-                  className={`text-center py-12 rounded-3xl ${isDark ? '' : 'shadow-sm'}`}
-                  style={{
-                    background: isDark
-                      ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
-                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                    border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <div className="text-6xl mb-4">📚</div>
-                  <h2 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome to VocabMaster!</h2>
-                  <p className={`mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Create a collection and start adding words.</p>
-                  <button onClick={() => setModal({ type: 'collection', data: null })} className="px-5 py-2.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors">
-                    <Plus size={18} className="inline mr-1"/> Create Collection
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setFilterStatus('new'); setViewTitle('New Words'); handleNavigationWithCheck(() => setView('all-words')); }}
+                    className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-pink-500/[0.08] hover:bg-pink-500/[0.12] border border-pink-500/10' : 'bg-pink-50 hover:bg-pink-100 border border-pink-100'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className={`text-2xl font-semibold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{newWords}</div>
+                        <div className={`text-xs ${isDark ? 'text-pink-400/50' : 'text-pink-600/60'}`}>New</div>
+                      </div>
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-pink-500/10' : 'bg-pink-100'}`}>
+                        <Target size={18} className={isDark ? 'text-pink-400/60' : 'text-pink-500'} />
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setFilterStatus('learning'); setViewTitle('Learning Words'); handleNavigationWithCheck(() => setView('all-words')); }}
+                    className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-yellow-400/[0.08] hover:bg-yellow-400/[0.12] border border-yellow-400/10' : 'bg-yellow-50 hover:bg-yellow-100 border border-yellow-100'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className={`text-2xl font-semibold ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>{learningWords}</div>
+                        <div className={`text-xs ${isDark ? 'text-yellow-400/50' : 'text-yellow-600/60'}`}>Learning</div>
+                      </div>
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-yellow-400/10' : 'bg-yellow-100'}`}>
+                        <Flame size={18} className={isDark ? 'text-yellow-400/60' : 'text-yellow-500'} />
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setFilterStatus('learned'); setViewTitle('Learned Words'); handleNavigationWithCheck(() => setView('all-words')); }}
+                    className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-emerald-400/[0.08] hover:bg-emerald-400/[0.12] border border-emerald-400/10' : 'bg-emerald-50 hover:bg-emerald-100 border border-emerald-100'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className={`text-2xl font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{learnedWords}</div>
+                        <div className={`text-xs ${isDark ? 'text-emerald-400/50' : 'text-emerald-600/60'}`}>Learned</div>
+                      </div>
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-emerald-400/10' : 'bg-emerald-100'}`}>
+                        <Award size={18} className={isDark ? 'text-emerald-400/60' : 'text-emerald-500'} />
+                      </div>
+                    </div>
                   </button>
                 </div>
-              )}
-            </div>
-          );})()}
+
+                {/* Main Grid - Activity Tracker + Collections */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Activity Tracker - Left side */}
+                  <ActivityTracker activityData={activityData} streak={streak} userGoals={userGoals} isDark={isDark} />
+
+                  {/* Collections - Right side */}
+                  <div
+                    className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+                    style={{
+                      background: isDark
+                        ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
+                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                      <BookOpen size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                      Collections
+                    </h3>
+                    {data.collections.length > 0 ? (
+                      <div className="space-y-1">
+                        {data.collections.slice(0, 6).map(col => {
+                          const colWords = data.words.filter(w => col.sections.some(s => s.id === w.sectionId));
+                          return (
+                            <button
+                              key={col.id}
+                              onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }}
+                              className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                            >
+                              <span className="text-lg">{col.icon || '📚'}</span>
+                              <span className={`flex-1 truncate text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{col.name}</span>
+                              <span className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{colWords.length}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No collections yet</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Second Row - Levels + Recent/Review */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Уровни */}
+                  <div
+                    className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+                    style={{
+                      background: isDark
+                        ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
+                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                      <TrendingUp size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                      By Level
+                    </h3>
+                    {levelStats.length > 0 ? (
+                      <div className="space-y-2.5">
+                        {levelStats.map(({ level, count }) => (
+                          <div key={level} className="flex items-center gap-3">
+                            <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(level)}`}>{level}</span>
+                            <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
+                              <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" style={{ width: `${(count / totalWords) * 100}%` }}></div>
+                            </div>
+                            <span className={`text-sm w-8 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
+                    )}
+                  </div>
+
+                  {/* Recently Added / To Review */}
+                  <div
+                    className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+                    style={{
+                      background: isDark
+                        ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
+                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    {wordsToReview.length > 0 ? (
+                      <>
+                        <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                          <RotateCcw size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                          Review These
+                        </h3>
+                        <div className="space-y-1">
+                          {wordsToReview.map(w => (
+                            <div
+                              key={w.id}
+                              className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                              onClick={() => setModal({ type: 'word', data: w })}
+                            >
+                              <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
+                              <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {learningWords > 5 && (
+                          <button onClick={() => { setFilterStatus('learning'); setView('all-words'); }} className="mt-3 text-sm text-orange-500 hover:text-orange-400 transition-colors">
+                            View all {learningWords} →
+                          </button>
+                        )}
+                      </>
+                    ) : recentWords.length > 0 ? (
+                      <>
+                        <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                          <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                          Recently Added
+                        </h3>
+                        <div className="space-y-1">
+                          {recentWords.slice(0, 5).map(w => (
+                            <div
+                              key={w.id}
+                              className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                              onClick={() => setModal({ type: 'word', data: w })}
+                            >
+                              <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
+                              <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] ${getLevelColor(w.level)}`}>{w.level}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                          <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                          Recent
+                        </h3>
+                        <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {data.collections.length === 0 && totalWords === 0 && (
+                  <div
+                    className={`text-center py-12 rounded-3xl ${isDark ? '' : 'shadow-sm'}`}
+                    style={{
+                      background: isDark
+                        ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
+                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <div className="text-6xl mb-4">📚</div>
+                    <h2 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome to VocabMaster!</h2>
+                    <p className={`mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Create a collection and start adding words.</p>
+                    <button onClick={() => setModal({ type: 'collection', data: null })} className="px-5 py-2.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors">
+                      <Plus size={18} className="inline mr-1" /> Create Collection
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           {view === 'all-words' && (
             <>
               <div className="flex items-center justify-between mb-4">
@@ -3264,7 +3263,7 @@ const saveCollection = async (name) => {
                       <option value="all">All levels</option>{LEVELS.map(l => <option key={l}>{l}</option>)}
                     </select>
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                   <div className="relative">
@@ -3272,7 +3271,7 @@ const saveCollection = async (name) => {
                       <option value="all">All status</option><option value="new">New</option><option value="learning">Learning</option><option value="learned">Learned</option>
                     </select>
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                 </div>
@@ -3282,61 +3281,61 @@ const saveCollection = async (name) => {
           )}
           {view === 'song' && currentSong && (
             <div className="h-full">
-              <SongAnalyzer 
-                song={currentSong} 
-                sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} 
-                collections={data.collections} 
-                existingWords={data.words} 
+              <SongAnalyzer
+                song={currentSong}
+                sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))}
+                collections={data.collections}
+                existingWords={data.words}
                 onAddWords={async (ws) => {
-                const savedWords = [];
-                for (const w of ws) {
-                  const { data: newWord, error } = await supabase
-                    .from('words')
-                    .insert([{
-                      user_id: user.id,
-                      section_id: w.sectionId,
-                      word: w.word,
-                      type: w.type,
-                      level: w.level,
-                      forms: w.forms || '',
-                      meaning_en: w.meaningEn || '',
-                      meaning_ru: w.meaningRu || '',
-                      example: w.example || '',
-                      my_example: w.myExample || '',
-                      single_root_words: w.singleRootWords || '',
-                      synonyms: w.synonyms || '',
-                      tags: w.tags || [],
-                      status: STATUS.NEW,
-                      passed_modes: []
-                    }])
-                    .select()
-                    .single();
-                  
-                  if (!error && newWord) {
-                    savedWords.push({
-                      id: newWord.id,
-                      sectionId: newWord.section_id,
-                      word: newWord.word,
-                      type: newWord.type,
-                      level: newWord.level,
-                      forms: newWord.forms,
-                      meaningEn: newWord.meaning_en,
-                      meaningRu: newWord.meaning_ru,
-                      example: newWord.example,
-                      myExample: newWord.my_example,
-                      singleRootWords: newWord.single_root_words,
-                      synonyms: newWord.synonyms,
-                      tags: newWord.tags,
-                      status: newWord.status,
-                      passedModes: newWord.passed_modes
-                    });
-                  }
-                }
-                setData(d => ({ ...d, words: [...d.words, ...savedWords] })); 
-                setToast({ message: `${savedWords.length} words added!`, canUndo: false }); 
-              }}
+                  const savedWords = [];
+                  for (const w of ws) {
+                    const { data: newWord, error } = await supabase
+                      .from('words')
+                      .insert([{
+                        user_id: user.id,
+                        section_id: w.sectionId,
+                        word: w.word,
+                        type: w.type,
+                        level: w.level,
+                        forms: w.forms || '',
+                        meaning_en: w.meaningEn || '',
+                        meaning_ru: w.meaningRu || '',
+                        example: w.example || '',
+                        my_example: w.myExample || '',
+                        single_root_words: w.singleRootWords || '',
+                        synonyms: w.synonyms || '',
+                        tags: w.tags || [],
+                        status: STATUS.NEW,
+                        passed_modes: []
+                      }])
+                      .select()
+                      .single();
 
-                onCreateSection={createSectionFromSong} 
+                    if (!error && newWord) {
+                      savedWords.push({
+                        id: newWord.id,
+                        sectionId: newWord.section_id,
+                        word: newWord.word,
+                        type: newWord.type,
+                        level: newWord.level,
+                        forms: newWord.forms,
+                        meaningEn: newWord.meaning_en,
+                        meaningRu: newWord.meaning_ru,
+                        example: newWord.example,
+                        myExample: newWord.my_example,
+                        singleRootWords: newWord.single_root_words,
+                        synonyms: newWord.synonyms,
+                        tags: newWord.tags,
+                        status: newWord.status,
+                        passedModes: newWord.passed_modes
+                      });
+                    }
+                  }
+                  setData(d => ({ ...d, words: [...d.words, ...savedWords] }));
+                  setToast({ message: `${savedWords.length} words added!`, canUndo: false });
+                }}
+
+                onCreateSection={createSectionFromSong}
                 onUnsavedChange={setHasUnsavedWords}
                 onClose={() => {
                   if (hasUnsavedWords) {
@@ -3359,13 +3358,13 @@ const saveCollection = async (name) => {
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="text-xl font-semibold">{currentSection?.name || currentCollection?.name}</h2>
                 <div className="flex items-center gap-2">
-                  {currentSection && filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length > 0 && <button onClick={() => setModal({ type: 'fillCards', data: filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms) })} className="h-10 px-3 bg-purple-500 text-white rounded-lg text-sm flex items-center gap-1"><Search size={16}/> Fill {filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length} Cards</button>}
+                  {currentSection && filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length > 0 && <button onClick={() => setModal({ type: 'fillCards', data: filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms) })} className="h-10 px-3 bg-purple-500 text-white rounded-lg text-sm flex items-center gap-1"><Search size={16} /> Fill {filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length} Cards</button>}
                   <div className="relative">
                     <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none">
                       <option value="all">All levels</option>{LEVELS.map(l => <option key={l}>{l}</option>)}
                     </select>
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                   <div className="relative">
@@ -3373,13 +3372,13 @@ const saveCollection = async (name) => {
                       <option value="all">All status</option><option value="new">New</option><option value="learning">Learning</option><option value="learned">Learned</option>
                     </select>
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                 </div>
               </div>
               {!currentSection && currentCollection && <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-800">Select a section to add words.</div>}
-              <div className="grid grid-cols-4 gap-2 mb-4">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg ${view === m.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}><m.icon size={18}/> {m.label}</button>)}</div>
+              <div className="grid grid-cols-4 gap-2 mb-4">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg ${view === m.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}><m.icon size={18} /> {m.label}</button>)}</div>
               {view === 'list' && <div className="space-y-3">{filteredWords.length ? filteredWords.map(w => <WordCard key={w.id} word={w} />) : <div className="text-center py-12 text-gray-400">No words</div>}</div>}
               {view === 'cards' && renderFlashcards()}
               {view === 'quiz' && renderQuiz()}
@@ -3389,67 +3388,67 @@ const saveCollection = async (name) => {
         </div>
       </div>
       {modal.type === 'word' && <WordForm word={modal.data} allTags={data.allTags} existingWords={data.words} sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} onSave={saveWord} onCancel={() => setModal({ type: null, data: null })} onAddTag={t => { if (!data.allTags.includes(t)) setData(d => ({ ...d, allTags: [...d.allTags, t] })); }} onDuplicateFound={msg => setAlert(msg)} />}
-      {modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id} 
-      
-      onImport={async (words) => {
+      {modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id}
+
+        onImport={async (words) => {
           console.log('=== Starting import ===', words.length, 'words');
 
-  const savedWords = [];
-  for (const w of words) {
-        console.log('Importing word:', w.word);
+          const savedWords = [];
+          for (const w of words) {
+            console.log('Importing word:', w.word);
 
-    const { data: newWord, error } = await supabase
-      .from('words')
-      .insert([{
-        user_id: user.id,
-        section_id: w.sectionId,
-        word: w.word,
-        type: w.type,
-        level: w.level,
-        forms: w.forms || '',
-        meaning_en: w.meaningEn || '',
-        meaning_ru: w.meaningRu || '',
-        example: w.example || '',
-        my_example: w.myExample || '',
-        single_root_words: w.singleRootWords || '',
-        synonyms: w.synonyms || '',
-        tags: w.tags || [],
-        status: STATUS.NEW,
-        passed_modes: []
-      }])
-      .select()
-      .single();
-        console.log('Result:', { newWord: newWord?.word, error });
+            const { data: newWord, error } = await supabase
+              .from('words')
+              .insert([{
+                user_id: user.id,
+                section_id: w.sectionId,
+                word: w.word,
+                type: w.type,
+                level: w.level,
+                forms: w.forms || '',
+                meaning_en: w.meaningEn || '',
+                meaning_ru: w.meaningRu || '',
+                example: w.example || '',
+                my_example: w.myExample || '',
+                single_root_words: w.singleRootWords || '',
+                synonyms: w.synonyms || '',
+                tags: w.tags || [],
+                status: STATUS.NEW,
+                passed_modes: []
+              }])
+              .select()
+              .single();
+            console.log('Result:', { newWord: newWord?.word, error });
 
-        
-    if (!error && newWord) {
-        console.error('Supabase error details:', error);
 
-      savedWords.push({
-        id: newWord.id,
-        sectionId: newWord.section_id,
-        word: newWord.word,
-        type: newWord.type,
-        level: newWord.level,
-        forms: newWord.forms,
-        meaningEn: newWord.meaning_en,
-        meaningRu: newWord.meaning_ru,
-        example: newWord.example,
-        myExample: newWord.my_example,
-        singleRootWords: newWord.single_root_words,
-        synonyms: newWord.synonyms,
-        tags: newWord.tags,
-        status: newWord.status,
-        passedModes: newWord.passed_modes
-      });
-    }
-  }
-  
-  setData(d => ({ ...d, words: [...d.words, ...savedWords] })); 
-  setToast({ message: `${savedWords.length} words imported!`, canUndo: false }); 
-}}
-      
-      onCancel={() => setModal({ type: null, data: null })} />}
+            if (!error && newWord) {
+              console.error('Supabase error details:', error);
+
+              savedWords.push({
+                id: newWord.id,
+                sectionId: newWord.section_id,
+                word: newWord.word,
+                type: newWord.type,
+                level: newWord.level,
+                forms: newWord.forms,
+                meaningEn: newWord.meaning_en,
+                meaningRu: newWord.meaning_ru,
+                example: newWord.example,
+                myExample: newWord.my_example,
+                singleRootWords: newWord.single_root_words,
+                synonyms: newWord.synonyms,
+                tags: newWord.tags,
+                status: newWord.status,
+                passedModes: newWord.passed_modes
+              });
+            }
+          }
+
+          setData(d => ({ ...d, words: [...d.words, ...savedWords] }));
+          setToast({ message: `${savedWords.length} words imported!`, canUndo: false });
+        }}
+
+        onCancel={() => setModal({ type: null, data: null })} />}
       {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} />}
       {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })}><h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button></div></Modal>}
       {modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })}>
@@ -3523,20 +3522,20 @@ const saveCollection = async (name) => {
         }}
         onCancel={() => setModal({ type: null, data: null })}
       />}
-            {confirmDelete && <Modal onClose={() => setConfirmDelete(null)}><h3 className="text-lg font-semibold mb-2">Delete?</h3><p className="text-gray-600 mb-4">Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button></div></Modal>}
+      {confirmDelete && <Modal onClose={() => setConfirmDelete(null)}><h3 className="text-lg font-semibold mb-2">Delete?</h3><p className="text-gray-600 mb-4">Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
-      
+
       {wordPopup && console.log('=== wordPopup ===', wordPopup.word.singleRootWords)}
       {wordPopup && (
-        
+
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setWordPopup(null)}>
           <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">
                 {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
               </h3>
-              <button onClick={() => setWordPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
+              <button onClick={() => setWordPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
             {wordPopup.type === 'roots' ? (
               <div className="overflow-hidden rounded-lg border border-gray-200">
@@ -3548,25 +3547,25 @@ const saveCollection = async (name) => {
                 </div>
                 {wordPopup.word.singleRootWords.split(',').map((item, idx) => {
                   const trimmed = item.trim();
-                  
+
                   // Парсинг формата: word (part_of_speech) /ipa/ - translation
                   // 1. Слово: все до первой открывающей скобки или пробела
                   const wordMatch = trimmed.match(/^(\S+)/);
                   const word = wordMatch ? wordMatch[1] : '';
-                  
+
                   // 2. Часть речи: все между круглыми скобками
                   const typeMatch = trimmed.match(/\(([^)]+)\)/);
                   const type = typeMatch ? typeMatch[1] : '';
-                  
+
                   // 3. IPA: все между слешами
                   const ipaMatch = trimmed.match(/\/([^/]+)\//);
                   const ipa = ipaMatch ? ipaMatch[1] : '';
-                  
+
                   // 4. Перевод: все после тире до конца строки или следующей запятой на верхнем уровне
                   // Ищем последнее вхождение тире, которое не в скобках или слешах
                   const dashIndex = trimmed.lastIndexOf(' - ');
                   const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
-                  
+
                   return (
                     <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                       <div className="w-32 font-medium text-gray-100">{word || '—'}</div>
@@ -3585,7 +3584,7 @@ const saveCollection = async (name) => {
           </div>
         </div>
       )}
-      
+
       {cardPopup && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setCardPopup(null)}>
           <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -3593,7 +3592,7 @@ const saveCollection = async (name) => {
               <h3 className="text-lg font-semibold">
                 {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
               </h3>
-              <button onClick={() => setCardPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
+              <button onClick={() => setCardPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
             {cardPopup.type === 'roots' ? (
               <div className="overflow-hidden rounded-lg border border-gray-200">
@@ -3605,24 +3604,24 @@ const saveCollection = async (name) => {
                 </div>
                 {cardPopup.word.singleRootWords.split(',').map((item, idx) => {
                   const trimmed = item.trim();
-                  
+
                   // Парсинг формата: word (part_of_speech) /ipa/ - translation
                   // 1. Слово: все до первой открывающей скобки или пробела
                   const wordMatch = trimmed.match(/^(\S+)/);
                   const word = wordMatch ? wordMatch[1] : '';
-                  
+
                   // 2. Часть речи: все между круглыми скобками
                   const typeMatch = trimmed.match(/\(([^)]+)\)/);
                   const type = typeMatch ? typeMatch[1] : '';
-                  
+
                   // 3. IPA: все между слешами
                   const ipaMatch = trimmed.match(/\/([^/]+)\//);
                   const ipa = ipaMatch ? ipaMatch[1] : '';
-                  
+
                   // 4. Перевод: все после тире до конца строки
                   const dashIndex = trimmed.lastIndexOf(' - ');
                   const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
-                  
+
                   return (
                     <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                       <div className="w-32 font-medium text-gray-100">{word || '—'}</div>
@@ -3669,7 +3668,7 @@ const saveCollection = async (name) => {
       )}
       {modal.type === 'dailyGoals' && (
         <Modal onClose={() => setModal({ type: null, data: null })}>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Target size={20}/> Daily Goals</h3>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Target size={20} /> Daily Goals</h3>
           <form onSubmit={async (e) => {
             e.preventDefault();
             const newWords = parseInt(e.target.newWords.value) || 5;

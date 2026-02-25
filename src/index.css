@@ -10,23 +10,51 @@
 
 /* Custom animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(8px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fadeIn {
@@ -57,7 +85,9 @@
 }
 
 /* Smooth focus states */
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
   border-color: rgba(249, 115, 22, 0.3) !important;
@@ -65,13 +95,19 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* Light theme overrides */
-.light input:focus, .light textarea:focus, .light select:focus {
+.light input:focus,
+.light textarea:focus,
+.light select:focus {
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
   border-color: rgba(249, 115, 22, 0.4) !important;
 }
 
 /* Smooth transitions for all interactive elements */
-button, a, input, textarea, select {
+button,
+a,
+input,
+textarea,
+select {
   transition: all 0.2s ease;
 }
 
@@ -113,4 +149,73 @@ body {
 .pill {
   border-radius: 9999px;
   padding: 0.5rem 1rem;
+}
+
+/* Custom dark dotted background */
+body.dark,
+.bg-theme-main {
+  background-color: #0d0d10 !important;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
+  background-size: 20px 20px !important;
+}
+
+/* App glow accents */
+.glow-pink {
+  box-shadow: 0 0 15px rgba(252, 59, 116, 0.3);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 15px rgba(254, 219, 101, 0.3);
+}
+
+.glow-green {
+  box-shadow: 0 0 15px rgba(105, 227, 169, 0.3);
+}
+
+.text-pink-vibrant {
+  color: #fc3b74;
+}
+
+.bg-pink-vibrant {
+  background-color: #fc3b74;
+}
+
+.border-pink-vibrant {
+  border-color: #fc3b74;
+}
+
+.text-gold-vibrant {
+  color: #fedb65;
+}
+
+.bg-gold-vibrant {
+  background-color: #fedb65;
+}
+
+.border-gold-vibrant {
+  border-color: #fedb65;
+}
+
+.text-mint-vibrant {
+  color: #69e3a9;
+}
+
+.bg-mint-vibrant {
+  background-color: #69e3a9;
+}
+
+.border-mint-vibrant {
+  border-color: #69e3a9;
+}
+
+.text-purple-vibrant {
+  color: #b78eea;
+}
+
+.bg-purple-vibrant {
+  background-color: #b78eea;
+}
+
+.border-purple-vibrant {
+  border-color: #b78eea;
 }
