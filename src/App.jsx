@@ -9,6 +9,18 @@ const getLevelColor = l => ({ A1: 'bg-green-100 text-green-700 dark:bg-green-900
 const getStatusColor = s => ({ 'new': 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300', 'learning': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300', 'learned': 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' }[s] || 'bg-gray-100 dark:bg-gray-700');
 
 const COLLECTION_ICONS = ['📚', '📖', '🎬', '💼', '✈️', '🍕', '🎵', '⚽', '💻', '🎓', '🏥', '🎨', '🏠', '🚗', '👔', '🌳', '🎯', '⭐', '🔥', '💡'];
+
+// Подсветка слова в примере
+const highlightWord = (text, word) => {
+  if (!text || !word) return text;
+  const baseWord = word.toLowerCase().replace(/\s+/g, '\\s+');
+  // Ищем слово и его формы (с окончаниями)
+  const regex = new RegExp(`(${baseWord}\\w*|\\w*${baseWord})`, 'gi');
+  const parts = text.split(regex);
+  return parts.map((part, i) =>
+    regex.test(part) ? <span key={i} className="text-blue-600 dark:text-blue-400 font-medium not-italic">{part}</span> : part
+  );
+};
 const SECTION_ICONS = ['📖', '📝', '🎬', '🎥', '💼', '🏢', '✈️', '🌍', '🍕', '🍔', '🎵', '🎸', '⚽', '🏀', '💻', '🖥️', '🎓', '📚', '🏥', '⚕️', '🎨', '🖼️', '🏠', '🏡', '🚗', '🚙', '👔', '👗', '🌳', '🌺', '🎯', '⭐'];
 
 const initialData = { collections: [{ id: 'c1', name: 'English', icon: '📚', sections: [{ id: 's1', name: 'Topic 1', icon: '📖' }] }], words: [], allTags: [], songFolders: [{ id: 'sf1', name: 'My Songs' }], songs: [] };
@@ -167,164 +179,6 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
             <button onClick={() => setPreview([])} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">← Back</button>
             <button onClick={async () => { await onImport(preview); onCancel(); }} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">Import {preview.length} words</button>
           </div>
-        </>
-      )}
-    </Modal>
-  );
-};
-
-const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }) => {
-  const [filling, setFilling] = useState(false);
-  const [progress, setProgress] = useState({ current: 0, total: words.length });
-  const [results, setResults] = useState([]);
-  const [failed, setFailed] = useState([]);
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  const doFill = async (wordsToFill) => {
-    console.log('=== doFill started ===', wordsToFill.length, 'words');
-    setFilling(true);
-    setFailed([]);
-    const filled = [...results.filter(r => r[fieldName])]; // Keep successful
-    const failedWords = [];
-
-    for (let i = 0; i < wordsToFill.length; i++) {
-      setProgress({ current: i + 1, total: wordsToFill.length });
-      const word = wordsToFill[i];
-      try {
-        const { data: result, error } = await supabase.functions.invoke('fill-fields', {
-          body: { word: word.word, fieldName }
-        });
-        console.log('Fill result for', word.word, ':', result, error);
-
-        if (!error && result) {
-          const value = fieldName === 'singleRootWords' ? result.words : result.synonyms;
-          if (value) {
-            filled.push({ ...word, [fieldName]: value, _corrected: result.corrected || null });
-          } else {
-            failedWords.push({ ...word, _error: 'No data returned' });
-          }
-        } else {
-          failedWords.push({ ...word, _error: error?.message || 'API error' });
-        }
-      } catch (e) {
-        failedWords.push({ ...word, _error: e.message || 'Network error' });
-      }
-      setResults([...filled]);
-      setFailed([...failedWords]);
-      await new Promise(r => setTimeout(r, 500));
-    }
-    setFilling(false);
-  };
-
-  const handleClose = () => {
-    if (results.length > 0 && !showConfirm) {
-      setShowConfirm(true);
-    } else {
-      onCancel();
-    }
-  };
-
-  const successCount = results.filter(r => r[fieldName]).length;
-  const failedCount = failed.length;
-
-  return (
-    <Modal onClose={handleClose} preventClose>
-      {/* Крестик закрытия */}
-      <button
-        onClick={handleClose}
-        className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-      >
-        <X size={20} />
-      </button>
-
-      {/* Подтверждение закрытия */}
-      {showConfirm && (
-        <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center rounded-lg z-10">
-          <p className="text-lg font-medium mb-4">Close without saving?</p>
-          <p className="text-gray-600 mb-6">{successCount} words will not be saved</p>
-          <div className="flex gap-3">
-            <button onClick={() => setShowConfirm(false)} className="px-4 py-2 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-              Continue editing
-            </button>
-            <button onClick={onCancel} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-              Close anyway
-            </button>
-          </div>
-        </div>
-      )}
-
-      <h3 className="text-lg font-semibold mb-4 pr-8">{icon} {fieldLabel} for {words.length} words</h3>
-
-      {!filling && results.length === 0 ? (
-        <>
-          <p className="text-gray-600 mb-4">This will generate {fieldLabel.toLowerCase()} for {words.length} words.</p>
-          <div className="max-h-48 overflow-y-auto border rounded-lg p-3 mb-4 bg-gray-50">
-            {words.map((w, i) => <div key={i} className="text-sm">{w.word}</div>)}
-          </div>
-          <div className="flex gap-2">
-            <button onClick={handleClose} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
-            <button onClick={() => doFill(words)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-              Start
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="mb-4">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>{filling ? 'Generating...' : 'Done'}</span>
-              <span>{progress.current}/{progress.total}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${(progress.current / progress.total) * 100}%` }}></div>
-            </div>
-          </div>
-
-          {(results.length > 0 || failed.length > 0) && (
-            <div className="max-h-48 overflow-y-auto border dark:border-gray-600 dark:bg-gray-700 rounded-lg mb-4">
-              {results.map((w, i) => (
-                <div key={i} className="p-2 border-b">
-                  <div className="font-medium">
-                    {w.word}
-                    {w._corrected && <span className="text-orange-500 text-sm ml-2">(corrected: {w._corrected})</span>}
-                  </div>
-                  {w[fieldName] ? (
-                    <div className="text-sm text-green-600">✓ {w[fieldName]}</div>
-                  ) : (
-                    <div className="text-sm text-red-500">✗ Failed</div>
-                  )}
-                </div>
-              ))}
-              {failed.map((w, i) => (
-                <div key={`f-${i}`} className="p-2 border-b bg-red-50">
-                  <div className="font-medium">{w.word}</div>
-                  <div className="text-sm text-red-500">✗ {w._error || 'Failed'}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!filling && (
-            <div className="flex gap-2 flex-wrap">
-              <button onClick={handleClose} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-                Cancel
-              </button>
-              {failedCount > 0 && (
-                <button
-                  onClick={() => doFill(failed)}
-                  className="flex-1 h-10 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-                >
-                  Retry {failedCount} failed
-                </button>
-              )}
-              <button
-                onClick={() => { onFill(results.filter(r => r[fieldName])); onCancel(); }}
-                className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600"
-              >
-                Save {successCount}
-              </button>
-            </div>
-          )}
         </>
       )}
     </Modal>
@@ -2559,7 +2413,7 @@ const saveCollection = async (name) => {
         </div>
         <div className="text-gray-700 dark:text-gray-200 mb-1">{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
         {word.meaningRu && <p className="text-blue-600 dark:text-blue-400 text-sm mb-2">→ {word.meaningRu}</p>}
-        {word.example && <div className="text-sm text-gray-600 dark:text-gray-300 italic border-l-2 border-blue-200 dark:border-blue-500 pl-2 mb-2">{word.example.split('\n').map((ex, i) => <div key={i}>"{ex.trim()}"</div>)}</div>}
+        {word.example && <div className="text-sm text-gray-600 dark:text-gray-300 italic border-l-2 border-blue-200 dark:border-blue-500 pl-2 mb-2">{word.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), word.word)}"</div>)}</div>}
         {word.myExample && <p className="text-sm text-yellow-700 dark:text-yellow-300 italic border-l-2 border-yellow-400 pl-2 bg-yellow-50 dark:bg-yellow-900/30 py-1 mb-2">✏️ "{word.myExample}"</p>}
         {(word.singleRootWords || word.synonyms) && (
           <div className="flex gap-3 mb-2 text-xs">
@@ -2668,7 +2522,7 @@ const saveCollection = async (name) => {
             <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="absolute inset-0 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-lg p-6 flex flex-col justify-center">
               <p className="text-lg text-gray-700 dark:text-gray-200 mb-2">{w.meaningEn}</p>
               {w.meaningRu && <p className="text-blue-600 dark:text-blue-400 font-medium mb-2">→ {w.meaningRu}</p>}
-              {w.example && <div className="text-sm text-gray-600 dark:text-gray-300 italic mt-2 mb-3">{w.example.split('\n').map((ex, i) => <div key={i}>"{ex.trim()}"</div>)}</div>}
+              {w.example && <div className="text-sm text-gray-600 dark:text-gray-300 italic mt-2 mb-3">{w.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), w.word)}"</div>)}</div>}
               {(w.singleRootWords || w.synonyms) && (
                 <div className="mt-auto pt-3 border-t border-blue-200 dark:border-blue-700 flex gap-3 text-xs">
                   {w.singleRootWords && (
@@ -3055,9 +2909,7 @@ const saveCollection = async (name) => {
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="text-xl font-semibold">{currentSection?.name || currentCollection?.name}</h2>
                 <div className="flex items-center gap-2">
-                  {currentSection && filteredWords.filter(w => !w.meaningEn).length > 0 && <button onClick={() => setModal({ type: 'fillCards', data: filteredWords.filter(w => !w.meaningEn) })} className="h-10 px-3 bg-purple-500 text-white rounded-lg text-sm flex items-center gap-1"><Search size={16}/> Fill {filteredWords.filter(w => !w.meaningEn).length} Cards</button>}
-                  {currentSection && filteredWords.filter(w => !w.singleRootWords || w.singleRootWords.trim() === '').length > 0 && <button onClick={() => setModal({ type: 'fillRoots', data: filteredWords.filter(w => !w.singleRootWords || w.singleRootWords.trim() === '') })} className="h-10 px-3 bg-purple-600 text-white rounded-lg text-sm flex items-center gap-1">Fill roots ({filteredWords.filter(w => !w.singleRootWords || w.singleRootWords.trim() === '').length})</button>}
-                  {currentSection && filteredWords.filter(w => !w.synonyms || w.synonyms.trim() === '').length > 0 && <button onClick={() => setModal({ type: 'fillSynonyms', data: filteredWords.filter(w => !w.synonyms || w.synonyms.trim() === '') })} className="h-10 px-3 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-1">Fill synonyms ({filteredWords.filter(w => !w.synonyms || w.synonyms.trim() === '').length})</button>}
+                  {currentSection && filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length > 0 && <button onClick={() => setModal({ type: 'fillCards', data: filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms) })} className="h-10 px-3 bg-purple-500 text-white rounded-lg text-sm flex items-center gap-1"><Search size={16}/> Fill {filteredWords.filter(w => !w.meaningEn || !w.singleRootWords || !w.synonyms).length} Cards</button>}
                   <div className="relative">
                     <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 text-sm hover:bg-gray-50 dark:hover:bg-gray-600 appearance-none">
                       <option value="all">All levels</option>{LEVELS.map(l => <option key={l}>{l}</option>)}
@@ -3221,76 +3073,7 @@ const saveCollection = async (name) => {
         }}
         onCancel={() => setModal({ type: null, data: null })}
       />}
-      {modal.type === 'fillRoots' && <FillFieldModal 
-  words={modal.data} 
-  fieldName="singleRootWords" 
-  fieldLabel="Single-root words" 
-  icon="🌱" 
-  onFill={async (filled) => { 
-    // Обновляем state
-    setData(d => ({ 
-      ...d, 
-      words: d.words.map(w => { 
-        const f = filled.find(x => x.id === w.id); 
-        return f || w; 
-      }) 
-    })); 
-    
-    // Сохраняем в базу
-    for (const word of filled) {
-      await supabase
-        .from('words')
-        .update({ single_root_words: word.singleRootWords })
-        .eq('id', word.id);
-    }
-    
-    setToast({ message: `${filled.length} words updated!`, canUndo: false }); 
-  }} 
-  onCancel={() => setModal({ type: null, data: null })} 
-/>}
-
-
-  {modal.type === 'fillSynonyms' && <FillFieldModal 
-  words={modal.data} 
-  fieldName="synonyms" 
-  fieldLabel="Synonyms" 
-  icon="🔄" 
-  onFill={async (filled) => { 
-    // Обновляем state
-    setData(d => ({ 
-      ...d, 
-      words: d.words.map(w => { 
-        const f = filled.find(x => x.id === w.id); 
-        return f || w; 
-      }) 
-    })); 
-    
-    // Сохраняем в базу
-   for (const word of filled) {
-  // Праверка што ID - гэта UUID, а не timestamp
-  if (!word.id || typeof word.id !== 'string' || word.id.length < 30) {
-    console.log('Skipping word with invalid ID:', word.word, word.id);
-    continue;
-  }
-  
-  console.log('Updating word:', word.word, 'with synonyms:', word.synonyms);
-  
-  const { error } = await supabase
-    .from('words')
-    .update({ synonyms: word.synonyms })
-    .eq('id', word.id);
-  
-  if (error) {
-    console.error('Supabase error for', word.word, ':', error);
-  } else {
-    console.log('Successfully updated:', word.word);
-  }
-}
-    setToast({ message: `${filled.length} words updated!`, canUndo: false }); 
-  }} 
-  onCancel={() => setModal({ type: null, data: null })} 
-/>}
-      {confirmDelete && <Modal onClose={() => setConfirmDelete(null)}><h3 className="text-lg font-semibold mb-2">Delete?</h3><p className="text-gray-600 mb-4">Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button></div></Modal>}
+            {confirmDelete && <Modal onClose={() => setConfirmDelete(null)}><h3 className="text-lg font-semibold mb-2">Delete?</h3><p className="text-gray-600 mb-4">Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
       
