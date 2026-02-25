@@ -2557,9 +2557,9 @@ const saveCollection = async (name) => {
           <div><div className="flex items-center gap-2"><span className="text-xl font-semibold">{word.word}</span><button onClick={() => playPronunciation(word.word)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Volume2 size={18} className="text-blue-500" /></button></div><span className="text-sm text-gray-500 dark:text-gray-400">{word.type}{word.forms && ` · ${word.forms}`}</span></div>
           <div className="flex gap-1"><button onClick={() => setModal({ type: 'word', data: word })} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Edit2 size={16} className="text-gray-400" /></button><button onClick={() => requestDelete('word', word)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Trash2 size={16} className="text-gray-400" /></button></div>
         </div>
-        <p className="text-gray-700 dark:text-gray-200 mb-1">{word.meaningEn}</p>
+        <div className="text-gray-700 dark:text-gray-200 mb-1">{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
         {word.meaningRu && <p className="text-blue-600 dark:text-blue-400 text-sm mb-2">→ {word.meaningRu}</p>}
-        {word.example && <p className="text-sm text-gray-600 dark:text-gray-300 italic border-l-2 border-blue-200 dark:border-blue-500 pl-2 mb-2">"{word.example}"</p>}
+        {word.example && <div className="text-sm text-gray-600 dark:text-gray-300 italic border-l-2 border-blue-200 dark:border-blue-500 pl-2 mb-2">{word.example.split('\n').map((ex, i) => <div key={i}>"{ex.trim()}"</div>)}</div>}
         {word.myExample && <p className="text-sm text-yellow-700 dark:text-yellow-300 italic border-l-2 border-yellow-400 pl-2 bg-yellow-50 dark:bg-yellow-900/30 py-1 mb-2">✏️ "{word.myExample}"</p>}
         {(word.singleRootWords || word.synonyms) && (
           <div className="flex gap-3 mb-2 text-xs">
@@ -2668,7 +2668,7 @@ const saveCollection = async (name) => {
             <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="absolute inset-0 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-lg p-6 flex flex-col justify-center">
               <p className="text-lg text-gray-700 dark:text-gray-200 mb-2">{w.meaningEn}</p>
               {w.meaningRu && <p className="text-blue-600 dark:text-blue-400 font-medium mb-2">→ {w.meaningRu}</p>}
-              {w.example && <p className="text-sm text-gray-600 dark:text-gray-300 italic mt-2 mb-3">"{w.example}"</p>}
+              {w.example && <div className="text-sm text-gray-600 dark:text-gray-300 italic mt-2 mb-3">{w.example.split('\n').map((ex, i) => <div key={i}>"{ex.trim()}"</div>)}</div>}
               {(w.singleRootWords || w.synonyms) && (
                 <div className="mt-auto pt-3 border-t border-blue-200 dark:border-blue-700 flex gap-3 text-xs">
                   {w.singleRootWords && (
