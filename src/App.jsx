@@ -85,19 +85,35 @@ const CompletionScreen = ({ title, stats, onRestart, onBack, wrongWords }) => {
 const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
   const [text, setText] = useState('');
   const [preview, setPreview] = useState([]);
-  
+
+  const hasCyrillic = (str) => /[а-яёА-ЯЁ]/.test(str);
+
   const parseText = () => {
     const lines = text.split('\n').filter(line => line.trim());
     const parsed = [];
-    
+
     lines.forEach((line, idx) => {
       const parts = line.split(/\t|=/).map(p => p.trim());
-      
+
       if (parts.length >= 2) {
         const word = parts[0];
-        const meaningRu = parts.length === 3 ? parts[1] : '';
-        const meaningEn = parts.length === 3 ? parts[2] : parts[1];
-        
+        let meaningRu = '';
+        let meaningEn = '';
+
+        if (parts.length === 3) {
+          // word \t ru \t en
+          meaningRu = parts[1];
+          meaningEn = parts[2];
+        } else {
+          // word \t translation - определяем куда класть по наличию кириллицы
+          const translation = parts[1];
+          if (hasCyrillic(translation)) {
+            meaningRu = translation;
+          } else {
+            meaningEn = translation;
+          }
+        }
+
         parsed.push({
           sectionId: currentSectionId,
           word,
@@ -116,18 +132,18 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
         });
       }
     });
-    
+
     setPreview(parsed);
   };
-  
+
   return (
     <Modal onClose={onCancel} wide>
       <h3 className="text-lg font-semibold mb-4">Import</h3>
-      <textarea 
-        value={text} 
-        onChange={e => setText(e.target.value)} 
-        placeholder="Paste text in format: word [tab] translation description"
-        className="w-full px-3 py-2 border rounded-lg h-48 mb-3 font-mono text-sm"
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder="Paste text in format: word [tab] translation"
+        className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 rounded-lg h-48 mb-3 font-mono text-sm"
       />
       {preview.length === 0 && (
         <div className="flex gap-2">
@@ -137,18 +153,18 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
       )}
       {preview.length > 0 && (
         <>
-          <div className="text-sm text-gray-600 mb-2">{preview.length} words found</div>
-          <div className="max-h-64 overflow-y-auto border rounded-lg mb-3 bg-gray-50">
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">{preview.length} words found</div>
+          <div className="max-h-64 overflow-y-auto border dark:border-gray-600 rounded-lg mb-3 bg-gray-50 dark:bg-gray-700">
             {preview.map((w, i) => (
-              <div key={i} className="p-2 border-b text-sm">
+              <div key={i} className="p-2 border-b dark:border-gray-600 text-sm">
                 <div className="font-medium">{w.word}</div>
-                {w.meaningRu && <div className="text-blue-600">→ {w.meaningRu}</div>}
-                <div className="text-gray-600">{w.meaningEn}</div>
+                {w.meaningRu && <div className="text-blue-600 dark:text-blue-400">→ {w.meaningRu}</div>}
+                {w.meaningEn && <div className="text-gray-600 dark:text-gray-300">{w.meaningEn}</div>}
               </div>
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={onCancel} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
+            <button onClick={() => setPreview([])} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">← Back</button>
             <button onClick={async () => { await onImport(preview); onCancel(); }} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">Import {preview.length} words</button>
           </div>
         </>
@@ -315,56 +331,312 @@ const FillFieldModal = ({ words, fieldName, fieldLabel, icon, onFill, onCancel }
   );
 };
 
-const TranslateEmptyModal = ({ words, onTranslate, onCancel }) => {
-  const [translating, setTranslating] = useState(false);
+const FillCardsModal = ({ words, onSave, onCancel }) => {
+  const [stage, setStage] = useState('initial'); // initial, loading, selecting, filling, done
   const [progress, setProgress] = useState({ current: 0, total: words.length });
-  const [results, setResults] = useState([]);
+  const [lookupResults, setLookupResults] = useState([]); // {word, originalData, apiData, selectedTranslations}
+  const [abortController, setAbortController] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const BATCH_SIZE = 10;
 
-  const doTranslate = async () => {
-    setTranslating(true);
-    const translated = [];
+  // Stage 1: Lookup words and get translation suggestions
+  const startLookup = async () => {
+    setStage('loading');
+    const controller = { aborted: false };
+    setAbortController(controller);
+    const results = [];
+
     for (let i = 0; i < words.length; i++) {
+      if (controller.aborted) break;
       setProgress({ current: i + 1, total: words.length });
       const word = words[i];
+
       try {
-        const { data, error } = await supabase.functions.invoke('translate-words', {
+        const { data, error } = await supabase.functions.invoke('lookup-word', {
           body: { word: word.word }
         });
 
-        console.log('Translation result:', data, error);
-
-        if (error) throw error;
-        
-        translated.push({ 
-          ...word, 
-          type: data.type || word.type, 
-          level: data.level || word.level, 
-          meaningEn: data.meaningEn || '', 
-          meaningRu: data.meaningRu || '', 
-          forms: data.phonetic || word.forms, 
-          example: data.example || word.example
+        if (!error && data && !data.error) {
+          results.push({
+            word: word.word,
+            originalData: word,
+            apiData: data,
+            selectedTranslations: new Set(
+              // Предвыбираем пользовательский перевод если он есть
+              word.meaningRu ? word.meaningRu.split(',').map(t => t.trim().toLowerCase()) : []
+            ),
+            expanded: false
+          });
+        } else {
+          results.push({
+            word: word.word,
+            originalData: word,
+            apiData: null,
+            error: data?.error || error?.message || 'Lookup failed',
+            suggestions: data?.suggestions || [],
+            selectedTranslations: new Set(),
+            expanded: false
+          });
+        }
+      } catch (e) {
+        results.push({
+          word: word.word,
+          originalData: word,
+          apiData: null,
+          error: e.message,
+          selectedTranslations: new Set(),
+          expanded: false
         });
-      } catch (e) { translated.push(word); }
-      setResults([...translated]);
-      await new Promise(r => setTimeout(r, 500));
+      }
+
+      setLookupResults([...results]);
+      await new Promise(r => setTimeout(r, 300));
     }
-    setTranslating(false);
+
+    if (!controller.aborted) {
+      setStage('selecting');
+    }
   };
 
+  // Toggle translation selection
+  const toggleTranslation = (wordIndex, translation) => {
+    setLookupResults(prev => {
+      const updated = [...prev];
+      const item = updated[wordIndex];
+      const newSet = new Set(item.selectedTranslations);
+      const key = translation.toLowerCase();
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      updated[wordIndex] = { ...item, selectedTranslations: newSet };
+      return updated;
+    });
+  };
+
+  // Toggle expand word
+  const toggleExpand = (wordIndex) => {
+    setLookupResults(prev => {
+      const updated = [...prev];
+      updated[wordIndex] = { ...updated[wordIndex], expanded: !updated[wordIndex].expanded };
+      return updated;
+    });
+  };
+
+  // Stage 2: Fill cards with selected data
+  const fillCards = () => {
+    const filledWords = lookupResults.map(item => {
+      const { originalData, apiData, selectedTranslations } = item;
+
+      if (!apiData) {
+        return originalData; // Keep original if lookup failed
+      }
+
+      // Find selected meanings from API
+      const selectedMeanings = (apiData.meanings || []).filter(m =>
+        selectedTranslations.has(m.ru?.toLowerCase())
+      );
+
+      // Build meaningRu from selections (preserve user's original if exists)
+      const userRu = originalData.meaningRu || '';
+      const apiRuList = selectedMeanings.map(m => m.ru);
+      const allRu = userRu
+        ? [...new Set([...userRu.split(',').map(t => t.trim()), ...apiRuList])]
+        : apiRuList;
+      const meaningRu = allRu.join(', ');
+
+      // Build meaningEn from selected meanings
+      const meaningEn = selectedMeanings.map(m => m.meaningEn).filter(Boolean).join('\n') || originalData.meaningEn || '';
+
+      // Build example from selected meanings
+      const example = selectedMeanings.map(m => m.example).filter(Boolean).join('\n') || originalData.example || '';
+
+      // Get types from selected meanings
+      const types = [...new Set(selectedMeanings.map(m => m.type).filter(Boolean))];
+      const type = types.join(', ') || originalData.type || 'phrase';
+
+      return {
+        ...originalData,
+        type,
+        level: apiData.level || originalData.level,
+        forms: apiData.phonetic || originalData.forms,
+        meaningEn,
+        meaningRu,
+        example,
+        singleRootWords: apiData.singleRootWords || originalData.singleRootWords,
+        synonyms: apiData.synonyms || originalData.synonyms
+      };
+    });
+
+    onSave(filledWords);
+    onCancel();
+  };
+
+  // Handle close/cancel
+  const handleClose = () => {
+    if (stage === 'loading') {
+      if (abortController) abortController.aborted = true;
+      setStage('selecting');
+      return;
+    }
+    if ((stage === 'selecting' || stage === 'loading') && lookupResults.length > 0) {
+      setShowConfirm(true);
+    } else {
+      onCancel();
+    }
+  };
+
+  // Save partial results
+  const savePartial = () => {
+    const filledWords = lookupResults.filter(r => r.apiData || r.originalData.meaningRu).map(item => {
+      if (!item.apiData) return item.originalData;
+      return {
+        ...item.originalData,
+        level: item.apiData.level || item.originalData.level,
+        forms: item.apiData.phonetic || item.originalData.forms
+      };
+    });
+    onSave(filledWords);
+    onCancel();
+  };
+
+  const successCount = lookupResults.filter(r => r.apiData).length;
+  const failedCount = lookupResults.filter(r => !r.apiData && r.error).length;
+
   return (
-    <Modal onClose={onCancel} preventClose>
-      <h3 className="text-lg font-semibold mb-4">Translate {words.length} words</h3>
-      {!translating && results.length === 0 ? (
+    <Modal onClose={handleClose} preventClose wide>
+      <button onClick={handleClose} className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+        <X size={20} />
+      </button>
+
+      {showConfirm && (
+        <div className="absolute inset-0 bg-white/95 dark:bg-gray-800/95 flex flex-col items-center justify-center rounded-lg z-10">
+          <p className="text-lg font-medium mb-4">Закрыть без сохранения?</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">{successCount} слов уже загружено</p>
+          <div className="flex gap-3 flex-wrap justify-center">
+            <button onClick={() => setShowConfirm(false)} className="px-4 py-2 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+              Продолжить
+            </button>
+            <button onClick={savePartial} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+              Сохранить {successCount}
+            </button>
+            <button onClick={onCancel} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+              Сбросить всё
+            </button>
+          </div>
+        </div>
+      )}
+
+      <h3 className="text-lg font-semibold mb-4 pr-8">📚 Fill Cards ({words.length} words)</h3>
+
+      {stage === 'initial' && (
         <>
-          <p className="text-gray-600 mb-4">This will translate {words.length} words without definitions.</p>
-          <div className="max-h-48 overflow-y-auto border rounded-lg p-3 mb-4 bg-gray-50">{words.map((w, i) => <div key={i} className="text-sm">{w.word}</div>)}</div>
-          <div className="flex gap-2"><button onClick={onCancel} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button><button onClick={doTranslate} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Start</button></div>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Загрузит данные для {words.length} слов. Вы сможете выбрать нужные переводы.
+          </p>
+          <div className="max-h-48 overflow-y-auto border dark:border-gray-600 rounded-lg p-3 mb-4 bg-gray-50 dark:bg-gray-700">
+            {words.map((w, i) => (
+              <div key={i} className="text-sm flex justify-between">
+                <span>{w.word}</span>
+                {w.meaningRu && <span className="text-blue-600 dark:text-blue-400 text-xs">({w.meaningRu})</span>}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onCancel} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
+            <button onClick={startLookup} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Start</button>
+          </div>
         </>
-      ) : (
+      )}
+
+      {stage === 'loading' && (
         <>
-          <div className="mb-4"><div className="flex justify-between text-sm text-gray-600 mb-2"><span>Translating...</span><span>{progress.current}/{progress.total}</span></div><div className="w-full bg-gray-200 rounded-full h-2"><div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${(progress.current / progress.total) * 100}%` }}></div></div></div>
-          {results.length > 0 && <div className="max-h-48 overflow-y-auto border dark:border-gray-600 dark:bg-gray-700 rounded-lg mb-4">{results.map((w, i) => <div key={i} className="p-2 border-b"><div className="font-medium">{w.word}</div>{w.meaningRu && <div className="text-sm text-blue-600">→ {w.meaningRu}</div>}</div>)}</div>}
-          {!translating && <div className="flex gap-2"><button onClick={onCancel} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button><button onClick={() => { onTranslate(results); onCancel(); }} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">Save {results.length}</button></div>}
+          <div className="mb-4">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <span>Загрузка данных...</span>
+              <span>{progress.current}/{progress.total}</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+              <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${(progress.current / progress.total) * 100}%` }}></div>
+            </div>
+          </div>
+          <div className="max-h-64 overflow-y-auto border dark:border-gray-600 rounded-lg mb-4">
+            {lookupResults.map((r, i) => (
+              <div key={i} className={`p-2 border-b dark:border-gray-600 ${r.apiData ? '' : r.error ? 'bg-red-50 dark:bg-red-900/20' : ''}`}>
+                <div className="font-medium">{r.word}</div>
+                {r.apiData && <div className="text-xs text-green-600 dark:text-green-400">✓ {(r.apiData.meanings || []).length} meanings</div>}
+                {r.error && <div className="text-xs text-red-500">✗ {r.error}</div>}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleClose} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2">
+              <X size={16}/> Stop
+            </button>
+          </div>
+        </>
+      )}
+
+      {stage === 'selecting' && (
+        <>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            Выберите переводы для каждого слова. Ваши переводы сохранятся.
+          </p>
+          <div className="max-h-96 overflow-y-auto border dark:border-gray-600 rounded-lg mb-4">
+            {lookupResults.map((r, i) => (
+              <div key={i} className={`p-3 border-b dark:border-gray-600 ${r.apiData ? '' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <span className="font-medium">{r.word}</span>
+                    {r.apiData && <span className="ml-2 text-xs text-gray-500">{r.apiData.level} · {r.apiData.phonetic}</span>}
+                  </div>
+                  {r.apiData && r.apiData.meanings?.length > 3 && (
+                    <button onClick={() => toggleExpand(i)} className="text-xs text-blue-500 hover:underline">
+                      {r.expanded ? 'Скрыть' : `+${r.apiData.meanings.length - 3} ещё`}
+                    </button>
+                  )}
+                </div>
+                {r.originalData.meaningRu && (
+                  <div className="text-xs text-purple-600 dark:text-purple-400 mb-2">
+                    Ваш перевод: {r.originalData.meaningRu}
+                  </div>
+                )}
+                {r.apiData ? (
+                  <div className="flex flex-wrap gap-1">
+                    {(r.expanded ? r.apiData.meanings : r.apiData.meanings?.slice(0, 3))?.map((m, mi) => (
+                      <button
+                        key={mi}
+                        onClick={() => toggleTranslation(i, m.ru)}
+                        title={m.meaningEn}
+                        className={`text-xs px-2 py-1 rounded-full border ${
+                          r.selectedTranslations.has(m.ru?.toLowerCase())
+                            ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                        }`}
+                      >
+                        {r.selectedTranslations.has(m.ru?.toLowerCase()) ? '✓ ' : ''}{m.ru}
+                        <span className="ml-1 text-gray-400">({m.type})</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-red-500">{r.error}</div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleClose} className="h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
+            {failedCount > 0 && (
+              <button onClick={() => { /* retry failed */ }} className="h-10 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                Retry {failedCount}
+              </button>
+            )}
+            <button onClick={fillCards} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">
+              Fill {successCount} Cards
+            </button>
+          </div>
         </>
       )}
     </Modal>
@@ -2745,7 +3017,7 @@ const saveCollection = async (name) => {
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="text-xl font-semibold">{currentSection?.name || currentCollection?.name}</h2>
                 <div className="flex items-center gap-2">
-                  {currentSection && filteredWords.filter(w => !w.meaningEn || !w.meaningRu).length > 0 && <button onClick={() => setModal({ type: 'translateEmpty', data: filteredWords.filter(w => !w.meaningEn || !w.meaningRu) })} className="h-10 px-3 bg-purple-500 text-white rounded-lg text-sm flex items-center gap-1"><Search size={16}/> Translate {filteredWords.filter(w => !w.meaningEn || !w.meaningRu).length} empty</button>}
+                  {currentSection && filteredWords.filter(w => !w.meaningEn).length > 0 && <button onClick={() => setModal({ type: 'fillCards', data: filteredWords.filter(w => !w.meaningEn) })} className="h-10 px-3 bg-purple-500 text-white rounded-lg text-sm flex items-center gap-1"><Search size={16}/> Fill {filteredWords.filter(w => !w.meaningEn).length} Cards</button>}
                   {currentSection && filteredWords.filter(w => !w.singleRootWords || w.singleRootWords.trim() === '').length > 0 && <button onClick={() => setModal({ type: 'fillRoots', data: filteredWords.filter(w => !w.singleRootWords || w.singleRootWords.trim() === '') })} className="h-10 px-3 bg-purple-600 text-white rounded-lg text-sm flex items-center gap-1">Fill roots ({filteredWords.filter(w => !w.singleRootWords || w.singleRootWords.trim() === '').length})</button>}
                   {currentSection && filteredWords.filter(w => !w.synonyms || w.synonyms.trim() === '').length > 0 && <button onClick={() => setModal({ type: 'fillSynonyms', data: filteredWords.filter(w => !w.synonyms || w.synonyms.trim() === '') })} className="h-10 px-3 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-1">Fill synonyms ({filteredWords.filter(w => !w.synonyms || w.synonyms.trim() === '').length})</button>}
                   <div className="relative">
@@ -2878,23 +3150,23 @@ const saveCollection = async (name) => {
           <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
         </div>
       </Modal>}
-      {modal.type === 'translateEmpty' && <TranslateEmptyModal 
-        words={modal.data} 
-        onTranslate={async (translated) => { 
+      {modal.type === 'fillCards' && <FillCardsModal
+        words={modal.data}
+        onSave={async (filledWords) => {
           // Обновляем state
-          setData(d => ({ 
-            ...d, 
-            words: d.words.map(w => { 
-              const t = translated.find(x => x.id === w.id); 
-              return t || w; 
-            }) 
-          })); 
-          
+          setData(d => ({
+            ...d,
+            words: d.words.map(w => {
+              const filled = filledWords.find(x => x.id === w.id);
+              return filled || w;
+            })
+          }));
+
           // Сохраняем в базу
-          for (const word of translated) {
+          for (const word of filledWords) {
             await supabase
               .from('words')
-              .update({ 
+              .update({
                 type: word.type,
                 level: word.level,
                 forms: word.forms,
@@ -2906,10 +3178,10 @@ const saveCollection = async (name) => {
               })
               .eq('id', word.id);
           }
-          
-          setToast({ message: `${translated.length} words translated!`, canUndo: false }); 
-        }} 
-        onCancel={() => setModal({ type: null, data: null })} 
+
+          setToast({ message: `${filledWords.length} cards filled!`, canUndo: false });
+        }}
+        onCancel={() => setModal({ type: null, data: null })}
       />}
       {modal.type === 'fillRoots' && <FillFieldModal 
   words={modal.data} 
