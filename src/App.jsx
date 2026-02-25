@@ -5,8 +5,30 @@ import { supabase } from './supabaseClient';
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const WORD_TYPES = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'idiom', 'phrase', 'preposition', 'conjunction', 'interjection'];
 const STATUS = { NEW: 'new', LEARNING: 'learning', LEARNED: 'learned' };
-const getLevelColor = l => ({ A1: 'bg-green-900/50 text-green-400', A2: 'bg-green-900/60 text-green-400', B1: 'bg-yellow-900/50 text-yellow-400', B2: 'bg-yellow-900/60 text-yellow-400', C1: 'bg-red-900/50 text-red-400', C2: 'bg-red-900/60 text-red-400' }[l] || 'bg-gray-800 text-gray-400');
-const getStatusColor = s => ({ 'new': 'bg-blue-900/50 text-blue-400', 'learning': 'bg-yellow-900/50 text-yellow-400', 'learned': 'bg-green-900/50 text-green-400' }[s] || 'bg-gray-800 text-gray-400');
+const getLevelColor = (l, isDark = true) => {
+  const colors = isDark ? {
+    A1: 'bg-green-500/15 text-green-400', A2: 'bg-green-500/20 text-green-400',
+    B1: 'bg-yellow-500/15 text-yellow-400', B2: 'bg-yellow-500/20 text-yellow-400',
+    C1: 'bg-red-500/15 text-red-400', C2: 'bg-red-500/20 text-red-400'
+  } : {
+    A1: 'bg-green-100 text-green-700', A2: 'bg-green-100 text-green-700',
+    B1: 'bg-yellow-100 text-yellow-700', B2: 'bg-yellow-100 text-yellow-700',
+    C1: 'bg-red-100 text-red-700', C2: 'bg-red-100 text-red-700'
+  };
+  return colors[l] || (isDark ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-600');
+};
+const getStatusColor = (s, isDark = true) => {
+  const colors = isDark ? {
+    'new': 'bg-blue-500/15 text-blue-400',
+    'learning': 'bg-orange-500/15 text-orange-400',
+    'learned': 'bg-green-500/15 text-green-400'
+  } : {
+    'new': 'bg-blue-100 text-blue-700',
+    'learning': 'bg-orange-100 text-orange-700',
+    'learned': 'bg-green-100 text-green-700'
+  };
+  return colors[s] || (isDark ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-600');
+};
 
 const COLLECTION_ICONS = ['📚', '📖', '🎬', '💼', '✈️', '🍕', '🎵', '⚽', '💻', '🎓', '🏥', '🎨', '🏠', '🚗', '👔', '🌳', '🎯', '⭐', '🔥', '💡'];
 
@@ -29,15 +51,15 @@ const highlightWord = (text, word) => {
 };
 
 // Activity Tracker Component - Beautiful pixel-style habit tracker
-const ActivityTracker = ({ activityData, streak, userGoals }) => {
+const ActivityTracker = ({ activityData, streak, userGoals, isDark = true }) => {
   const today = new Date();
   const goalNew = userGoals?.daily_new_words || 5;
   const goalReview = userGoals?.daily_review_words || 10;
 
-  // Generate days for the grid (7 columns x 8 rows = 56 days)
+  // Generate days for the grid (7 columns x 7 rows = 49 days)
   const generateAllDays = () => {
     const days = [];
-    for (let i = 55; i >= 0; i--) {
+    for (let i = 48; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
@@ -64,128 +86,131 @@ const ActivityTracker = ({ activityData, streak, userGoals }) => {
   // Dot colors
   const getDotStyle = (status, isToday) => {
     const base = {
-      width: '10px',
-      height: '10px',
+      width: '8px',
+      height: '8px',
       borderRadius: '50%',
-      transition: 'all 0.3s ease',
-      cursor: 'pointer',
+      transition: 'all 0.2s ease',
     };
 
     if (status === 'complete') {
-      return { ...base, backgroundColor: '#f97316', boxShadow: '0 0 8px rgba(249, 115, 22, 0.7), 0 0 16px rgba(249, 115, 22, 0.4)' };
+      return { ...base, backgroundColor: '#f97316', boxShadow: '0 0 6px rgba(249, 115, 22, 0.6)' };
     } else if (status === 'partial') {
-      return { ...base, backgroundColor: '#fb923c', boxShadow: '0 0 6px rgba(251, 146, 60, 0.5)' };
+      return { ...base, backgroundColor: '#fb923c', boxShadow: '0 0 4px rgba(251, 146, 60, 0.4)' };
     } else if (status === 'started') {
-      return { ...base, backgroundColor: 'rgba(249, 115, 22, 0.4)' };
+      return { ...base, backgroundColor: isDark ? 'rgba(249, 115, 22, 0.35)' : 'rgba(249, 115, 22, 0.4)' };
     }
-    return { ...base, backgroundColor: 'rgba(75, 85, 99, 0.4)' };
+    return { ...base, backgroundColor: isDark ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.08)' };
   };
 
   return (
     <div
-      className="rounded-[28px] p-6 relative overflow-hidden"
+      className={`rounded-3xl p-5 relative overflow-hidden backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
       style={{
-        background: 'linear-gradient(145deg, #1c1917 0%, #292018 40%, #1c1412 100%)',
-        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.03)'
+        background: isDark
+          ? 'linear-gradient(145deg, rgba(30, 27, 24, 0.95) 0%, rgba(35, 30, 25, 0.95) 100%)'
+          : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+        border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
       }}
     >
       {/* Ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at 80% 0%, rgba(249, 115, 22, 0.08) 0%, transparent 60%)'
+          background: isDark
+            ? 'radial-gradient(ellipse at 80% 0%, rgba(249, 115, 22, 0.06) 0%, transparent 50%)'
+            : 'radial-gradient(ellipse at 80% 0%, rgba(249, 115, 22, 0.08) 0%, transparent 50%)'
         }}
       />
 
       {/* Header */}
-      <div className="relative flex items-center justify-between mb-5">
+      <div className="relative flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-white/90 font-semibold text-lg">Daily Progress</h3>
-          <p className="text-white/30 text-sm">Track your learning</p>
+          <h3 className={`font-medium text-base ${isDark ? 'text-white/90' : 'text-gray-900'}`}>Activity</h3>
+          <p className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>Last 7 weeks</p>
         </div>
         {streak > 0 && (
-          <div className="flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-full">
-            <Flame size={18} className="text-orange-400" />
-            <span className="text-orange-400 font-bold">{streak}</span>
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${isDark ? 'bg-orange-500/10' : 'bg-orange-50'}`}>
+            <Flame size={14} className="text-orange-500" />
+            <span className="text-orange-500 font-semibold text-sm">{streak}</span>
           </div>
         )}
       </div>
 
-      {/* Today's Stats */}
-      <div className="relative grid grid-cols-2 gap-3 mb-5">
-        <div className="bg-white/[0.03] rounded-2xl p-4 border border-white/[0.04]">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-orange-400" style={{ boxShadow: '0 0 8px rgba(251, 146, 60, 0.6)' }} />
-            <span className="text-white/40 text-xs uppercase tracking-wide">New words</span>
+      {/* Today's Stats - Compact */}
+      <div className="relative grid grid-cols-2 gap-2 mb-4">
+        <div className={`rounded-2xl p-3 ${isDark ? 'bg-white/[0.03] border border-white/[0.04]' : 'bg-black/[0.02] border border-black/[0.04]'}`}>
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-orange-400" style={{ boxShadow: '0 0 4px rgba(251, 146, 60, 0.5)' }} />
+            <span className={`text-[10px] uppercase tracking-wide ${isDark ? 'text-white/40' : 'text-gray-400'}`}>New</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-white text-2xl font-semibold">{todayNew}</span>
-            <span className="text-white/30 text-sm">/{goalNew}</span>
+            <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{todayNew}</span>
+            <span className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>/{goalNew}</span>
           </div>
-          <div className="mt-2 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+          <div className={`mt-1.5 h-1 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
             <div
               className="h-full rounded-full"
               style={{
                 width: `${Math.min((todayNew / goalNew) * 100, 100)}%`,
                 background: 'linear-gradient(90deg, #f97316, #fbbf24)',
-                boxShadow: todayNew > 0 ? '0 0 8px rgba(249, 115, 22, 0.5)' : 'none'
+                boxShadow: todayNew > 0 ? '0 0 6px rgba(249, 115, 22, 0.4)' : 'none'
               }}
             />
           </div>
         </div>
-        <div className="bg-white/[0.03] rounded-2xl p-4 border border-white/[0.04]">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)' }} />
-            <span className="text-white/40 text-xs uppercase tracking-wide">Reviews</span>
+        <div className={`rounded-2xl p-3 ${isDark ? 'bg-white/[0.03] border border-white/[0.04]' : 'bg-black/[0.02] border border-black/[0.04]'}`}>
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 4px rgba(52, 211, 153, 0.5)' }} />
+            <span className={`text-[10px] uppercase tracking-wide ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Review</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-white text-2xl font-semibold">{todayReview}</span>
-            <span className="text-white/30 text-sm">/{goalReview}</span>
+            <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{todayReview}</span>
+            <span className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>/{goalReview}</span>
           </div>
-          <div className="mt-2 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+          <div className={`mt-1.5 h-1 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
             <div
               className="h-full rounded-full"
               style={{
                 width: `${Math.min((todayReview / goalReview) * 100, 100)}%`,
                 background: 'linear-gradient(90deg, #10b981, #34d399)',
-                boxShadow: todayReview > 0 ? '0 0 8px rgba(16, 185, 129, 0.5)' : 'none'
+                boxShadow: todayReview > 0 ? '0 0 6px rgba(16, 185, 129, 0.4)' : 'none'
               }}
             />
           </div>
         </div>
       </div>
 
-      {/* Dot Grid - 8 rows x 7 columns */}
+      {/* Dot Grid - 7 rows x 7 columns */}
       <div className="relative">
-        <div className="grid gap-[6px]" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+        <div className="grid gap-[5px]" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
           {days.map((day, i) => (
             <div
               key={i}
               title={`${day.date}${day.status !== 'none' ? ` • ${day.status}` : ''}`}
               style={getDotStyle(day.status, day.isToday)}
-              className={`mx-auto hover:scale-150 ${day.isToday ? 'ring-1 ring-white/30 ring-offset-1 ring-offset-transparent' : ''}`}
+              className={`mx-auto transition-transform hover:scale-125 ${day.isToday ? (isDark ? 'ring-1 ring-white/20' : 'ring-1 ring-black/10') : ''}`}
             />
           ))}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="relative flex items-center justify-center gap-4 mt-4 text-[10px]">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-gray-600/40" />
-          <span className="text-white/25">None</span>
+      <div className="relative flex items-center justify-center gap-3 mt-3 text-[9px]">
+        <div className="flex items-center gap-1">
+          <div className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-gray-600/30' : 'bg-black/10'}`} />
+          <span className={isDark ? 'text-white/25' : 'text-gray-400'}>None</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-orange-500/40" />
-          <span className="text-white/25">Started</span>
+        <div className="flex items-center gap-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-orange-500/40" />
+          <span className={isDark ? 'text-white/25' : 'text-gray-400'}>Started</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-orange-400" />
-          <span className="text-white/25">Partial</span>
+        <div className="flex items-center gap-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+          <span className={isDark ? 'text-white/25' : 'text-gray-400'}>Partial</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-orange-500" style={{ boxShadow: '0 0 6px rgba(249, 115, 22, 0.6)' }} />
-          <span className="text-white/25">Complete</span>
+        <div className="flex items-center gap-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-orange-500" style={{ boxShadow: '0 0 4px rgba(249, 115, 22, 0.5)' }} />
+          <span className={isDark ? 'text-white/25' : 'text-gray-400'}>Complete</span>
         </div>
       </div>
     </div>
@@ -196,14 +221,22 @@ const SECTION_ICONS = ['📖', '📝', '🎬', '🎥', '💼', '🏢', '✈️',
 
 const initialData = { collections: [{ id: 'c1', name: 'English', icon: '📚', sections: [{ id: 's1', name: 'Topic 1', icon: '📖' }] }], words: [], allTags: [], songFolders: [{ id: 'sf1', name: 'My Songs' }], songs: [] };
 
-const Modal = ({ children, onClose, preventClose, wide, medium }) => (
-  <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50" onClick={preventClose ? undefined : onClose}>
+const Modal = ({ children, onClose, preventClose, wide, medium, isDark = true }) => (
+  <div
+    className="fixed inset-0 flex items-center justify-center p-4 z-50 animate-fadeIn"
+    style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}
+    onClick={preventClose ? undefined : onClose}
+  >
     <div
-      className={`relative text-gray-100 rounded-[24px] p-6 w-full ${wide ? 'max-w-6xl' : medium ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto`}
+      className={`relative rounded-3xl p-6 w-full ${wide ? 'max-w-6xl' : medium ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto animate-scaleIn ${isDark ? 'text-gray-100' : 'text-gray-900'}`}
       style={{
-        background: 'linear-gradient(145deg, rgba(28, 28, 28, 0.98) 0%, rgba(18, 18, 18, 0.98) 100%)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.03) inset'
+        background: isDark
+          ? 'linear-gradient(145deg, rgba(32, 32, 32, 0.98) 0%, rgba(22, 22, 22, 0.98) 100%)'
+          : 'linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 250, 250, 0.98) 100%)',
+        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
+        boxShadow: isDark
+          ? '0 25px 50px -12px rgba(0, 0, 0, 0.6)'
+          : '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
       }}
       onClick={e => e.stopPropagation()}
     >{children}</div>
@@ -2763,69 +2796,71 @@ const saveCollection = async (name) => {
     );
   };
 
+  const sidebarIsDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
   const Sidebar = () => (
-    <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all bg-[#0a0a0a] border-r border-gray-800/50 flex-shrink-0 overflow-hidden`}>
+    <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all flex-shrink-0 overflow-hidden ${sidebarIsDark ? 'bg-[#0a0a0a] border-r border-white/5' : 'bg-white border-r border-black/5'}`}>
       <div className="w-64 p-3 h-full overflow-y-auto">
-        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2 rounded-xl mb-2 ${view === 'dashboard' ? 'bg-orange-500/10 text-orange-400' : 'hover:bg-white/5 text-gray-300'}`}><Home size={18}/> Dashboard</button>
-        <div className="mb-4 pb-3 border-b border-gray-800/50">
-          <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500">🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className="p-1 hover:bg-white/5 rounded text-gray-400"><Plus size={16}/></button></div>
+        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'dashboard' ? 'bg-orange-500/10 text-orange-500' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18}/> Dashboard</button>
+        <div className={`mb-4 pb-3 border-b ${sidebarIsDark ? 'border-white/5' : 'border-black/5'}`}>
+          <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16}/></button></div>
           {data.songFolders.map((folder, folderIdx) => {
             const folderSongs = data.songs.filter(s => s.folderId === folder.id);
             return (
             <div key={folder.id} className="mb-1">
-              <div className="flex items-center gap-1 p-2 rounded-lg cursor-pointer group hover:bg-white/5 text-gray-300">
-                <button onClick={() => setExpandedSongFolders(expandedSongFolders.includes(folder.id) ? expandedSongFolders.filter(id => id !== folder.id) : [...expandedSongFolders, folder.id])} className="p-0.5 text-gray-500">{expandedSongFolders.includes(folder.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
+              <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
+                <button onClick={() => setExpandedSongFolders(expandedSongFolders.includes(folder.id) ? expandedSongFolders.filter(id => id !== folder.id) : [...expandedSongFolders, folder.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedSongFolders.includes(folder.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
                 <span className="flex-1 truncate text-sm">{folder.name}</span>
                 <div className="flex opacity-0 group-hover:opacity-100">
-                  {folderIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'up'); }} className="p-1 hover:bg-white/10 rounded text-gray-400" title="Move up"><ChevronUp size={12}/></button>}
-                  {folderIdx < data.songFolders.length - 1 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'down'); }} className="p-1 hover:bg-white/10 rounded text-gray-400" title="Move down"><ChevronDown size={12}/></button>}
-                  <button onClick={() => setModal({ type: 'song', data: { folderId: folder.id } })} className="p-1 hover:bg-white/10 rounded text-gray-400"><Plus size={12}/></button>
-                  <button onClick={() => setModal({ type: 'songFolder', data: folder })} className="p-1 hover:bg-white/10 rounded text-gray-400"><Edit2 size={12}/></button>
-                  <button onClick={() => requestDelete('songFolder', folder)} className="p-1 hover:bg-white/10 rounded text-gray-400"><Trash2 size={12}/></button>
+                  {folderIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12}/></button>}
+                  {folderIdx < data.songFolders.length - 1 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move down"><ChevronDown size={12}/></button>}
+                  <button onClick={() => setModal({ type: 'song', data: { folderId: folder.id } })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Plus size={12}/></button>
+                  <button onClick={() => setModal({ type: 'songFolder', data: folder })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Edit2 size={12}/></button>
+                  <button onClick={() => requestDelete('songFolder', folder)} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Trash2 size={12}/></button>
                 </div>
               </div>
               {expandedSongFolders.includes(folder.id) && <div className="ml-6 space-y-1">{folderSongs.map((song, songIdx) => (
-                <div key={song.id} onClick={() => handleNavigationWithCheck(() => { setCurrentSong(song); setCurrentCollection(null); setCurrentSection(null); setFilterStatus('all'); setView('song'); })} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer group text-sm ${currentSong?.id === song.id ? 'bg-orange-500/10 text-orange-400' : 'hover:bg-white/5 text-gray-400'}`}>
+                <div key={song.id} onClick={() => handleNavigationWithCheck(() => { setCurrentSong(song); setCurrentCollection(null); setCurrentSection(null); setFilterStatus('all'); setView('song'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSong?.id === song.id ? 'bg-orange-500/10 text-orange-500' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
                   <span className="flex-1 truncate">{song.title}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
-                    {songIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'up'); }} className="p-1 hover:bg-white/10 rounded" title="Move up"><ChevronUp size={12}/></button>}
-                    {songIdx < folderSongs.length - 1 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'down'); }} className="p-1 hover:bg-white/10 rounded" title="Move down"><ChevronDown size={12}/></button>}
-                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'song', data: song }); }} className="p-1 hover:bg-white/10 rounded"><Edit2 size={12}/></button>
-                    <button onClick={e => { e.stopPropagation(); requestDelete('song', song); }} className="p-1 hover:bg-white/10 rounded"><Trash2 size={12}/></button>
+                    {songIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12}/></button>}
+                    {songIdx < folderSongs.length - 1 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move down"><ChevronDown size={12}/></button>}
+                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'song', data: song }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Edit2 size={12}/></button>
+                    <button onClick={e => { e.stopPropagation(); requestDelete('song', song); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={12}/></button>
                   </div>
                 </div>
               ))}</div>}
             </div>
           );})}
         </div>
-        <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500">Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className="p-1 hover:bg-white/5 rounded text-gray-400"><Plus size={16}/></button></div>
+        <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16}/></button></div>
         {data.collections.map((col, colIdx) => (
           <div key={col.id} className="mb-1">
-            <div className={`flex items-center gap-1 p-2 rounded-lg cursor-pointer group ${currentCollection?.id === col.id && !currentSection ? 'bg-orange-500/10 text-orange-400' : 'hover:bg-white/5 text-gray-300'}`}>
-              <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className="p-0.5 text-gray-500">{expandedCollections.includes(col.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
+            <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-orange-500/10 text-orange-500' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
+              <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedCollections.includes(col.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
               <span className="text-base">{col.icon || '📚'}</span>
               <span onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className="flex-1 truncate text-sm">{col.name}</span>
               <div className="flex opacity-0 group-hover:opacity-100">
-                {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className="p-1 hover:bg-white/10 rounded text-gray-400" title="Move up"><ChevronUp size={12}/></button>}
-                {colIdx < data.collections.length - 1 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'down'); }} className="p-1 hover:bg-white/10 rounded text-gray-400" title="Move down"><ChevronDown size={12}/></button>}
-                <button onClick={() => setModal({ type: 'collection', data: col })} className="p-1 hover:bg-white/10 rounded text-gray-400"><Edit2 size={12}/></button>
-                <button onClick={() => requestDelete('collection', col)} className="p-1 hover:bg-white/10 rounded text-gray-400"><Trash2 size={12}/></button>
+                {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12}/></button>}
+                {colIdx < data.collections.length - 1 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move down"><ChevronDown size={12}/></button>}
+                <button onClick={() => setModal({ type: 'collection', data: col })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Edit2 size={12}/></button>
+                <button onClick={() => requestDelete('collection', col)} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Trash2 size={12}/></button>
               </div>
             </div>
             {expandedCollections.includes(col.id) && <div className="ml-6 space-y-1">
               {col.sections.map((sec, secIdx) => (
-                <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer group text-sm ${currentSection?.id === sec.id ? 'bg-orange-500/10 text-orange-400' : 'hover:bg-white/5 text-gray-400'}`}>
+                <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSection?.id === sec.id ? 'bg-orange-500/10 text-orange-500' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
                   <span className="text-base">{sec.icon || '📖'}</span>
                   <span className="flex-1 truncate">{sec.name}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
-                    {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className="p-1 hover:bg-white/10 rounded" title="Move up"><ChevronUp size={12}/></button>}
-                    {secIdx < col.sections.length - 1 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'down'); }} className="p-1 hover:bg-white/10 rounded" title="Move down"><ChevronDown size={12}/></button>}
-                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className="p-1 hover:bg-white/10 rounded"><Edit2 size={12}/></button>
-                    <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className="p-1 hover:bg-white/10 rounded"><Trash2 size={12}/></button>
+                    {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12}/></button>}
+                    {secIdx < col.sections.length - 1 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move down"><ChevronDown size={12}/></button>}
+                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Edit2 size={12}/></button>
+                    <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={12}/></button>
                   </div>
                 </div>
               ))}
-              <button onClick={() => setModal({ type: 'section', data: { colId: col.id, section: null } })} className="flex items-center gap-2 p-2 text-gray-500 hover:text-gray-300 text-sm"><Plus size={14}/> Add section</button>
+              <button onClick={() => setModal({ type: 'section', data: { colId: col.id, section: null } })} className={`flex items-center gap-2 p-2 text-sm transition-colors ${sidebarIsDark ? 'text-white/30 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}><Plus size={14}/> Add section</button>
             </div>}
           </div>
         ))}
@@ -2915,51 +2950,58 @@ const saveCollection = async (name) => {
   
   const showFilters = ['list', 'cards', 'quiz', 'write'].includes(view) && (currentCollection || currentSection);
 
+  const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
   return (
-    <div className="min-h-screen bg-black text-gray-100 flex">
+    <div className={`min-h-screen flex ${isDark ? 'bg-[#0a0a0a] text-gray-100' : 'bg-[#f5f5f7] text-gray-900'}`}>
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 h-screen">
-        <header className="bg-[#0a0a0a] border-b border-gray-800/50 px-4 h-14 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-3"><button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-white/5 rounded-lg text-gray-400"><Menu size={20}/></button><h1 className="text-xl font-bold text-orange-400">VocabMaster</h1></div>
+        <header className={`${isDark ? 'bg-[#0a0a0a]/80 border-white/5' : 'bg-white/80 border-black/5'} backdrop-blur-xl border-b px-4 h-14 flex items-center justify-between flex-shrink-0`}>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`}>
+              <Menu size={20}/>
+            </button>
+            <h1 className={`text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>VocabMaster</h1>
+          </div>
           <div className="flex items-center gap-2">
             <input type="file" accept=".json" onChange={importData} className="hidden" id="import-backup" />
-            <button onClick={() => document.getElementById('import-backup').click()} className="p-2 hover:bg-white/5 rounded text-gray-400" title="Restore"><Upload size={20}/></button>
-            <button onClick={exportData} className="p-2 hover:bg-white/5 rounded text-gray-400" title="Backup"><Download size={20}/></button>
+            <button onClick={() => document.getElementById('import-backup').click()} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Restore"><Upload size={18}/></button>
+            <button onClick={exportData} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Backup"><Download size={18}/></button>
             {currentSection && (
               <>
-                <button onClick={() => setModal({ type: 'importText', data: null })} className="h-10 px-3 bg-purple-500/20 text-purple-400 rounded-lg flex items-center gap-1 text-sm hover:bg-purple-500/30"><Upload size={18}/> Import</button>
-                <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className="h-10 px-3 bg-green-500/20 text-green-400 rounded-lg flex items-center gap-1 text-sm hover:bg-green-500/30"><Plus size={18}/> Add word</button>
+                <button onClick={() => setModal({ type: 'importText', data: null })} className={`h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium ${isDark ? 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'}`}><Upload size={16}/> Import</button>
+                <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className={`h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium ${isDark ? 'bg-green-500/15 text-green-400 hover:bg-green-500/25' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}><Plus size={16}/> Add</button>
               </>
             )}
             <div className="relative ml-2">
-              <button onClick={() => setShowUserMenu(!showUserMenu)} className="w-9 h-9 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center hover:bg-orange-500/30">
+              <button onClick={() => setShowUserMenu(!showUserMenu)} className={`w-9 h-9 rounded-full flex items-center justify-center ${isDark ? 'bg-orange-500/15 text-orange-400 hover:bg-orange-500/25' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'}`}>
                 <User size={18}/>
               </button>
               {showUserMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-[#1a1a1a] rounded-xl shadow-lg border border-gray-800 py-2 z-50">
-                    <div className="px-4 py-2 border-b border-gray-800">
-                      <div className="text-sm font-medium truncate text-gray-300">{user.email}</div>
+                  <div className={`absolute right-0 top-full mt-2 w-64 rounded-2xl shadow-xl py-2 z-50 animate-scaleIn ${isDark ? 'bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/10' : 'bg-white/95 backdrop-blur-xl border border-black/5'}`}>
+                    <div className={`px-4 py-2 border-b ${isDark ? 'border-white/5' : 'border-black/5'}`}>
+                      <div className={`text-sm font-medium truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{user.email}</div>
                     </div>
                     <div className="py-1">
                       <button onClick={() => {
                           const newTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
                           setTheme(newTheme);
                           localStorage.setItem('vocabmaster_theme', newTheme);
-                        }} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-3 text-gray-300">
+                        }} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-black/5 text-gray-700'}`}>
                         {theme === 'light' ? <Sun size={16}/> : theme === 'dark' ? <Moon size={16}/> : <Monitor size={16}/>}
                         Theme: {theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'System'}
                       </button>
-                      <button onClick={() => { setModal({ type: 'changePassword', data: null }); setShowUserMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-3">
+                      <button onClick={() => { setModal({ type: 'changePassword', data: null }); setShowUserMenu(false); }} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-black/5 text-gray-700'}`}>
                         <Settings size={16}/> Change Password
                       </button>
-                      <button onClick={() => { setModal({ type: 'dailyGoals', data: userGoals }); setShowUserMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-3">
+                      <button onClick={() => { setModal({ type: 'dailyGoals', data: userGoals }); setShowUserMenu(false); }} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-black/5 text-gray-700'}`}>
                         <Target size={16}/> Daily Goals
                       </button>
                     </div>
-                    <div className="border-t border-gray-800 pt-1">
-                      <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50  flex items-center gap-3">
+                    <div className={`border-t pt-1 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
+                      <button onClick={handleLogout} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}>
                         <LogOut size={16}/> Sign Out
                       </button>
                     </div>
@@ -2969,7 +3011,7 @@ const saveCollection = async (name) => {
             </div>
           </div>
         </header>
-        <div className="flex-1 overflow-auto p-4 bg-black">
+        <div className={`flex-1 overflow-auto p-5 ${isDark ? 'bg-[#0a0a0a]' : 'bg-[#f5f5f7]'}`}>
           {view === 'dashboard' && (() => {
             const totalWords = data.words.length;
             const newWords = data.words.filter(w => w.status === STATUS.NEW).length;
@@ -2990,198 +3032,222 @@ const saveCollection = async (name) => {
             const wordsToReview = data.words.filter(w => w.status === STATUS.LEARNING).slice(0, 5);
 
             return (
-            <div className="space-y-6">
-              {/* Приветствие - Dark hero section */}
-              <div
-                className="rounded-3xl p-8 text-white relative overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #1a2f1a 0%, #0f1f0f 50%, #1a1a1a 100%)'
-                }}
-              >
-                <div
-                  className="absolute inset-0 opacity-40"
-                  style={{
-                    background: 'radial-gradient(ellipse at 30% 20%, rgba(34, 197, 94, 0.2) 0%, transparent 50%)'
-                  }}
-                />
-                <div className="relative">
-                  <h2 className="text-3xl font-bold mb-2">Welcome back! 👋</h2>
-                  <p className="text-gray-400 text-lg">You have <span className="text-green-400 font-semibold">{totalWords}</span> words in your vocabulary</p>
-                  {progressPercent > 0 && (
-                    <div className="mt-6 max-w-md">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-400">Overall progress</span>
-                        <span className="text-green-400 font-semibold">{progressPercent}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${progressPercent}%`,
-                            background: 'linear-gradient(90deg, #22c55e 0%, #4ade80 100%)'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Основная статистика - Dark cards */}
-              <div className="grid grid-cols-4 gap-4">
+            <div className="space-y-5 max-w-6xl mx-auto animate-fadeIn">
+              {/* Stats row - clean pill buttons */}
+              <div className="grid grid-cols-4 gap-3">
                 <button
                   onClick={() => { setFilterStatus('all'); setViewTitle('Total Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                  className="rounded-2xl p-5 text-left transition-all hover:scale-[1.02] hover:shadow-xl"
-                  style={{ background: 'linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%)', border: '1px solid rgba(255,255,255,0.05)' }}
+                  className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04]' : 'bg-white hover:bg-gray-50 border border-black/[0.04] shadow-sm'}`}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-gray-700/50 rounded-xl flex items-center justify-center">
-                      <BookOpen size={20} className="text-gray-400"/>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalWords}</div>
+                      <div className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-500'}`}>Total</div>
+                    </div>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+                      <BookOpen size={18} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
                     </div>
                   </div>
-                  <div className="text-3xl font-bold text-white mb-1">{totalWords}</div>
-                  <div className="text-gray-500 text-sm">Total words</div>
                 </button>
                 <button
                   onClick={() => { setFilterStatus('new'); setViewTitle('New Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                  className="rounded-2xl p-5 text-left transition-all hover:scale-[1.02] hover:shadow-xl"
-                  style={{ background: 'linear-gradient(135deg, #1a1f2e 0%, #1e2738 100%)', border: '1px solid rgba(59,130,246,0.1)' }}
+                  className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-blue-500/[0.08] hover:bg-blue-500/[0.12] border border-blue-500/10' : 'bg-blue-50 hover:bg-blue-100 border border-blue-100'}`}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                      <Target size={20} className="text-blue-400"/>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-2xl font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{newWords}</div>
+                      <div className={`text-xs ${isDark ? 'text-blue-400/50' : 'text-blue-600/60'}`}>New</div>
+                    </div>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-blue-500/10' : 'bg-blue-100'}`}>
+                      <Target size={18} className={isDark ? 'text-blue-400/60' : 'text-blue-500'}/>
                     </div>
                   </div>
-                  <div className="text-3xl font-bold text-blue-400 mb-1">{newWords}</div>
-                  <div className="text-gray-500 text-sm">New words</div>
                 </button>
                 <button
                   onClick={() => { setFilterStatus('learning'); setViewTitle('Learning Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                  className="rounded-2xl p-5 text-left transition-all hover:scale-[1.02] hover:shadow-xl"
-                  style={{ background: 'linear-gradient(135deg, #2a2517 0%, #302a1a 100%)', border: '1px solid rgba(249,115,22,0.1)' }}
+                  className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-orange-500/[0.08] hover:bg-orange-500/[0.12] border border-orange-500/10' : 'bg-orange-50 hover:bg-orange-100 border border-orange-100'}`}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                      <Flame size={20} className="text-orange-400"/>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-2xl font-semibold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{learningWords}</div>
+                      <div className={`text-xs ${isDark ? 'text-orange-400/50' : 'text-orange-600/60'}`}>Learning</div>
+                    </div>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-orange-500/10' : 'bg-orange-100'}`}>
+                      <Flame size={18} className={isDark ? 'text-orange-400/60' : 'text-orange-500'}/>
                     </div>
                   </div>
-                  <div className="text-3xl font-bold text-orange-400 mb-1">{learningWords}</div>
-                  <div className="text-gray-500 text-sm">Learning</div>
                 </button>
                 <button
                   onClick={() => { setFilterStatus('learned'); setViewTitle('Learned Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                  className="rounded-2xl p-5 text-left transition-all hover:scale-[1.02] hover:shadow-xl"
-                  style={{ background: 'linear-gradient(135deg, #1a2f1a 0%, #1f2f1f 100%)', border: '1px solid rgba(34,197,94,0.1)' }}
+                  className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-green-500/[0.08] hover:bg-green-500/[0.12] border border-green-500/10' : 'bg-green-50 hover:bg-green-100 border border-green-100'}`}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
-                      <Award size={20} className="text-green-400"/>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-2xl font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{learnedWords}</div>
+                      <div className={`text-xs ${isDark ? 'text-green-400/50' : 'text-green-600/60'}`}>Learned</div>
+                    </div>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-green-500/10' : 'bg-green-100'}`}>
+                      <Award size={18} className={isDark ? 'text-green-400/60' : 'text-green-500'}/>
                     </div>
                   </div>
-                  <div className="text-3xl font-bold text-green-400 mb-1">{learnedWords}</div>
-                  <div className="text-gray-500 text-sm">Learned</div>
                 </button>
               </div>
 
-              {/* Activity Tracker */}
-              <ActivityTracker activityData={activityData} streak={streak} userGoals={userGoals} />
+              {/* Main Grid - Activity Tracker + Collections */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Activity Tracker - Left side */}
+                <ActivityTracker activityData={activityData} streak={streak} userGoals={userGoals} isDark={isDark} />
 
-              <div className="grid grid-cols-2 gap-6">
-                {/* Уровни */}
-                {levelStats.length > 0 && (
-                  <div
-                    className="rounded-2xl p-5"
-                    style={{ background: 'linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%)', border: '1px solid rgba(255,255,255,0.05)' }}
-                  >
-                    <h3 className="font-semibold mb-4 flex items-center gap-2 text-white"><TrendingUp size={18} className="text-gray-400"/> By Level</h3>
-                    <div className="space-y-3">
-                      {levelStats.map(({ level, count }) => (
-                        <div key={level} className="flex items-center gap-3">
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${getLevelColor(level)}`}>{level}</span>
-                          <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" style={{ width: `${(count / totalWords) * 100}%` }}></div>
-                          </div>
-                          <span className="text-sm text-gray-500 w-8">{count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Коллекции */}
+                {/* Collections - Right side */}
                 <div
-                  className="rounded-2xl p-5"
-                  style={{ background: 'linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%)', border: '1px solid rgba(255,255,255,0.05)' }}
+                  className={`rounded-3xl p-5 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+                  style={{
+                    background: isDark
+                      ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
+                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                    border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                  }}
                 >
-                  <h3 className="font-semibold mb-4 flex items-center gap-2 text-white"><BookOpen size={18} className="text-gray-400"/> Collections</h3>
+                  <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                    <BookOpen size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
+                    Collections
+                  </h3>
                   {data.collections.length > 0 ? (
-                    <div className="space-y-2">
-                      {data.collections.slice(0, 5).map(col => {
+                    <div className="space-y-1">
+                      {data.collections.slice(0, 6).map(col => {
                         const colWords = data.words.filter(w => col.sections.some(s => s.id === w.sectionId));
                         return (
-                          <button key={col.id} onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }} className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-left transition-colors">
-                            <span className="text-xl">{col.icon || '📚'}</span>
-                            <span className="flex-1 truncate text-sm text-gray-300">{col.name}</span>
-                            <span className="text-sm text-gray-500">{colWords.length}</span>
+                          <button
+                            key={col.id}
+                            onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }}
+                            className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                          >
+                            <span className="text-lg">{col.icon || '📚'}</span>
+                            <span className={`flex-1 truncate text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{col.name}</span>
+                            <span className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{colWords.length}</span>
                           </button>
                         );
                       })}
                     </div>
                   ) : (
-                    <p className="text-gray-500 text-sm">No collections yet. Create one to start!</p>
+                    <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No collections yet</p>
                   )}
                 </div>
               </div>
 
-              {/* Последние слова и слова для повторения */}
-              <div className="grid grid-cols-2 gap-6">
-                {recentWords.length > 0 && (
-                  <div
-                    className="rounded-2xl p-5"
-                    style={{ background: 'linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%)', border: '1px solid rgba(255,255,255,0.05)' }}
-                  >
-                    <h3 className="font-semibold mb-4 flex items-center gap-2 text-white"><Calendar size={18} className="text-gray-400"/> Recently Added</h3>
-                    <div className="space-y-2">
-                      {recentWords.map(w => (
-                        <div key={w.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors" onClick={() => setModal({ type: 'word', data: w })}>
-                          <span className="font-medium text-sm text-white">{w.word}</span>
-                          <span className="text-gray-500 text-sm truncate flex-1">{w.meaningRu}</span>
-                          <span className={`px-2 py-0.5 rounded text-xs ${getLevelColor(w.level)}`}>{w.level}</span>
+              {/* Second Row - Levels + Recent/Review */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Уровни */}
+                <div
+                  className={`rounded-3xl p-5 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+                  style={{
+                    background: isDark
+                      ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
+                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                    border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                  }}
+                >
+                  <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                    <TrendingUp size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
+                    By Level
+                  </h3>
+                  {levelStats.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {levelStats.map(({ level, count }) => (
+                        <div key={level} className="flex items-center gap-3">
+                          <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(level)}`}>{level}</span>
+                          <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
+                            <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" style={{ width: `${(count / totalWords) * 100}%` }}></div>
+                          </div>
+                          <span className={`text-sm w-8 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{count}</span>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
+                  )}
+                </div>
 
-                {wordsToReview.length > 0 && (
-                  <div
-                    className="rounded-2xl p-5"
-                    style={{ background: 'linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%)', border: '1px solid rgba(255,255,255,0.05)' }}
-                  >
-                    <h3 className="font-semibold mb-4 flex items-center gap-2 text-white"><RotateCcw size={18} className="text-gray-400"/> Review These</h3>
-                    <div className="space-y-2">
-                      {wordsToReview.map(w => (
-                        <div key={w.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors" onClick={() => setModal({ type: 'word', data: w })}>
-                          <span className="font-medium text-sm text-white">{w.word}</span>
-                          <span className="text-gray-500 text-sm truncate flex-1">{w.meaningRu}</span>
-                        </div>
-                      ))}
-                    </div>
-                    {learningWords > 5 && (
-                      <button onClick={() => { setFilterStatus('learning'); setView('all-words'); }} className="mt-3 text-sm text-orange-400 hover:text-orange-300">
-                        View all {learningWords} →
-                      </button>
-                    )}
-                  </div>
-                )}
+                {/* Recently Added / To Review */}
+                <div
+                  className={`rounded-3xl p-5 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+                  style={{
+                    background: isDark
+                      ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
+                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                    border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                  }}
+                >
+                  {wordsToReview.length > 0 ? (
+                    <>
+                      <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                        <RotateCcw size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
+                        Review These
+                      </h3>
+                      <div className="space-y-1">
+                        {wordsToReview.map(w => (
+                          <div
+                            key={w.id}
+                            className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                            onClick={() => setModal({ type: 'word', data: w })}
+                          >
+                            <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
+                            <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {learningWords > 5 && (
+                        <button onClick={() => { setFilterStatus('learning'); setView('all-words'); }} className="mt-3 text-sm text-orange-500 hover:text-orange-400 transition-colors">
+                          View all {learningWords} →
+                        </button>
+                      )}
+                    </>
+                  ) : recentWords.length > 0 ? (
+                    <>
+                      <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                        <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
+                        Recently Added
+                      </h3>
+                      <div className="space-y-1">
+                        {recentWords.slice(0, 5).map(w => (
+                          <div
+                            key={w.id}
+                            className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                            onClick={() => setModal({ type: 'word', data: w })}
+                          >
+                            <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
+                            <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${getLevelColor(w.level)}`}>{w.level}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                        <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'}/>
+                        Recent
+                      </h3>
+                      <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
+                    </>
+                  )}
+                </div>
               </div>
 
               {data.collections.length === 0 && totalWords === 0 && (
-                <div className="text-center py-12 bg-white rounded-xl border">
+                <div
+                  className={`text-center py-12 rounded-3xl ${isDark ? '' : 'shadow-sm'}`}
+                  style={{
+                    background: isDark
+                      ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
+                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                    border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                  }}
+                >
                   <div className="text-6xl mb-4">📚</div>
-                  <h2 className="text-xl font-semibold mb-2">Welcome to VocabMaster!</h2>
-                  <p className="text-gray-500 mb-4">Create a collection and start adding words.</p>
-                  <button onClick={() => setModal({ type: 'collection', data: null })} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                  <h2 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome to VocabMaster!</h2>
+                  <p className={`mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Create a collection and start adding words.</p>
+                  <button onClick={() => setModal({ type: 'collection', data: null })} className="px-5 py-2.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors">
                     <Plus size={18} className="inline mr-1"/> Create Collection
                   </button>
                 </div>
