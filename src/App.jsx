@@ -5,8 +5,8 @@ import { supabase } from './supabaseClient';
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const WORD_TYPES = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'idiom', 'phrase', 'preposition', 'conjunction', 'interjection'];
 const STATUS = { NEW: 'new', LEARNING: 'learning', LEARNED: 'learned' };
-const getLevelColor = l => ({ A1: 'bg-green-100 text-green-700', A2: 'bg-green-200 text-green-800', B1: 'bg-yellow-100 text-yellow-700', B2: 'bg-yellow-200 text-yellow-800', C1: 'bg-red-100 text-red-700', C2: 'bg-red-200 text-red-800' }[l] || 'bg-gray-100');
-const getStatusColor = s => ({ 'new': 'bg-blue-100 text-blue-700', 'learning': 'bg-yellow-100 text-yellow-700', 'learned': 'bg-green-100 text-green-700' }[s] || 'bg-gray-100');
+const getLevelColor = l => ({ A1: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300', A2: 'bg-green-200 text-green-800 dark:bg-green-900/60 dark:text-green-300', B1: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300', B2: 'bg-yellow-200 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-300', C1: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300', C2: 'bg-red-200 text-red-800 dark:bg-red-900/60 dark:text-red-300' }[l] || 'bg-gray-100 dark:bg-gray-700');
+const getStatusColor = s => ({ 'new': 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300', 'learning': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300', 'learned': 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' }[s] || 'bg-gray-100 dark:bg-gray-700');
 
 const COLLECTION_ICONS = ['📚', '📖', '🎬', '💼', '✈️', '🍕', '🎵', '⚽', '💻', '🎓', '🏥', '🎨', '🏠', '🚗', '👔', '🌳', '🎯', '⭐', '🔥', '💡'];
 const SECTION_ICONS = ['📖', '📝', '🎬', '🎥', '💼', '🏢', '✈️', '🌍', '🍕', '🍔', '🎵', '🎸', '⚽', '🏀', '💻', '🖥️', '🎓', '📚', '🏥', '⚕️', '🎨', '🖼️', '🏠', '🏡', '🚗', '🚙', '👔', '👗', '🌳', '🌺', '🎯', '⭐'];
@@ -68,15 +68,15 @@ const CompletionScreen = ({ title, stats, onRestart, onBack, wrongWords }) => {
   const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
   return (
     <div className="max-w-md mx-auto text-center py-8">
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
         <div className="text-6xl mb-4">{pct >= 80 ? '🎉' : '💪'}</div>
         <h2 className="text-2xl font-bold mb-2">{title}</h2>
         <div className="flex justify-center gap-6 my-6">
-          <div><div className="text-3xl font-bold text-green-600">{stats.correct}</div><div className="text-sm text-gray-500">Know</div></div>
-          <div><div className="text-3xl font-bold text-red-400">{stats.total - stats.correct}</div><div className="text-sm text-gray-500">Don't know</div></div>
+          <div><div className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.correct}</div><div className="text-sm text-gray-500 dark:text-gray-400">Know</div></div>
+          <div><div className="text-3xl font-bold text-red-400">{stats.total - stats.correct}</div><div className="text-sm text-gray-500 dark:text-gray-400">Don't know</div></div>
         </div>
-        {wrongWords.length > 0 && <div className="text-left mb-4 p-3 bg-red-50 rounded-lg"><div className="text-sm text-red-700 mb-2">To review:</div><div className="flex flex-wrap gap-1">{wrongWords.map(w => <span key={w.id} className="text-xs bg-red-100 px-2 py-1 rounded">{w.word}</span>)}</div></div>}
-        <div className="flex gap-3"><button onClick={onBack} className="flex-1 p-3 border rounded-lg">Back</button><button onClick={onRestart} className="flex-1 p-3 bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2"><RefreshCw size={18}/>Again</button></div>
+        {wrongWords.length > 0 && <div className="text-left mb-4 p-3 bg-red-50 dark:bg-red-900/30 rounded-lg"><div className="text-sm text-red-700 dark:text-red-300 mb-2">To review:</div><div className="flex flex-wrap gap-1">{wrongWords.map(w => <span key={w.id} className="text-xs bg-red-100 dark:bg-red-900/50 dark:text-red-200 px-2 py-1 rounded">{w.word}</span>)}</div></div>}
+        <div className="flex gap-3"><button onClick={onBack} className="flex-1 p-3 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Back</button><button onClick={onRestart} className="flex-1 p-3 bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2"><RefreshCw size={18}/>Again</button></div>
       </div>
     </div>
   );
@@ -587,7 +587,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         <h3 className="text-lg font-semibold mb-4">{word.id ? 'Edit Word' : 'Add Word'}</h3>
         <div className="space-y-3">
           <div className="flex gap-2">
-            <input className="flex-1 h-10 px-3 border rounded-lg" placeholder="Word *" value={form.word} onChange={e => setForm({ ...form, word: e.target.value })} />
+            <input className="flex-1 h-10 px-3 border dark:border-gray-600 dark:bg-gray-700 rounded-lg" placeholder="Word *" value={form.word} onChange={e => setForm({ ...form, word: e.target.value })} />
             <button onClick={() => doLookup(false)} disabled={loading || !form.word.trim()} className="h-10 px-4 bg-blue-500 text-white rounded-lg disabled:opacity-50 hover:bg-blue-600">
               {loading ? <Loader size={16} className="animate-spin" /> : <Search size={16} />}
             </button>
@@ -595,11 +595,11 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
 
           {/* Показ ошибки и suggestions */}
           {lookupError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="text-red-600 text-sm font-medium">{lookupError}</div>
+            <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="text-red-600 dark:text-red-400 text-sm font-medium">{lookupError}</div>
               {suggestions.length > 0 && (
                 <div className="mt-2">
-                  <span className="text-sm text-gray-600">Did you mean: </span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Did you mean: </span>
                   {suggestions.map((s, i) => (
                     <button
                       key={i}
@@ -672,7 +672,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                     className={`px-2 py-1 text-xs rounded-full border ${
                       isSelected
                         ? 'bg-blue-500 text-white border-blue-500'
-                        : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                        : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                     }`}
                   >
                     {t}
@@ -689,15 +689,15 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               </div>
             </div>
           </div>
-          <input className="w-full h-10 px-3 border rounded-lg" placeholder="IPA" value={form.forms} onChange={e => setForm({ ...form, forms: e.target.value })} />
-          <textarea className="w-full px-3 py-2 border rounded-lg" placeholder="Meaning (English) *" value={form.meaningEn} onChange={e => setForm({ ...form, meaningEn: e.target.value })} rows={2} />
+          <input className="w-full h-10 px-3 border dark:border-gray-600 dark:bg-gray-700 rounded-lg" placeholder="IPA" value={form.forms} onChange={e => setForm({ ...form, forms: e.target.value })} />
+          <textarea className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 rounded-lg" placeholder="Meaning (English) *" value={form.meaningEn} onChange={e => setForm({ ...form, meaningEn: e.target.value })} rows={2} />
           <div>
             <div className="relative">
-              <input 
-                className="w-full h-10 px-3 border rounded-lg" 
-                placeholder="Перевод" 
-                value={form.meaningRu} 
-                onChange={e => setForm({ ...form, meaningRu: e.target.value })} 
+              <input
+                className="w-full h-10 px-3 border dark:border-gray-600 dark:bg-gray-700 rounded-lg"
+                placeholder="Перевод"
+                value={form.meaningRu}
+                onChange={e => setForm({ ...form, meaningRu: e.target.value })}
                 onFocus={handleTranslationFocus}
                 autoComplete="off"
               />
@@ -716,11 +716,11 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                   });
 
                   const typeLabels = {
-                    noun: { label: 'noun', emoji: '🔵', cls: 'bg-blue-100 text-blue-700' },
-                    verb: { label: 'verb', emoji: '🔴', cls: 'bg-red-100 text-red-700' },
-                    adjective: { label: 'adj', emoji: '🟡', cls: 'bg-yellow-100 text-yellow-700' },
-                    adverb: { label: 'adv', emoji: '🟣', cls: 'bg-purple-100 text-purple-700' },
-                    other: { label: 'other', emoji: '⚪', cls: 'bg-gray-100 text-gray-700' }
+                    noun: { label: 'noun', emoji: '🔵', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
+                    verb: { label: 'verb', emoji: '🔴', cls: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' },
+                    adjective: { label: 'adj', emoji: '🟡', cls: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300' },
+                    adverb: { label: 'adv', emoji: '🟣', cls: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
+                    other: { label: 'other', emoji: '⚪', cls: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }
                   };
 
                   return (
@@ -740,8 +740,8 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                                 title={m.meaningEn || (m.isUserAdded ? 'Мой перевод' : '')}
                                 className={`text-sm px-3 py-1 rounded-full ${
                                   isTranslationAdded(m.ru)
-                                    ? 'bg-green-100 text-green-700 border border-green-300'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-green-100 text-green-700 border border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                 }`}
                               >
                                 {isTranslationAdded(m.ru) ? '✓ ' : ''}{m.isUserAdded ? '★ ' : ''}{m.ru}
@@ -756,10 +756,10 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               </div>
             )}
           </div>
-          <textarea className="w-full px-3 py-2 border rounded-lg" placeholder="Example" value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} rows={2} />
-          <textarea className="w-full px-3 py-2 border rounded-lg bg-yellow-50 text-gray-900" placeholder="My example" value={form.myExample || ''} onChange={e => setForm({ ...form, myExample: e.target.value })} rows={2} />
-          <input className="w-full h-10 px-3 border rounded-lg bg-purple-50 text-gray-900" placeholder="Single-root words (e.g., teach, teacher, teaching)" value={form.singleRootWords || ''} onChange={e => setForm({ ...form, singleRootWords: e.target.value })} />
-          <input className="w-full h-10 px-3 border rounded-lg bg-blue-50 text-gray-900" placeholder="Synonyms (e.g., big, large, huge)" value={form.synonyms || ''} onChange={e => setForm({ ...form, synonyms: e.target.value })} />
+          <textarea className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 rounded-lg" placeholder="Example" value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} rows={2} />
+          <textarea className="w-full px-3 py-2 border rounded-lg bg-yellow-50 dark:bg-yellow-900/30 text-gray-900 dark:text-yellow-100 dark:border-yellow-800" placeholder="My example" value={form.myExample || ''} onChange={e => setForm({ ...form, myExample: e.target.value })} rows={2} />
+          <input className="w-full h-10 px-3 border rounded-lg bg-purple-50 dark:bg-purple-900/30 text-gray-900 dark:text-purple-100 dark:border-purple-800" placeholder="Single-root words (e.g., teach, teacher, teaching)" value={form.singleRootWords || ''} onChange={e => setForm({ ...form, singleRootWords: e.target.value })} />
+          <input className="w-full h-10 px-3 border rounded-lg bg-blue-50 dark:bg-blue-900/30 text-gray-900 dark:text-blue-100 dark:border-blue-800" placeholder="Synonyms (e.g., big, large, huge)" value={form.synonyms || ''} onChange={e => setForm({ ...form, synonyms: e.target.value })} />
         </div>
         <div className="flex gap-2 mt-4">
           <button onClick={onCancel} className="flex-1 h-10 px-4 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
@@ -1171,13 +1171,13 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
                     if (existingWord) {
                       const sec = sections.find(s => s.id === existingWord.sectionId);
                       const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown';
-                      return <div className="text-xs text-gray-600 bg-green-50 px-2 py-1 rounded border border-green-200">✓ In vocabulary: <span className="font-medium">{location}</span></div>;
+                      return <div className="text-xs text-gray-600 dark:text-gray-300 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded border border-green-200 dark:border-green-700">✓ In vocabulary: <span className="font-medium">{location}</span></div>;
                     }
-                    return <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">✓ Already in vocabulary</div>;
+                    return <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">✓ Already in vocabulary</div>;
                   })()}
                 </>
               ) : selected.includes(popup.word) ? (
-                <button onClick={() => removeFromList(popup.word)} className="w-full px-3 py-1 bg-red-100 text-red-700 rounded text-sm">✗ Remove from list</button>
+                <button onClick={() => removeFromList(popup.word)} className="w-full px-3 py-1 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded text-sm">✗ Remove from list</button>
               ) : (
                 <button onClick={() => addToList(popup.word)} className="w-full px-3 py-1 bg-blue-500 text-white rounded text-sm">+ Add to list</button>
               )}
@@ -1210,7 +1210,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
                     <td className="p-2">
 
                       <div class="flex items-center justify-between"><div class="relative"><select class="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 text-sm hover:bg-gray-50 dark:hover:bg-gray-600 appearance-none"><option value="">Select section...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select><div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></div></div>
-                       <td className="p-2"><button onClick={() => removeFromList(w)} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={14} /></button></td>
+                       <td className="p-2"><button onClick={() => removeFromList(w)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Trash2 size={14} /></button></td>
                       </div>
                       
                   
@@ -2244,30 +2244,30 @@ const saveCollection = async (name) => {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-4 relative">
         <div className="flex items-start justify-between mb-2">
-          <div><div className="flex items-center gap-2"><span className="text-xl font-semibold">{word.word}</span><button onClick={() => playPronunciation(word.word)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Volume2 size={18} className="text-blue-500" /></button></div><span className="text-sm text-gray-500">{word.type}{word.forms && ` · ${word.forms}`}</span></div>
+          <div><div className="flex items-center gap-2"><span className="text-xl font-semibold">{word.word}</span><button onClick={() => playPronunciation(word.word)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Volume2 size={18} className="text-blue-500" /></button></div><span className="text-sm text-gray-500 dark:text-gray-400">{word.type}{word.forms && ` · ${word.forms}`}</span></div>
           <div className="flex gap-1"><button onClick={() => setModal({ type: 'word', data: word })} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Edit2 size={16} className="text-gray-400" /></button><button onClick={() => requestDelete('word', word)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Trash2 size={16} className="text-gray-400" /></button></div>
         </div>
-        <p className="text-gray-700 mb-1">{word.meaningEn}</p>
-        {word.meaningRu && <p className="text-blue-600 text-sm mb-2">→ {word.meaningRu}</p>}
-        {word.example && <p className="text-sm text-gray-600 italic border-l-2 border-blue-200 pl-2 mb-2">"{word.example}"</p>}
-        {word.myExample && <p className="text-sm text-yellow-700 italic border-l-2 border-yellow-400 pl-2 bg-yellow-50 py-1 mb-2">✏️ "{word.myExample}"</p>}
+        <p className="text-gray-700 dark:text-gray-200 mb-1">{word.meaningEn}</p>
+        {word.meaningRu && <p className="text-blue-600 dark:text-blue-400 text-sm mb-2">→ {word.meaningRu}</p>}
+        {word.example && <p className="text-sm text-gray-600 dark:text-gray-300 italic border-l-2 border-blue-200 dark:border-blue-500 pl-2 mb-2">"{word.example}"</p>}
+        {word.myExample && <p className="text-sm text-yellow-700 dark:text-yellow-300 italic border-l-2 border-yellow-400 pl-2 bg-yellow-50 dark:bg-yellow-900/30 py-1 mb-2">✏️ "{word.myExample}"</p>}
         {(word.singleRootWords || word.synonyms) && (
           <div className="flex gap-3 mb-2 text-xs">
             {word.singleRootWords && (
-              <button onClick={() => setWordPopup({ type: 'roots', word })} className="text-purple-700 hover:text-purple-900 underline">
+              <button onClick={() => setWordPopup({ type: 'roots', word })} className="text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 underline">
                 Single-root words
               </button>
             )}
             {word.synonyms && (
-              <button onClick={() => setWordPopup({ type: 'synonyms', word })} className="text-blue-700 hover:text-blue-900 underline">
+              <button onClick={() => setWordPopup({ type: 'synonyms', word })} className="text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 underline">
                 Synonyms
               </button>
             )}
           </div>
         )}
-        <div className="flex items-center justify-between mt-3 pt-2 border-t">
+        <div className="flex items-center justify-between mt-3 pt-2 border-t dark:border-gray-700">
           <div className="flex gap-1"><span className={`px-2 py-0.5 rounded text-xs font-medium ${getLevelColor(word.level)}`}>{word.level}</span><span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(word.status)}`}>{word.status}</span></div>
-          <div className="flex gap-1 text-xs"><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('cards') ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>C</span><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('quiz') ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>Q</span><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('write') ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>W</span></div>
+          <div className="flex gap-1 text-xs"><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('cards') ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700'}`}>C</span><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('quiz') ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700'}`}>Q</span><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('write') ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700'}`}>W</span></div>
         </div>
       </div>
     );
@@ -2278,7 +2278,7 @@ const saveCollection = async (name) => {
       <div className="w-64 p-3 h-full overflow-y-auto">
         <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2 rounded-lg mb-2 ${view === 'dashboard' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}><Home size={18}/> Dashboard</button>
         <div className="mb-4 pb-3 border-b">
-          <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500">🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Plus size={16}/></button></div>
+          <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Plus size={16}/></button></div>
           {data.songFolders.map((folder, folderIdx) => {
             const folderSongs = data.songs.filter(s => s.folderId === folder.id);
             return (
@@ -2287,28 +2287,28 @@ const saveCollection = async (name) => {
                 <button onClick={() => setExpandedSongFolders(expandedSongFolders.includes(folder.id) ? expandedSongFolders.filter(id => id !== folder.id) : [...expandedSongFolders, folder.id])} className="p-0.5">{expandedSongFolders.includes(folder.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button>
                 <span className="flex-1 truncate text-sm">{folder.name}</span>
                 <div className="flex opacity-0 group-hover:opacity-100">
-                  {folderIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'up'); }} className="p-1 hover:bg-gray-200 rounded" title="Move up"><ChevronUp size={12}/></button>}
-                  {folderIdx < data.songFolders.length - 1 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'down'); }} className="p-1 hover:bg-gray-200 rounded" title="Move down"><ChevronDown size={12}/></button>}
-                  <button onClick={() => setModal({ type: 'song', data: { folderId: folder.id } })} className="p-1 hover:bg-gray-200 rounded"><Plus size={12}/></button>
-                  <button onClick={() => setModal({ type: 'songFolder', data: folder })} className="p-1 hover:bg-gray-200 rounded"><Edit2 size={12}/></button>
-                  <button onClick={() => requestDelete('songFolder', folder)} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={12}/></button>
+                  {folderIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'up'); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Move up"><ChevronUp size={12}/></button>}
+                  {folderIdx < data.songFolders.length - 1 && <button onClick={e => { e.stopPropagation(); moveSongFolder(folder.id, 'down'); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Move down"><ChevronDown size={12}/></button>}
+                  <button onClick={() => setModal({ type: 'song', data: { folderId: folder.id } })} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Plus size={12}/></button>
+                  <button onClick={() => setModal({ type: 'songFolder', data: folder })} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Edit2 size={12}/></button>
+                  <button onClick={() => requestDelete('songFolder', folder)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Trash2 size={12}/></button>
                 </div>
               </div>
               {expandedSongFolders.includes(folder.id) && <div className="ml-6 space-y-1">{folderSongs.map((song, songIdx) => (
                 <div key={song.id} onClick={() => handleNavigationWithCheck(() => { setCurrentSong(song); setCurrentCollection(null); setCurrentSection(null); setFilterStatus('all'); setView('song'); })} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer group text-sm ${currentSong?.id === song.id ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
                   <span className="flex-1 truncate">{song.title}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
-                    {songIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'up'); }} className="p-1 hover:bg-gray-200 rounded" title="Move up"><ChevronUp size={12}/></button>}
-                    {songIdx < folderSongs.length - 1 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'down'); }} className="p-1 hover:bg-gray-200 rounded" title="Move down"><ChevronDown size={12}/></button>}
-                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'song', data: song }); }} className="p-1 hover:bg-gray-200 rounded"><Edit2 size={12}/></button>
-                    <button onClick={e => { e.stopPropagation(); requestDelete('song', song); }} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={12}/></button>
+                    {songIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'up'); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Move up"><ChevronUp size={12}/></button>}
+                    {songIdx < folderSongs.length - 1 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'down'); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Move down"><ChevronDown size={12}/></button>}
+                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'song', data: song }); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Edit2 size={12}/></button>
+                    <button onClick={e => { e.stopPropagation(); requestDelete('song', song); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Trash2 size={12}/></button>
                   </div>
                 </div>
               ))}</div>}
             </div>
           );})}
         </div>
-        <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500">Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Plus size={16}/></button></div>
+        <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium text-gray-500 dark:text-gray-400">Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><Plus size={16}/></button></div>
         {data.collections.map((col, colIdx) => (
           <div key={col.id} className="mb-1">
             <div className={`flex items-center gap-1 p-2 rounded-lg cursor-pointer group ${currentCollection?.id === col.id && !currentSection ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
@@ -2316,10 +2316,10 @@ const saveCollection = async (name) => {
               <span className="text-base">{col.icon || '📚'}</span>
               <span onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className="flex-1 truncate text-sm">{col.name}</span>
               <div className="flex opacity-0 group-hover:opacity-100">
-                {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className="p-1 hover:bg-gray-200 rounded" title="Move up"><ChevronUp size={12}/></button>}
-                {colIdx < data.collections.length - 1 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'down'); }} className="p-1 hover:bg-gray-200 rounded" title="Move down"><ChevronDown size={12}/></button>}
-                <button onClick={() => setModal({ type: 'collection', data: col })} className="p-1 hover:bg-gray-200 rounded"><Edit2 size={12}/></button>
-                <button onClick={() => requestDelete('collection', col)} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={12}/></button>
+                {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Move up"><ChevronUp size={12}/></button>}
+                {colIdx < data.collections.length - 1 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'down'); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Move down"><ChevronDown size={12}/></button>}
+                <button onClick={() => setModal({ type: 'collection', data: col })} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Edit2 size={12}/></button>
+                <button onClick={() => requestDelete('collection', col)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Trash2 size={12}/></button>
               </div>
             </div>
             {expandedCollections.includes(col.id) && <div className="ml-6 space-y-1">
@@ -2328,10 +2328,10 @@ const saveCollection = async (name) => {
                   <span className="text-base">{sec.icon || '📖'}</span>
                   <span className="flex-1 truncate">{sec.name}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
-                    {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className="p-1 hover:bg-gray-200 rounded" title="Move up"><ChevronUp size={12}/></button>}
-                    {secIdx < col.sections.length - 1 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'down'); }} className="p-1 hover:bg-gray-200 rounded" title="Move down"><ChevronDown size={12}/></button>}
-                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className="p-1 hover:bg-gray-200 rounded"><Edit2 size={12}/></button>
-                    <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className="p-1 hover:bg-gray-200 rounded"><Trash2 size={12}/></button>
+                    {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Move up"><ChevronUp size={12}/></button>}
+                    {secIdx < col.sections.length - 1 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'down'); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Move down"><ChevronDown size={12}/></button>}
+                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Edit2 size={12}/></button>
+                    <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"><Trash2 size={12}/></button>
                   </div>
                 </div>
               ))}
@@ -2344,7 +2344,7 @@ const saveCollection = async (name) => {
   );
 
   const renderFlashcards = () => {
-    if (!filteredWords.length) return <div className="text-center py-12 text-gray-500">No words</div>;
+    if (!filteredWords.length) return <div className="text-center py-12 text-gray-500 dark:text-gray-400">No words</div>;
     if (!cardSession) return null;
     if (cardSession.completed) return <CompletionScreen title="Cards Complete!" stats={{ correct: cardSession.correct, total: cardSession.words.length }} wrongWords={cardSession.wrongWords} onRestart={() => setCardSession({ words: [...filteredWords], index: 0, flipped: false, correct: 0, wrong: 0, wrongWords: [], completed: false })} onBack={() => setView('list')} />;
     const w = cardSession.words[cardSession.index];
@@ -2354,20 +2354,20 @@ const saveCollection = async (name) => {
         <ProgressBar current={cardSession.index} total={cardSession.words.length} correct={cardSession.correct} wrong={cardSession.wrong} />
         <div onClick={() => setCardSession({ ...cardSession, flipped: !cardSession.flipped })} className="cursor-pointer" style={{ perspective: 1000 }}>
           <div style={{ transformStyle: 'preserve-3d', transition: 'transform 0.5s', transform: cardSession.flipped ? 'rotateY(180deg)' : '' }} className="relative h-72">
-            <div style={{ backfaceVisibility: 'hidden' }} className="absolute inset-0 bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-center">{w.word}</h2><p className="text-gray-500">{w.type}</p>{w.forms && <p className="text-gray-400 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-blue-50 rounded-full"><Volume2 className="text-blue-500"/></button></div>
-            <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="absolute inset-0 bg-blue-50 rounded-xl shadow-lg p-6 flex flex-col justify-center">
-              <p className="text-lg text-gray-700 mb-2">{w.meaningEn}</p>
-              {w.meaningRu && <p className="text-blue-600 font-medium mb-2">→ {w.meaningRu}</p>}
-              {w.example && <p className="text-sm text-gray-600 italic mt-2 mb-3">"{w.example}"</p>}
+            <div style={{ backfaceVisibility: 'hidden' }} className="absolute inset-0 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-center">{w.word}</h2><p className="text-gray-500 dark:text-gray-400">{w.type}</p>{w.forms && <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-blue-50 dark:bg-blue-900/30 rounded-full"><Volume2 className="text-blue-500"/></button></div>
+            <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="absolute inset-0 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-lg p-6 flex flex-col justify-center">
+              <p className="text-lg text-gray-700 dark:text-gray-200 mb-2">{w.meaningEn}</p>
+              {w.meaningRu && <p className="text-blue-600 dark:text-blue-400 font-medium mb-2">→ {w.meaningRu}</p>}
+              {w.example && <p className="text-sm text-gray-600 dark:text-gray-300 italic mt-2 mb-3">"{w.example}"</p>}
               {(w.singleRootWords || w.synonyms) && (
-                <div className="mt-auto pt-3 border-t border-blue-200 flex gap-3 text-xs">
+                <div className="mt-auto pt-3 border-t border-blue-200 dark:border-blue-700 flex gap-3 text-xs">
                   {w.singleRootWords && (
-                    <button onClick={e => { e.stopPropagation(); setCardPopup({ type: 'roots', word: w }); }} className="text-purple-700 hover:text-purple-900 underline">
+                    <button onClick={e => { e.stopPropagation(); setCardPopup({ type: 'roots', word: w }); }} className="text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 underline">
                       Single-root words
                     </button>
                   )}
                   {w.synonyms && (
-                    <button onClick={e => { e.stopPropagation(); setCardPopup({ type: 'synonyms', word: w }); }} className="text-blue-700 hover:text-blue-900 underline">
+                    <button onClick={e => { e.stopPropagation(); setCardPopup({ type: 'synonyms', word: w }); }} className="text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 underline">
                       Synonyms
                     </button>
                   )}
@@ -2376,13 +2376,13 @@ const saveCollection = async (name) => {
             </div>
           </div>
         </div>
-        <div className="flex justify-center gap-4 mt-6"><button onClick={() => handleAnswer(false)} className="px-6 py-2 bg-red-100 text-red-600 rounded-lg flex items-center gap-2"><X size={18}/> Don't know</button><button onClick={() => handleAnswer(true)} className="px-6 py-2 bg-green-100 text-green-600 rounded-lg flex items-center gap-2"><Check size={18}/> Know it</button></div>
+        <div className="flex justify-center gap-4 mt-6"><button onClick={() => handleAnswer(false)} className="px-6 py-2 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg flex items-center gap-2"><X size={18}/> Don't know</button><button onClick={() => handleAnswer(true)} className="px-6 py-2 bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-300 rounded-lg flex items-center gap-2"><Check size={18}/> Know it</button></div>
       </div>
     );
   };
 
   const renderQuiz = () => {
-    if (filteredWords.length < 4) return <div className="text-center py-12 text-gray-500">Need 4+ words</div>;
+    if (filteredWords.length < 4) return <div className="text-center py-12 text-gray-500 dark:text-gray-400">Need 4+ words</div>;
     if (!quizSession) return null;
     if (quizSession.completed) return <CompletionScreen title="Quiz Complete!" stats={{ correct: quizSession.correct, total: quizSession.words.length }} wrongWords={quizSession.wrongWords} onRestart={() => setQuizSession({ words: [...filteredWords], index: 0, correct: 0, wrong: 0, wrongWords: [], selected: null, isAnswered: false, options: [], completed: false })} onBack={() => setView('list')} />;
     const w = quizSession.words[quizSession.index];
@@ -2392,14 +2392,14 @@ const saveCollection = async (name) => {
     return (
       <div className="max-w-md mx-auto">
         <ProgressBar current={quizSession.index} total={quizSession.words.length} correct={quizSession.correct} wrong={quizSession.wrong} />
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-4"><h2 className="text-xl font-semibold mb-2">{w.meaningEn}</h2>{w.meaningRu && <p className="text-blue-600 mb-4">→ {w.meaningRu}</p>}<div className="space-y-2">{quizSession.options.map(opt => <button key={opt.id} onClick={() => handleSelect(opt)} className={`w-full p-3 rounded-lg border text-left ${quizSession.isAnswered ? opt.id === w.id ? 'bg-green-100 border-green-500' : opt.id === quizSession.selected ? 'bg-red-100 border-red-500' : '' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{opt.word}</button>)}</div></div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-4"><h2 className="text-xl font-semibold mb-2">{w.meaningEn}</h2>{w.meaningRu && <p className="text-blue-600 dark:text-blue-400 mb-4">→ {w.meaningRu}</p>}<div className="space-y-2">{quizSession.options.map(opt => <button key={opt.id} onClick={() => handleSelect(opt)} className={`w-full p-3 rounded-lg border dark:border-gray-600 text-left ${quizSession.isAnswered ? opt.id === w.id ? 'bg-green-100 dark:bg-green-900/50 border-green-500 dark:text-green-300' : opt.id === quizSession.selected ? 'bg-red-100 dark:bg-red-900/50 border-red-500 dark:text-red-300' : '' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{opt.word}</button>)}</div></div>
         {quizSession.isAnswered && <button onClick={handleNext} className="w-full p-3 bg-blue-500 text-white rounded-lg">Next</button>}
       </div>
     );
   };
 
   const renderWrite = () => {
-    if (!filteredWords.length) return <div className="text-center py-12 text-gray-500">No words</div>;
+    if (!filteredWords.length) return <div className="text-center py-12 text-gray-500 dark:text-gray-400">No words</div>;
     if (!writeSession) return null;
     if (writeSession.completed) return <CompletionScreen title="Practice Complete!" stats={{ correct: writeSession.correct, total: writeSession.words.length }} wrongWords={writeSession.wrongWords} onRestart={() => setWriteSession({ words: [...filteredWords], index: 0, correct: 0, wrong: 0, wrongWords: [], input: '', result: null, completed: false })} onBack={() => setView('list')} />;
     const w = writeSession.words[writeSession.index];
@@ -2408,7 +2408,7 @@ const saveCollection = async (name) => {
     return (
       <div className="max-w-md mx-auto">
         <ProgressBar current={writeSession.index} total={writeSession.words.length} correct={writeSession.correct} wrong={writeSession.wrong} />
-        <div className="bg-white rounded-xl shadow-lg p-6"><h2 className="text-lg font-semibold mb-2">{w.meaningEn}</h2>{w.meaningRu && <p className="text-blue-600 mb-2">→ {w.meaningRu}</p>}<input value={writeSession.input} onChange={e => setWriteSession(s => ({ ...s, input: e.target.value }))} onKeyDown={e => e.key === 'Enter' && !writeSession.result && handleCheck()} placeholder="Type the word..." className="w-full p-3 border dark:border-gray-600 dark:bg-gray-700 rounded-lg mb-3" disabled={!!writeSession.result} autoFocus />{writeSession.result && <div className={`p-3 rounded-lg mb-3 ${writeSession.result.correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{writeSession.result.correct ? '✓ Correct!' : `✗ Answer: ${writeSession.result.answer}`}</div>}<button onClick={writeSession.result ? handleNext : handleCheck} className="w-full p-3 bg-blue-500 text-white rounded-lg">{writeSession.result ? 'Next' : 'Check'}</button></div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"><h2 className="text-lg font-semibold mb-2">{w.meaningEn}</h2>{w.meaningRu && <p className="text-blue-600 dark:text-blue-400 mb-2">→ {w.meaningRu}</p>}<input value={writeSession.input} onChange={e => setWriteSession(s => ({ ...s, input: e.target.value }))} onKeyDown={e => e.key === 'Enter' && !writeSession.result && handleCheck()} placeholder="Type the word..." className="w-full p-3 border dark:border-gray-600 dark:bg-gray-700 rounded-lg mb-3" disabled={!!writeSession.result} autoFocus />{writeSession.result && <div className={`p-3 rounded-lg mb-3 ${writeSession.result.correct ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300'}`}>{writeSession.result.correct ? '✓ Correct!' : `✗ Answer: ${writeSession.result.answer}`}</div>}<button onClick={writeSession.result ? handleNext : handleCheck} className="w-full p-3 bg-blue-500 text-white rounded-lg">{writeSession.result ? 'Next' : 'Check'}</button></div>
       </div>
     );
   };
@@ -2577,7 +2577,7 @@ const saveCollection = async (name) => {
                       {data.collections.slice(0, 5).map(col => {
                         const colWords = data.words.filter(w => col.sections.some(s => s.id === w.sectionId));
                         return (
-                          <button key={col.id} onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 text-left">
+                          <button key={col.id} onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-left">
                             <span className="text-xl">{col.icon || '📚'}</span>
                             <span className="flex-1 truncate text-sm">{col.name}</span>
                             <span className="text-sm text-gray-400">{colWords.length}</span>
@@ -2598,9 +2598,9 @@ const saveCollection = async (name) => {
                     <h3 className="font-semibold mb-4 flex items-center gap-2"><Calendar size={18}/> Recently Added</h3>
                     <div className="space-y-2">
                       {recentWords.map(w => (
-                        <div key={w.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setModal({ type: 'word', data: w })}>
+                        <div key={w.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => setModal({ type: 'word', data: w })}>
                           <span className="font-medium text-sm">{w.word}</span>
-                          <span className="text-gray-400 text-sm truncate flex-1">{w.meaningRu}</span>
+                          <span className="text-gray-400 dark:text-gray-300 text-sm truncate flex-1">{w.meaningRu}</span>
                           <span className={`px-2 py-0.5 rounded text-xs ${getLevelColor(w.level)}`}>{w.level}</span>
                         </div>
                       ))}
@@ -2613,9 +2613,9 @@ const saveCollection = async (name) => {
                     <h3 className="font-semibold mb-4 flex items-center gap-2"><RotateCcw size={18}/> Review These</h3>
                     <div className="space-y-2">
                       {wordsToReview.map(w => (
-                        <div key={w.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setModal({ type: 'word', data: w })}>
+                        <div key={w.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => setModal({ type: 'word', data: w })}>
                           <span className="font-medium text-sm">{w.word}</span>
-                          <span className="text-gray-400 text-sm truncate flex-1">{w.meaningRu}</span>
+                          <span className="text-gray-400 dark:text-gray-300 text-sm truncate flex-1">{w.meaningRu}</span>
                         </div>
                       ))}
                     </div>
@@ -2663,7 +2663,7 @@ const saveCollection = async (name) => {
                   </div>
                 </div>
               </div>
-              <div className="space-y-3">{filteredWords.length ? filteredWords.map(w => <WordCard key={w.id} word={w} />) : <div className="text-center py-12 text-gray-500">No words match filters</div>}</div>
+              <div className="space-y-3">{filteredWords.length ? filteredWords.map(w => <WordCard key={w.id} word={w} />) : <div className="text-center py-12 text-gray-500 dark:text-gray-400">No words match filters</div>}</div>
             </>
           )}
           {view === 'song' && currentSong && (
@@ -2768,7 +2768,7 @@ const saveCollection = async (name) => {
               </div>
               {!currentSection && currentCollection && <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-800">Select a section to add words.</div>}
               <div className="grid grid-cols-4 gap-2 mb-4">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg ${view === m.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}><m.icon size={18}/> {m.label}</button>)}</div>
-              {view === 'list' && <div className="space-y-3">{filteredWords.length ? filteredWords.map(w => <WordCard key={w.id} word={w} />) : <div className="text-center py-12 text-gray-500">No words</div>}</div>}
+              {view === 'list' && <div className="space-y-3">{filteredWords.length ? filteredWords.map(w => <WordCard key={w.id} word={w} />) : <div className="text-center py-12 text-gray-500 dark:text-gray-400">No words</div>}</div>}
               {view === 'cards' && renderFlashcards()}
               {view === 'quiz' && renderQuiz()}
               {view === 'write' && renderWrite()}
