@@ -290,7 +290,7 @@ const CompletionScreen = ({ title, stats, onRestart, onBack, wrongWords, isDark 
   );
 };
 
-const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
+const ImportTextModal = ({ onImport, onCancel, currentSectionId, isDark = true }) => {
   const [text, setText] = useState('');
   const [preview, setPreview] = useState([]);
 
@@ -345,35 +345,35 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
   };
 
   return (
-    <Modal onClose={onCancel} wide>
-      <h3 className="text-lg font-semibold mb-4">Import</h3>
+    <Modal onClose={onCancel} wide isDark={isDark}>
+      <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Import</h3>
       <textarea
         value={text}
         onChange={e => setText(e.target.value)}
         placeholder="Paste text in format: word [tab] translation"
-        className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none h-48 mb-3 font-mono text-sm"
+        className={`w-full px-3 py-2 rounded-xl focus:outline-none h-48 mb-3 font-mono text-sm ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`}
       />
       {preview.length === 0 && (
         <div className="flex gap-2">
-          <button onClick={onCancel} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
-          <button onClick={parseText} disabled={!text.trim()} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg disabled:opacity-50 hover:bg-blue-600">Parse</button>
+          <button onClick={onCancel} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+          <button onClick={parseText} disabled={!text.trim()} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium disabled:opacity-50 hover:brightness-110">Parse</button>
         </div>
       )}
       {preview.length > 0 && (
         <>
-          <div className="text-sm text-gray-600  mb-2">{preview.length} words found</div>
-          <div className="max-h-64 overflow-y-auto border  rounded-lg mb-3 bg-gray-50 ">
+          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{preview.length} words found</div>
+          <div className={`max-h-64 overflow-y-auto rounded-xl mb-3 ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
             {preview.map((w, i) => (
-              <div key={i} className="p-2 border-b  text-sm">
-                <div className="font-medium">{w.word}</div>
-                {w.meaningRu && <div className="text-blue-400">→ {w.meaningRu}</div>}
-                {w.meaningEn && <div className="text-gray-300">{w.meaningEn}</div>}
+              <div key={i} className={`p-2 text-sm ${isDark ? 'border-b border-white/5' : 'border-b border-gray-200'}`}>
+                <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.word}</div>
+                {w.meaningRu && <div className="text-pink-vibrant">→ {w.meaningRu}</div>}
+                {w.meaningEn && <div className={isDark ? 'text-gray-400' : 'text-gray-600'}>{w.meaningEn}</div>}
               </div>
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setPreview([])} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">← Back</button>
-            <button onClick={async () => { await onImport(preview); onCancel(); }} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">Import {preview.length} words</button>
+            <button onClick={() => setPreview([])} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>← Back</button>
+            <button onClick={async () => { await onImport(preview); onCancel(); }} className="flex-1 h-10 px-4 bg-emerald-500 text-white rounded-full font-medium hover:brightness-110">Import {preview.length} words</button>
           </div>
         </>
       )}
@@ -381,7 +381,7 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
   );
 };
 
-const FillCardsModal = ({ words, onSave, onCancel }) => {
+const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
   const [stage, setStage] = useState('initial'); // initial, loading, selecting, filling, done
   const [progress, setProgress] = useState({ current: 0, total: words.length });
   const [lookupResults, setLookupResults] = useState([]); // {word, originalData, apiData, selectedTranslations}
@@ -555,8 +555,8 @@ const FillCardsModal = ({ words, onSave, onCancel }) => {
   const failedCount = lookupResults.filter(r => !r.apiData && r.error).length;
 
   return (
-    <Modal onClose={handleClose} preventClose wide>
-      <button onClick={handleClose} className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 hover:bg-white/5 rounded">
+    <Modal onClose={handleClose} preventClose wide isDark={isDark}>
+      <button onClick={handleClose} className={`absolute top-3 right-3 p-1 rounded ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>
         <X size={20} />
       </button>
 
@@ -1647,7 +1647,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   );
 };
 
-const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
+const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel, isDark = true }) => {
   const [title, setTitle] = useState(song?.title || '');
   const [text, setText] = useState(song?.text || '');
 
@@ -1664,11 +1664,11 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
   };
 
   return (
-    <Modal onClose={onCancel} preventClose medium>
-      <h3 className="text-lg font-semibold mb-4">{song?.id ? 'Edit Song' : 'Add Song'}</h3>
-      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Song title *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-3" />
-      <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste lyrics..." className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none h-64 mb-3" />
-      <div className="flex gap-2"><button onClick={onCancel} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={handleSave} disabled={!title.trim() || !text.trim()} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg disabled:opacity-50 hover:bg-blue-600">Save</button></div>
+    <Modal onClose={onCancel} preventClose medium isDark={isDark}>
+      <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{song?.id ? 'Edit Song' : 'Add Song'}</h3>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Song title *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-3 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} />
+      <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste lyrics..." className={`w-full px-3 py-2 rounded-xl focus:outline-none h-64 mb-3 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} />
+      <div className="flex gap-2"><button onClick={onCancel} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={handleSave} disabled={!title.trim() || !text.trim()} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium disabled:opacity-50 hover:brightness-110">Save</button></div>
     </Modal>
   );
 };
@@ -3403,10 +3403,10 @@ export default function VocabApp() {
             setToast({ message: `${savedWords.length} words imported!`, canUndo: false });
           }}
 
-          onCancel={() => setModal({ type: null, data: null })} />
+          onCancel={() => setModal({ type: null, data: null })} isDark={isDark} />
       }
-      {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} />}
-      {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })}><h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button></div></Modal>}
+      {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} isDark={isDark} />}
+      {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}><h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button></div></Modal>}
       {
         modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })}>
           <h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
@@ -3482,9 +3482,10 @@ export default function VocabApp() {
             setToast({ message: `${filledWords.length} cards filled!`, canUndo: false });
           }}
           onCancel={() => setModal({ type: null, data: null })}
+          isDark={isDark}
         />
       }
-      {confirmDelete && <Modal onClose={() => setConfirmDelete(null)}><h3 className="text-lg font-semibold mb-2">Delete?</h3><p className="text-gray-600 mb-4">Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button></div></Modal>}
+      {confirmDelete && <Modal onClose={() => setConfirmDelete(null)} isDark={isDark}><h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Delete?</h3><p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-full font-medium hover:brightness-110">Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
