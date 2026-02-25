@@ -2720,41 +2720,36 @@ export default function VocabApp() {
   const WordCard = ({ word }) => {
     return (
       <div
-        className="rounded-[20px] p-5 relative transition-all duration-300 hover:translate-y-[-2px]"
-        style={{
-          background: 'linear-gradient(145deg, rgba(30, 30, 30, 0.9) 0%, rgba(20, 20, 20, 0.95) 100%)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03)'
-        }}
+        className="dash-card flex flex-col"
       >
         <div className="flex items-start justify-between mb-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-semibold text-white/90">{word.word}</span>
-              <button onClick={() => playPronunciation(word.word)} className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
-                <Volume2 size={16} className="text-orange-400/80" />
+              <span className={`text-xl font-display font-semibold ${isDark ? 'text-white/90' : 'text-gray-900'}`}>{word.word}</span>
+              <button onClick={() => playPronunciation(word.word)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
+                <Volume2 size={16} className="text-pink-vibrant" />
               </button>
             </div>
-            <span className="text-sm text-white/30">{word.type}{word.forms && ` · ${word.forms}`}</span>
+            <span className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{word.type}{word.forms && ` · ${word.forms}`}</span>
           </div>
           <div className="flex gap-1">
-            <button onClick={() => setModal({ type: 'word', data: word })} className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
-              <Edit2 size={14} className="text-white/30 hover:text-white/50" />
+            <button onClick={() => setModal({ type: 'word', data: word })} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}>
+              <Edit2 size={16} />
             </button>
-            <button onClick={() => requestDelete('word', word)} className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
-              <Trash2 size={14} className="text-white/30 hover:text-red-400/70" />
+            <button onClick={() => requestDelete('word', word)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-red-500/20 text-white/50 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500'}`}>
+              <Trash2 size={16} />
             </button>
           </div>
         </div>
-        <div className="text-white/70 mb-2 leading-relaxed">{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
-        {word.meaningRu && <p className="text-orange-400/90 text-sm mb-3">→ {word.meaningRu}</p>}
+        <div className={`mb-2 leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
+        {word.meaningRu && <p className="text-pink-vibrant font-medium text-sm mb-3">→ {word.meaningRu}</p>}
         {word.example && (
-          <div className="text-sm text-white/40 italic rounded-xl bg-white/[0.02] border-l-2 border-orange-500/30 pl-3 py-2 mb-3">
+          <div className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 bg-transparent ${isDark ? 'text-white/40 border-pink-vibrant/40' : 'text-gray-500 border-pink-500/40'}`}>
             {word.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), word.word)}"</div>)}
           </div>
         )}
         {word.myExample && (
-          <p className="text-sm text-amber-300/80 italic rounded-xl border-l-2 border-amber-500/30 pl-3 py-2 bg-amber-900/10 mb-3">
+          <p className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 transition-colors ${isDark ? 'text-amber-300/80 border-amber-500/30 bg-amber-900/10' : 'text-amber-700 border-amber-500/30 bg-amber-100/50'}`}>
             ✏️ "{word.myExample}"
           </p>
         )}
