@@ -2758,29 +2758,15 @@ export default function VocabApp() {
             ✏️ "{word.myExample}"
           </p>
         )}
-        {(word.singleRootWords || word.synonyms) && (
-          <div className="flex gap-3 mb-3 text-xs">
-            {word.singleRootWords && (
-              <button onClick={() => setWordPopup({ type: 'roots', word })} className="text-purple-400/80 hover:text-purple-300 transition-colors">
-                Single-root words →
-              </button>
-            )}
-            {word.synonyms && (
-              <button onClick={() => setWordPopup({ type: 'synonyms', word })} className="text-blue-400/80 hover:text-blue-300 transition-colors">
-                Synonyms →
-              </button>
-            )}
-          </div>
-        )}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+        <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isDark ? 'border-white/5' : 'border-black/5'}`}>
           <div className="flex gap-1.5">
             <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(word.level)}`}>{word.level}</span>
             <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getStatusColor(word.status)}`}>{word.status}</span>
           </div>
-          <div className="flex gap-1 text-xs">
-            <span className={`px-1.5 py-0.5 rounded-md ${(word.passedModes || []).includes('cards') ? 'bg-green-500/20 text-green-400/80' : 'bg-white/5 text-white/20'}`}>C</span>
-            <span className={`px-1.5 py-0.5 rounded-md ${(word.passedModes || []).includes('quiz') ? 'bg-green-500/20 text-green-400/80' : 'bg-white/5 text-white/20'}`}>Q</span>
-            <span className={`px-1.5 py-0.5 rounded-md ${(word.passedModes || []).includes('write') ? 'bg-green-500/20 text-green-400/80' : 'bg-white/5 text-white/20'}`}>W</span>
+          <div className="flex gap-1 text-xs font-medium">
+            <span className={`px-1.5 py-0.5 rounded-md transition-colors ${(word.passedModes || []).includes('cards') ? 'bg-emerald-500/20 text-emerald-600' : isDark ? 'bg-white/5 text-white/30' : 'bg-black/5 text-gray-400'}`}>C</span>
+            <span className={`px-1.5 py-0.5 rounded-md transition-colors ${(word.passedModes || []).includes('quiz') ? 'bg-emerald-500/20 text-emerald-600' : isDark ? 'bg-white/5 text-white/30' : 'bg-black/5 text-gray-400'}`}>Q</span>
+            <span className={`px-1.5 py-0.5 rounded-md transition-colors ${(word.passedModes || []).includes('write') ? 'bg-emerald-500/20 text-emerald-600' : isDark ? 'bg-white/5 text-white/30' : 'bg-black/5 text-gray-400'}`}>W</span>
           </div>
         </div>
       </div>
@@ -2873,11 +2859,11 @@ export default function VocabApp() {
           <div style={{ transformStyle: 'preserve-3d', transition: 'transform 0.5s', transform: cardSession.flipped ? 'rotateY(180deg)' : '' }} className="relative h-72">
             <div style={{ backfaceVisibility: 'hidden' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col items-center justify-center`}><h2 className={`text-3xl font-display font-bold text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.word}</h2><p className={isDark ? "text-gray-400" : "text-gray-500"}>{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-pink-500/10 hover:bg-pink-500/20 rounded-full transition-colors"><Volume2 className="text-pink-vibrant" /></button></div>
             <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col justify-center border-2 border-pink-vibrant/30`}>
-              <p className={`text-lg mb-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{w.meaningEn}</p>
+              <p className={`text-lg mb-2 font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{w.meaningEn}</p>
               {w.meaningRu && <p className="text-pink-vibrant font-medium mb-2">→ {w.meaningRu}</p>}
-              {w.example && <div className="text-sm text-gray-400 italic mt-2 mb-3">{w.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), w.word)}"</div>)}</div>}
+              {w.example && <div className={`text-sm italic mt-2 mb-3 rounded-xl border-l-2 pl-3 py-2 ${isDark ? 'text-white/40 bg-white/[0.02] border-pink-vibrant/30' : 'text-gray-500 bg-black/[0.02] border-pink-500/30'}`}>{w.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), w.word)}"</div>)}</div>}
               {(w.singleRootWords || w.synonyms) && (
-                <div className="mt-auto pt-3 border-t border-gray-700 flex gap-3 text-xs">
+                <div className={`mt-auto pt-3 border-t flex gap-4 text-xs font-medium ${isDark ? 'border-white/10' : 'border-black/5'}`}>
                   {w.singleRootWords && (
                     <button onClick={e => { e.stopPropagation(); setCardPopup({ type: 'roots', word: w }); }} className="text-purple-400 hover:text-purple-300 underline">
                       Single-root words
@@ -2909,8 +2895,8 @@ export default function VocabApp() {
     return (
       <div className="max-w-md mx-auto">
         <ProgressBar current={quizSession.index} total={quizSession.words.length} correct={quizSession.correct} wrong={quizSession.wrong} />
-        <div className={`liquid-glass rounded-3xl p-6 mb-4 ${isDark ? '' : 'shadow-sm'}`}><h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.meaningEn}</h2>{w.meaningRu && <p className="text-pink-vibrant mb-4">→ {w.meaningRu}</p>}<div className="space-y-3">{quizSession.options.map(opt => <button key={opt.id} onClick={() => handleSelect(opt)} className={`w-full p-4 rounded-2xl text-left liquid-glass font-medium transition-all ${quizSession.isAnswered ? opt.id === w.id ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/50' : opt.id === quizSession.selected ? 'bg-red-500/20 text-red-600 border border-red-500/50' : 'opacity-50' : 'hover:brightness-110'}`}>{opt.word}</button>)}</div></div>
-        {quizSession.isAnswered && <button onClick={handleNext} className="w-full p-3 bg-blue-500 text-white rounded-lg">Next</button>}
+        <div className={`liquid-glass rounded-3xl p-6 mb-4 ${isDark ? '' : 'shadow-sm'}`}><h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.meaningEn}</h2>{w.meaningRu && <p className="text-pink-vibrant font-medium mb-4">→ {w.meaningRu}</p>}<div className="space-y-3">{quizSession.options.map(opt => <button key={opt.id} onClick={() => handleSelect(opt)} className={`w-full p-4 rounded-2xl text-left liquid-glass font-medium transition-all ${quizSession.isAnswered ? opt.id === w.id ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/50' : opt.id === quizSession.selected ? 'bg-red-500/20 text-red-600 border border-red-500/50' : 'opacity-50' : 'hover:brightness-110'}`}>{opt.word}</button>)}</div></div>
+        {quizSession.isAnswered && <button onClick={handleNext} className="w-full p-4 bg-purple-vibrant text-white rounded-2xl font-semibold">Next</button>}
       </div>
     );
   };
@@ -2957,16 +2943,16 @@ export default function VocabApp() {
           </div>
           <div className="flex items-center gap-4">
             <input type="file" accept=".json" onChange={importData} className="hidden" id="import-backup" />
-            <button onClick={() => document.getElementById('import-backup').click()} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Restore"><Upload size={18} /></button>
-            <button onClick={exportData} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Backup"><Download size={18} /></button>
+            <button onClick={() => document.getElementById('import-backup').click()} className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Restore"><Upload size={18} /></button>
+            <button onClick={exportData} className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-500'}`} title="Backup"><Download size={18} /></button>
             {currentSection && (
               <>
-                <button onClick={() => setModal({ type: 'importText', data: null })} className={`h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium ${isDark ? 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'}`}><Upload size={16} /> Import</button>
-                <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className={`h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium ${isDark ? 'bg-green-500/15 text-green-400 hover:bg-green-500/25' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}><Plus size={16} /> Add</button>
+                <button onClick={() => setModal({ type: 'importText', data: null })} className="h-10 px-4 rounded-full flex items-center gap-1.5 text-sm font-semibold bg-purple-vibrant/20 text-purple-vibrant hover:bg-purple-vibrant/30 transition-colors"><Upload size={16} /> Import</button>
+                <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className="h-10 px-4 rounded-full flex items-center gap-1.5 text-sm font-semibold bg-pink-vibrant text-white hover:brightness-110 shadow-lg shadow-pink-500/20 transition-all"><Plus size={16} /> Add</button>
               </>
             )}
             <div className="relative ml-2">
-              <button onClick={() => setShowUserMenu(!showUserMenu)} className={`w-9 h-9 rounded-full flex items-center justify-center ${isDark ? 'bg-orange-500/15 text-orange-400 hover:bg-orange-500/25' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'}`}>
+              <button onClick={() => setShowUserMenu(!showUserMenu)} className="w-10 h-10 rounded-full flex items-center justify-center liquid-glass text-pink-vibrant hover:brightness-110 transition-colors shadow-sm">
                 <User size={18} />
               </button>
               {showUserMenu && (
