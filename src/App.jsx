@@ -692,7 +692,7 @@ const FillCardsModal = ({ words, onSave, onCancel }) => {
   );
 };
 
-const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, onAddTag, onDuplicateFound }) => {
+const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, onAddTag, onDuplicateFound, isDark = true }) => {
   const [form, setForm] = useState({ ...word, tags: word.tags || [] });
   const [loading, setLoading] = useState(false);
   const [translationsWithExamples, setTranslationsWithExamples] = useState([]);
@@ -941,12 +941,12 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   };
 
   return (
-    <Modal onClose={onCancel} preventClose>
+    <Modal onClose={onCancel} preventClose isDark={isDark}>
       <div style={{ maxHeight: '90vh', overflow: 'auto' }}>
-        <h3 className="text-lg font-semibold mb-4">{word.id ? 'Edit Word' : 'Add Word'}</h3>
+        <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{word.id ? 'Edit Word' : 'Add Word'}</h3>
         <div className="space-y-3">
           <div className="flex gap-2">
-            <input className="flex-1 h-10 px-3 border   rounded-lg" placeholder="Word *" value={form.word} onChange={e => setForm({ ...form, word: e.target.value })} />
+            <input className={`flex-1 h-10 px-3 rounded-xl ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} placeholder="Word *" value={form.word} onChange={e => setForm({ ...form, word: e.target.value })} />
             <button onClick={() => doLookup(false)} disabled={loading || !form.word.trim()} className="h-10 px-4 bg-blue-500 text-white rounded-lg disabled:opacity-50 hover:bg-blue-600">
               {loading ? <Loader size={16} className="animate-spin" /> : <Search size={16} />}
             </button>
@@ -1028,9 +1028,9 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                         setForm(newForm);
                       }
                     }}
-                    className={`px-2 py-1 text-xs rounded-full border ${isSelected
-                      ? 'bg-blue-500 text-white border-blue-500'
-                      : 'bg-white  text-gray-300 border-gray-300  hover:border-gray-400 :border-gray-500'
+                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${isSelected
+                      ? 'bg-pink-vibrant text-white border-pink-vibrant'
+                      : isDark ? 'bg-white/5 text-gray-400 border-white/10 hover:border-white/20' : 'bg-gray-100 text-gray-600 border-gray-300 hover:border-gray-400'
                       }`}
                   >
                     {t}
@@ -1096,9 +1096,9 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                                 key={`${type}-${idx}`}
                                 onClick={() => addTranslation(m.ru)}
                                 title={m.meaningEn || (m.isUserAdded ? 'Мой перевод' : '')}
-                                className={`text-sm px-3 py-1 rounded-full ${isTranslationAdded(m.ru)
-                                  ? 'bg-green-100 text-green-700 border border-green-300   '
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-700   '
+                                className={`text-sm px-3 py-1 rounded-full transition-colors ${isTranslationAdded(m.ru)
+                                  ? isDark ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-green-100 text-green-700 border border-green-300'
+                                  : isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                   }`}
                               >
                                 {isTranslationAdded(m.ru) ? '✓ ' : ''}{m.isUserAdded ? '★ ' : ''}{m.ru}
@@ -1113,14 +1113,14 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               </div>
             )}
           </div>
-          <textarea className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none" placeholder="Example" value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} rows={2} />
-          <textarea className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none bg-yellow-900/30 text-gray-100  " placeholder="My example" value={form.myExample || ''} onChange={e => setForm({ ...form, myExample: e.target.value })} rows={2} />
-          <input className="w-full h-10 px-3 border border-gray-700 rounded-lg bg-purple-900/30 text-gray-100" placeholder="Single-root words (e.g., teach, teacher, teaching)" value={form.singleRootWords || ''} onChange={e => setForm({ ...form, singleRootWords: e.target.value })} />
-          <input className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none bg-blue-900/30 text-gray-100  " placeholder="Synonyms (e.g., big, large, huge)" value={form.synonyms || ''} onChange={e => setForm({ ...form, synonyms: e.target.value })} />
+          <textarea className={`w-full px-3 py-2 rounded-xl focus:outline-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} placeholder="Example" value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} rows={2} />
+          <textarea className={`w-full px-3 py-2 rounded-xl focus:outline-none ${isDark ? 'bg-amber-900/20 border border-amber-500/20 text-white placeholder-gray-500' : 'bg-amber-50 border border-amber-200 text-gray-900 placeholder-gray-400'}`} placeholder="My example" value={form.myExample || ''} onChange={e => setForm({ ...form, myExample: e.target.value })} rows={2} />
+          <input className={`w-full h-10 px-3 rounded-xl focus:outline-none ${isDark ? 'bg-purple-900/20 border border-purple-500/20 text-white placeholder-gray-500' : 'bg-purple-50 border border-purple-200 text-gray-900 placeholder-gray-400'}`} placeholder="Single-root words (e.g., teach, teacher, teaching)" value={form.singleRootWords || ''} onChange={e => setForm({ ...form, singleRootWords: e.target.value })} />
+          <input className={`w-full h-10 px-3 rounded-xl focus:outline-none ${isDark ? 'bg-blue-900/20 border border-blue-500/20 text-white placeholder-gray-500' : 'bg-blue-50 border border-blue-200 text-gray-900 placeholder-gray-400'}`} placeholder="Synonyms (e.g., big, large, huge)" value={form.synonyms || ''} onChange={e => setForm({ ...form, synonyms: e.target.value })} />
         </div>
         <div className="flex gap-2 mt-4">
-          <button onClick={onCancel} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
-          <button onClick={() => form.word && form.meaningEn && onSave(form)} disabled={!form.word || !form.meaningEn} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg disabled:opacity-50 hover:bg-blue-600">Save</button>
+          <button onClick={onCancel} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+          <button onClick={() => form.word && form.meaningEn && onSave(form)} disabled={!form.word || !form.meaningEn} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium disabled:opacity-50 hover:brightness-110">Save</button>
         </div>
       </div>
     </Modal>
@@ -3341,7 +3341,7 @@ export default function VocabApp() {
           )}
         </div>
       </div>
-      {modal.type === 'word' && <WordForm word={modal.data} allTags={data.allTags} existingWords={data.words} sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} onSave={saveWord} onCancel={() => setModal({ type: null, data: null })} onAddTag={t => { if (!data.allTags.includes(t)) setData(d => ({ ...d, allTags: [...d.allTags, t] })); }} onDuplicateFound={msg => setAlert(msg)} />}
+      {modal.type === 'word' && <WordForm word={modal.data} allTags={data.allTags} existingWords={data.words} sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} onSave={saveWord} onCancel={() => setModal({ type: null, data: null })} onAddTag={t => { if (!data.allTags.includes(t)) setData(d => ({ ...d, allTags: [...d.allTags, t] })); }} onDuplicateFound={msg => setAlert(msg)} isDark={isDark} />}
       {
         modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id}
 
