@@ -1028,9 +1028,9 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
                         setForm(newForm);
                       }
                     }}
-                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${isSelected
+                    className={`px-3 py-1.5 text-xs rounded-full border transition-colors font-medium ${isSelected
                       ? 'bg-pink-vibrant text-white border-pink-vibrant'
-                      : isDark ? 'bg-white/5 text-gray-400 border-white/10 hover:border-white/20' : 'bg-gray-100 text-gray-600 border-gray-300 hover:border-gray-400'
+                      : isDark ? 'bg-[#2a2a2e] text-white/80 border-white/20 hover:bg-[#3a3a3e] hover:border-white/30' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
                       }`}
                   >
                     {t}

@@ -117,9 +117,9 @@
 }
 
 /* Smooth focus states - Make it modern, not Tailwind-y */
-input:focus,
-textarea:focus,
-select:focus {
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
   outline: none;
   border-color: transparent !important;
   box-shadow: 0 0 0 1px rgba(252, 59, 116, 0.2), 0 0 20px rgba(252, 59, 116, 0.1) !important;
@@ -127,10 +127,11 @@ select:focus {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Light theme overrides */
-body:not(.dark) input:focus,
-body:not(.dark) textarea:focus,
-body:not(.dark) select:focus {
+/* Light theme focus */
+html:not(.dark) input:focus,
+html:not(.dark) textarea:focus,
+html:not(.dark) select:focus {
+  outline: none;
   box-shadow: 0 0 0 1px rgba(252, 59, 116, 0.15), 0 4px 15px rgba(0, 0, 0, 0.05) !important;
   background: rgba(255, 255, 255, 1);
 }
@@ -146,30 +147,30 @@ select,
 }
 
 /* Custom scrollbar for dark theme */
-::-webkit-scrollbar {
+.dark ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
+.dark ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+.dark ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
 /* Light theme scrollbar */
-body:not(.dark) ::-webkit-scrollbar-thumb {
+html:not(.dark) ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.15);
 }
 
-body:not(.dark) ::-webkit-scrollbar-thumb:hover {
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.25);
 }
 
@@ -195,7 +196,8 @@ h6 {
   padding: 0.5rem 1rem;
 }
 
-.liquid-glass {
+/* Dark theme liquid glass */
+.dark .liquid-glass {
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
@@ -203,21 +205,22 @@ h6 {
   box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
 }
 
-body:not(.dark) .liquid-glass {
+/* Light theme liquid glass */
+html:not(.dark) .liquid-glass {
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03), inset 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
 /* Custom backgrounds */
-body.dark,
+.dark body,
 .bg-theme-main {
   background-color: #0d0d10 !important;
   background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
   background-size: 20px 20px !important;
 }
 
-body:not(.dark) {
+html:not(.dark) body {
   background-color: #f5f5f7 !important;
   background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px) !important;
   background-size: 20px 20px !important;
@@ -268,14 +271,18 @@ body:not(.dark) {
   background-color: #69e3a9;
 }
 
-.dash-card {
+/* Dark theme dash-card */
+.dark .dash-card {
   border-radius: 1.5rem;
   padding: 1.5rem;
   background: #18181b;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-body:not(.dark) .dash-card {
+/* Light theme dash-card */
+html:not(.dark) .dash-card {
+  border-radius: 1.5rem;
+  padding: 1.5rem;
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
