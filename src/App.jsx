@@ -676,25 +676,27 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         body: { word: form.word.trim() }
       });
 
-      if (error) throw error;
-
       console.log('=== Lookup result ===');
       console.log('Full data:', data);
-      console.log('Type:', data.type);
-      console.log('Level:', data.level);
-      console.log('Meanings:', data.meanings);
+      console.log('Error:', error);
 
-      // Проверяем на ошибку (неправильное слово)
-      if (data.error) {
+      // Проверяем на ошибку (неправильное слово) - сначала data, потом error
+      if (data?.error) {
         setLookupError(data.error);
         if (data.suggestions && Array.isArray(data.suggestions)) {
           setSuggestions(data.suggestions);
         }
-        // НЕ обрабатываем meanings если слово с ошибкой
         setHasLookedUp(true);
         setLoading(false);
         return;
       }
+
+      // Если есть error от supabase но нет data.error - выбрасываем
+      if (error) throw error;
+
+      console.log('Type:', data?.type);
+      console.log('Level:', data?.level);
+      console.log('Meanings:', data?.meanings);
 
       if (data.meanings && Array.isArray(data.meanings)) {
         // Собираем все уникальные типы из API
@@ -760,7 +762,20 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       setHasLookedUp(true);
     } catch (e) {
       console.error('Lookup error:', e);
-      setLookupError(e.message || 'Failed to lookup word');
+      // Пробуем извлечь suggestions из ошибки если они есть
+      try {
+        const errorData = typeof e.context?.body === 'string' ? JSON.parse(e.context.body) : e.context?.body;
+        if (errorData?.error) {
+          setLookupError(errorData.error);
+          if (errorData.suggestions && Array.isArray(errorData.suggestions)) {
+            setSuggestions(errorData.suggestions);
+          }
+        } else {
+          setLookupError(e.message || 'Failed to lookup word');
+        }
+      } catch {
+        setLookupError(e.message || 'Failed to lookup word');
+      }
     }
     setLoading(false);
   };
