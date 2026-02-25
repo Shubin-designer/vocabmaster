@@ -81,8 +81,24 @@
   }
 }
 
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
 .animate-slideInRight {
   animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideOutRight {
+  animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
 /* Glass effect */

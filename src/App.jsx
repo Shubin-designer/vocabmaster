@@ -1498,14 +1498,14 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
-        <div className="liquid-glass rounded-3xl p-6 flex-1 min-h-0 flex flex-col relative text-left">
-          <div className={`text-xs mb-2 flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Select text to see translation and add words</div>
-          <div className={`text-lg leading-relaxed p-4 rounded-xl flex-1 overflow-y-auto min-h-0 whitespace-pre-wrap ${isDark ? 'bg-transparent text-gray-200' : 'bg-transparent text-gray-800'}`}>{highlightText()}</div>
+        <div className={`dash-card flex-1 min-h-0 flex flex-col relative text-left`}>
+          <div className={`text-xs mb-3 flex-shrink-0 font-medium ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Select text to see translation and add words</div>
+          <div className={`text-lg leading-relaxed p-4 rounded-2xl flex-1 overflow-y-auto min-h-0 whitespace-pre-wrap ${isDark ? 'bg-white/[0.02] text-white/90' : 'bg-black/[0.02] text-gray-900'}`}>{highlightText()}</div>
 
         </div>
 
         {hoveredWord && (
-          <div className={`fixed rounded-2xl shadow-xl p-4 z-[90] min-w-48 max-w-xs animate-scaleIn pointer-events-none border ${isDark ? 'liquid-glass text-white border-white/20' : 'bg-white text-gray-900 border-black/10'}`} style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
+          <div className={`fixed rounded-2xl shadow-2xl p-4 z-[200] min-w-48 max-w-xs animate-scaleIn pointer-events-none border ${isDark ? 'bg-[#1a1a1e]/95 backdrop-blur-xl text-white border-white/10' : 'bg-white/95 backdrop-blur-xl text-gray-900 border-black/10 shadow-lg'}`} style={{ left: hoveredWord.pos.x, top: Math.max(hoveredWord.pos.y - 10, 80), transform: 'translate(-50%, -100%)' }}>
             {hoveredWord.phrases ? (
               <>
                 <div className="font-bold mb-1">{hoveredWord.word}</div>
@@ -1531,7 +1531,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           </div>
         )}
         {popup && (
-          <div className={`song-popup fixed rounded-2xl shadow-xl p-4 z-[90] min-w-48 animate-scaleIn border ${isDark ? 'liquid-glass text-white border-white/20' : 'bg-white text-gray-900 border-black/10'}`} style={{ left: popup.pos.x, top: popup.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
+          <div className={`song-popup fixed rounded-2xl shadow-2xl p-4 z-[200] min-w-48 animate-scaleIn border ${isDark ? 'bg-[#1a1a1e]/95 backdrop-blur-xl text-white border-white/10' : 'bg-white/95 backdrop-blur-xl text-gray-900 border-black/10 shadow-lg'}`} style={{ left: popup.pos.x, top: Math.max(popup.pos.y - 10, 80), transform: 'translate(-50%, -100%)' }}>
             <div className="font-bold">{popup.original}</div>
             <div className={`text-sm mb-2 font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>→ {translating ? <Loader size={14} className="inline animate-spin" /> : popup.translation}</div>
             {existingSet.has(popup.word) ? (
@@ -1555,9 +1555,9 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         )}
 
         {selected.length > 0 && (
-          <div className="liquid-glass rounded-3xl p-6 flex-shrink-0 max-h-64 overflow-y-auto">
+          <div className="dash-card flex-shrink-0 max-h-64 overflow-y-auto">
             <div className="flex justify-between items-center mb-3 gap-2 flex-wrap">
-              <h3 className="font-semibold">Selected ({selected.length})</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Selected ({selected.length})</h3>
               <div className="flex items-center gap-2">
                 {checkedWords.length > 0 && <select onChange={e => handleBulkSectionChange(e.target.value)}
 
@@ -1566,14 +1566,14 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
 
 
                 }
-                <button onClick={addSelectedWords} className="px-4 py-2 bg-emerald-500 text-white font-medium rounded-xl hover:brightness-110 hover:shadow-lg transition-all text-sm">Add to vocabulary</button>
+                <button onClick={addSelectedWords} className="px-4 py-2.5 bg-mint-vibrant text-white font-medium rounded-full hover:brightness-110 hover:shadow-lg transition-all text-sm">Add to vocabulary</button>
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-white/5 border-b border-white/10 text-white/50"><tr><th className="p-2 text-left w-10"><input type="checkbox" checked={checkedWords.length === selected.length && selected.length > 0} onChange={toggleCheckAll} className="rounded border-white/20 accent-pink-500" /></th><th className="p-2 text-left">Word/Phrase</th><th className="p-2 text-left">Section</th></tr></thead>
+                <thead className={`border-b ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/50' : 'bg-black/[0.02] border-black/[0.06] text-gray-500'}`}><tr><th className="p-2 text-left w-10"><input type="checkbox" checked={checkedWords.length === selected.length && selected.length > 0} onChange={toggleCheckAll} className="rounded accent-pink-500" /></th><th className="p-2 text-left">Word/Phrase</th><th className="p-2 text-left">Section</th></tr></thead>
                 <tbody>{selected.map(w => (
-                  <tr key={w} className="border-b border-white/5 hover:bg-white/5 text-white/90">
+                  <tr key={w} className={`border-b ${isDark ? 'border-white/[0.04] hover:bg-white/[0.03] text-white/90' : 'border-black/[0.04] hover:bg-black/[0.02] text-gray-800'}`}>
                     <td className="p-2"><input type="checkbox" checked={checkedWords.includes(w)} onChange={() => toggleCheck(w)} /></td>
                     <td className="p-2 font-medium">{w}</td>
                     <td className="p-2">
@@ -1624,20 +1624,20 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
       {showExp && (
         <>
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setShowExp(false)}></div>
-          <div className={`fixed inset-y-0 right-0 w-[45vw] p-8 shadow-2xl z-[80] overflow-y-auto animate-slideInRight ${isDark ? 'liquid-glass border-l border-white/10' : 'bg-white border-l border-black/10'}`}>
-            <div className={`flex justify-between items-center mb-8 border-b pb-4 ${isDark ? 'border-white/10' : 'border-black/5'}`}>
-              <h3 className={`text-2xl font-display font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Song Explanation</h3>
-              <button onClick={() => setShowExp(false)} className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[150] transition-opacity" onClick={() => setShowExp(false)}></div>
+          <div className={`fixed inset-y-0 right-0 w-[45vw] p-8 shadow-2xl z-[160] overflow-y-auto animate-slideInRight ${isDark ? 'bg-[#141416]/98 backdrop-blur-xl border-l border-white/10' : 'bg-white/98 backdrop-blur-xl border-l border-black/10'}`}>
+            <div className={`flex justify-between items-center mb-8 border-b pb-4 ${isDark ? 'border-white/10' : 'border-black/10'}`}>
+              <h3 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Song Explanation</h3>
+              <button onClick={() => setShowExp(false)} className={`p-2.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/60 hover:text-white' : 'hover:bg-black/5 text-gray-400 hover:text-gray-900'}`}>
                 <X size={24} />
               </button>
             </div>
             {loadingExp ? (
               <div className="flex items-center justify-center py-24">
-                <Loader size={48} className={`animate-spin ${isDark ? 'text-pink-vibrant' : 'text-pink-500'}`} />
+                <Loader size={48} className={`animate-spin ${isDark ? 'text-pink-500' : 'text-pink-500'}`} />
               </div>
             ) : (
-              <div className={`prose max-w-none whitespace-pre-wrap text-lg leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{explanation}</div>
+              <div className={`whitespace-pre-wrap text-base leading-relaxed ${isDark ? 'text-white/80' : 'text-gray-800'}`}>{explanation}</div>
             )}
           </div>
         </>
@@ -2952,8 +2952,8 @@ export default function VocabApp() {
               </button>
               {showUserMenu && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
-                  <div className={`absolute right-0 top-full mt-2 w-64 rounded-2xl shadow-xl py-2 z-50 animate-scaleIn ${isDark ? 'bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/10' : 'bg-white/95 backdrop-blur-xl border border-black/5'}`}>
+                  <div className="fixed inset-0 z-[400]" onClick={() => setShowUserMenu(false)}></div>
+                  <div className={`absolute right-0 top-full mt-2 w-64 rounded-2xl shadow-2xl py-2 z-[410] animate-scaleIn ${isDark ? 'bg-[#1c1c1e]/98 backdrop-blur-xl border border-white/10' : 'bg-white/98 backdrop-blur-xl border border-black/5 shadow-lg'}`}>
                     <div className={`px-4 py-2 border-b ${isDark ? 'border-white/5' : 'border-black/5'}`}>
                       <div className={`text-sm font-medium truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{user.email}</div>
                     </div>
@@ -3208,21 +3208,21 @@ export default function VocabApp() {
           {view === 'all-words' && (
             <>
               <div className="flex items-center justify-between mb-4">
-                <h2 className={`text-xl font-display font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewTitle}</h2>
+                <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewTitle}</h2>
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className={`h-10 pl-4 pr-10 rounded-xl text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/5 text-white hover:bg-white/10 border border-white/10' : 'bg-black/5 text-gray-900 border border-transparent hover:bg-black/10'}`}>
+                    <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className={`h-10 pl-4 pr-10 rounded-full text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]' : 'bg-white text-gray-800 border border-black/[0.06] shadow-sm hover:bg-gray-50'}`}>
                       <option className="text-black" value="all">All levels</option>{LEVELS.map(l => <option className="text-black" key={l}>{l}</option>)}
                     </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                   <div className="relative">
-                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`h-10 pl-4 pr-10 rounded-xl text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/5 text-white hover:bg-white/10 border border-white/10' : 'bg-black/5 text-gray-900 border border-transparent hover:bg-black/10'}`}>
+                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`h-10 pl-4 pr-10 rounded-full text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.08]' : 'bg-white text-gray-800 border border-black/[0.06] shadow-sm hover:bg-gray-50'}`}>
                       <option className="text-black" value="all">All status</option><option className="text-black" value="new">New</option><option className="text-black" value="learning">Learning</option><option className="text-black" value="learned">Learned</option>
                     </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
