@@ -1393,7 +1393,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         if (cleanRemaining.startsWith(sel)) {
           const startOffset = remaining.length - cleanRemaining.length;
           result.push(<span key={i}>{text.slice(i, i + startOffset)}</span>);
-          result.push(<span key={i + startOffset} className="bg-pink-500/20 text-pink-400 rounded px-1 py-0.5">{text.slice(i + startOffset, i + startOffset + sel.length)}</span>);
+          result.push(<span key={i + startOffset} className={`px-1 py-0.5 rounded font-medium ${isDark ? 'bg-pink-vibrant/20 text-pink-vibrant' : 'bg-pink-500/15 text-pink-600'}`}>{text.slice(i + startOffset, i + startOffset + sel.length)}</span>);
           i += startOffset + sel.length;
           matched = true;
           break;
@@ -1411,7 +1411,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             result.push(
               <span
                 key={i + startOffset}
-                className="border-b-2 border-dashed border-emerald-400/40 text-emerald-400 cursor-help"
+                className={`border-b-2 border-dashed cursor-help transition-colors ${isDark ? 'border-emerald-400/50 text-emerald-400 hover:text-emerald-300 hover:border-emerald-300' : 'border-emerald-500/50 text-emerald-600 hover:text-emerald-500 hover:border-emerald-400'}`}
                 onMouseEnter={e => {
                   const r = e.currentTarget.getBoundingClientRect();
                   setHoveredWord({
@@ -1443,12 +1443,12 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           const isComplexFromPhrase = complexWordsMap.has(cleaned) && matches.length === 0;
 
           if (isSelected) {
-            result.push(<span key={i} className="bg-pink-500/20 text-pink-400 rounded px-1 py-0.5">{word}</span>);
+            result.push(<span key={i} className={`px-1 py-0.5 rounded font-medium ${isDark ? 'bg-pink-vibrant/20 text-pink-vibrant' : 'bg-pink-500/15 text-pink-600'}`}>{word}</span>);
           } else if (matches.length > 0) {
             result.push(
               <span
                 key={i}
-                className="border-b-2 border-dashed border-emerald-400/40 text-emerald-400 cursor-help"
+                className={`border-b-2 border-dashed cursor-help transition-colors ${isDark ? 'border-emerald-400/50 text-emerald-400 hover:text-emerald-300 hover:border-emerald-300' : 'border-emerald-500/50 text-emerald-600 hover:text-emerald-500 hover:border-emerald-400'}`}
                 onMouseEnter={e => {
                   const r = e.currentTarget.getBoundingClientRect();
                   setHoveredWord({
@@ -1466,7 +1466,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           }
           else if (isComplexFromPhrase) {
             result.push(
-              <span key={i} className="border-b border-dotted border-white/40 text-white/80 cursor-help"
+              <span key={i} className={`border-b border-dotted cursor-help transition-colors ${isDark ? 'border-white/40 text-white/80 hover:text-white hover:border-white/60' : 'border-black/30 text-gray-600 hover:text-gray-900 hover:border-black/50'}`}
                 onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setHoveredWord({ word: cleaned, phrases: complexWordsMap.get(cleaned), pos: { x: r.left + r.width / 2, y: r.top } }); }}
                 onMouseLeave={() => setHoveredWord(null)}
               >{word}</span>
@@ -1498,42 +1498,42 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
-        <div className="liquid-glass rounded-3xl p-6 flex-1 min-h-0 flex flex-col relative">
-          <div className="text-xs text-gray-600 mb-2 flex-shrink-0">Select text to see translation and add words</div>
-          <div className="bg-transparent text-gray-200 text-lg leading-relaxed p-4 rounded-xl flex-1 overflow-y-auto min-h-0">{highlightText()}</div>
+        <div className="liquid-glass rounded-3xl p-6 flex-1 min-h-0 flex flex-col relative text-left">
+          <div className={`text-xs mb-2 flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Select text to see translation and add words</div>
+          <div className={`text-lg leading-relaxed p-4 rounded-xl flex-1 overflow-y-auto min-h-0 whitespace-pre-wrap ${isDark ? 'bg-transparent text-gray-200' : 'bg-transparent text-gray-800'}`}>{highlightText()}</div>
 
         </div>
 
         {hoveredWord && (
-          <div className="fixed liquid-glass text-white rounded-2xl shadow-2xl p-4 z-[90] min-w-48 max-w-xs animate-scaleIn" style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10, pointerEvents: 'none' }}>
+          <div className={`fixed rounded-2xl shadow-xl p-4 z-[90] min-w-48 max-w-xs animate-scaleIn pointer-events-none border ${isDark ? 'liquid-glass text-white border-white/20' : 'bg-white text-gray-900 border-black/10'}`} style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
             {hoveredWord.phrases ? (
               <>
-                <div className="font-semibold mb-1">{hoveredWord.word}</div>
-                <div className="text-xs text-gray-300 mb-1">Part of {hoveredWord.phrases.length} phrase(s):</div>
+                <div className="font-bold mb-1">{hoveredWord.word}</div>
+                <div className={`text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Part of {hoveredWord.phrases.length} phrase(s):</div>
                 {hoveredWord.phrases.map((p, i) => (
-                  <div key={i} className="text-sm border-t border-gray-600 pt-1 mt-1">
-                    <div className="font-medium">{p.phrase}</div>
-                    {p.translation && <div className="text-blue-300">→ {p.translation}</div>}
-                    <div className="text-xs text-gray-400">{p.collection} › {p.section}</div>
+                  <div key={i} className={`text-sm border-t pt-1 mt-1 ${isDark ? 'border-gray-600' : 'border-gray-200'}`}>
+                    <div className="font-semibold">{p.phrase}</div>
+                    {p.translation && <div className={isDark ? 'text-blue-300' : 'text-blue-600'}>→ {p.translation}</div>}
+                    <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{p.collection} › {p.section}</div>
                   </div>
                 ))}
               </>
             ) : hoveredWord.matches ? (
               hoveredWord.matches.map((m, idx) => (
-                <div key={idx} className={idx > 0 ? 'border-t border-gray-600 mt-2 pt-2' : ''}>
-                  <div className="font-semibold mb-1">{m.word}</div>
-                  {m.forms && <div className="text-xs text-gray-400 mb-1">{m.forms}</div>}
-                  {m.translation && <div className="text-blue-300 text-sm mb-1">→ {m.translation}</div>}
-                  <div className="text-xs text-gray-400">{m.collection} › {m.section}</div>
+                <div key={idx} className={idx > 0 ? `border-t mt-2 pt-2 ${isDark ? 'border-gray-600' : 'border-gray-200'}` : ''}>
+                  <div className="font-bold mb-1">{m.word}</div>
+                  {m.forms && <div className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{m.forms}</div>}
+                  {m.translation && <div className={`text-sm font-medium mb-1 ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>→ {m.translation}</div>}
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{m.collection} › {m.section}</div>
                 </div>
               ))
             ) : null}
           </div>
         )}
         {popup && (
-          <div className="song-popup fixed liquid-glass border border-white/20 text-white rounded-2xl shadow-2xl p-4 z-[90] min-w-48 animate-scaleIn" style={{ left: popup.pos.x, top: popup.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
-            <div className="font-semibold">{popup.original}</div>
-            <div className="text-sm text-blue-600 mb-2">→ {translating ? <Loader size={14} className="inline animate-spin" /> : popup.translation}</div>
+          <div className={`song-popup fixed rounded-2xl shadow-xl p-4 z-[90] min-w-48 animate-scaleIn border ${isDark ? 'liquid-glass text-white border-white/20' : 'bg-white text-gray-900 border-black/10'}`} style={{ left: popup.pos.x, top: popup.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
+            <div className="font-bold">{popup.original}</div>
+            <div className={`text-sm mb-2 font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>→ {translating ? <Loader size={14} className="inline animate-spin" /> : popup.translation}</div>
             {existingSet.has(popup.word) ? (
               <>
                 {(() => {
@@ -1541,15 +1541,15 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
                   if (existingWord) {
                     const sec = sections.find(s => s.id === existingWord.sectionId);
                     const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown';
-                    return <div className="text-xs text-gray-300 bg-green-900/30 px-2 py-1 rounded border border-green-200 ">✓ In vocabulary: <span className="font-medium">{location}</span></div>;
+                    return <div className="text-xs text-emerald-700 bg-emerald-100 px-2 py-1.5 rounded-lg border border-emerald-200 mt-2">✓ In vocabulary: <span className="font-bold">{location}</span></div>;
                   }
-                  return <div className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">✓ Already in vocabulary</div>;
+                  return <div className={`text-xs px-2 py-1.5 rounded-lg mt-2 ${isDark ? 'text-gray-300 bg-gray-800' : 'text-gray-600 bg-gray-100'}`}>✓ Already in vocabulary</div>;
                 })()}
               </>
             ) : selected.includes(popup.word) ? (
-              <button onClick={() => removeFromList(popup.word)} className="w-full px-3 py-1 bg-red-100  text-red-700  rounded text-sm">✗ Remove from list</button>
+              <button onClick={() => removeFromList(popup.word)} className={`w-full px-3 py-2 mt-2 rounded-xl text-sm font-semibold transition-colors ${isDark ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}>✗ Remove from list</button>
             ) : (
-              <button onClick={() => addToList(popup.word)} className="w-full px-3 py-1 bg-blue-500 text-white rounded text-sm">+ Add to list</button>
+              <button onClick={() => addToList(popup.word)} className="w-full px-3 py-2 mt-2 bg-pink-vibrant text-white rounded-xl text-sm font-semibold hover:brightness-110 transition-colors shadow-md shadow-pink-500/20">+ Add to list</button>
             )}
           </div>
         )}
