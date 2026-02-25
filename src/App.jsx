@@ -243,59 +243,48 @@ const Toast = ({ message, onUndo, onClose }) => {
   return <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50"><span>{message}</span>{onUndo && <button onClick={onUndo} className="px-2 py-1 bg-white/20 rounded"><Undo2 size={14} /></button>}<button onClick={onClose}>×</button></div>;
 };
 
-const Alert = ({ message, onClose }) => {
+const Alert = ({ message, onClose, isDark = true }) => {
   useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100]" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full border-l-4 border-red-500 transform scale-100 animate-bounce-in" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100]" onClick={onClose}>
+      <div className={`rounded-2xl shadow-2xl p-6 max-w-md w-full border-l-4 border-red-500 animate-scaleIn ${isDark ? 'bg-[#1a1a1e]' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+          <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${isDark ? 'bg-red-500/20' : 'bg-red-100'}`}>
             <span className="text-2xl">⚠️</span>
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-100 mb-2">Word Already Exists</h3>
-            <p className="text-gray-700 text-base">{message}</p>
+            <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Word Already Exists</h3>
+            <p className={`text-base ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{message}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+          <button onClick={onClose} className={`flex-shrink-0 ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}>
             <X size={24} />
           </button>
         </div>
       </div>
-      <style>{`
-        @keyframes bounce-in {
-          0% { transform: scale(0.3); opacity: 0; }
-          50% { transform: scale(1.05); }
-          70% { transform: scale(0.9); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        .animate-bounce-in {
-          animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-      `}</style>
     </div>
   );
 };
 
-const ProgressBar = ({ current, total, correct, wrong }) => (
+const ProgressBar = ({ current, total, correct, wrong, isDark = true }) => (
   <div className="mb-4">
-    <div className="flex justify-between text-sm text-gray-600 mb-1"><span>{current + 1}/{total}</span><span className="text-green-600">{correct}✓</span></div>
-    <div className="w-full bg-gray-700 rounded-full h-2"><div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${((current + 1) / total) * 100}%` }}></div></div>
+    <div className={`flex justify-between text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}><span>{current + 1}/{total}</span><span className="text-emerald-500">{correct}✓</span></div>
+    <div className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}><div className="h-2 rounded-full bg-pink-vibrant transition-all" style={{ width: `${((current + 1) / total) * 100}%` }}></div></div>
   </div>
 );
 
-const CompletionScreen = ({ title, stats, onRestart, onBack, wrongWords }) => {
+const CompletionScreen = ({ title, stats, onRestart, onBack, wrongWords, isDark = true }) => {
   const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
   return (
     <div className="max-w-md mx-auto text-center py-8">
-      <div className="bg-[#1a1a1a] rounded-xl shadow-lg p-8">
+      <div className={`rounded-3xl shadow-lg p-8 ${isDark ? 'bg-[#1a1a1e]' : 'bg-white border border-black/5'}`}>
         <div className="text-6xl mb-4">{pct >= 80 ? '🎉' : '💪'}</div>
-        <h2 className="text-2xl font-bold mb-2">{title}</h2>
+        <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h2>
         <div className="flex justify-center gap-6 my-6">
-          <div><div className="text-3xl font-bold text-green-400">{stats.correct}</div><div className="text-sm text-gray-400">Know</div></div>
-          <div><div className="text-3xl font-bold text-red-400">{stats.total - stats.correct}</div><div className="text-sm text-gray-400">Don't know</div></div>
+          <div><div className="text-3xl font-bold text-emerald-400">{stats.correct}</div><div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Know</div></div>
+          <div><div className="text-3xl font-bold text-red-400">{stats.total - stats.correct}</div><div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Don't know</div></div>
         </div>
-        {wrongWords.length > 0 && <div className="text-left mb-4 p-3 bg-red-900/30 rounded-lg"><div className="text-sm text-red-700  mb-2">To review:</div><div className="flex flex-wrap gap-1">{wrongWords.map(w => <span key={w.id} className="text-xs bg-red-100   px-2 py-1 rounded">{w.word}</span>)}</div></div>}
-        <div className="flex gap-3"><button onClick={onBack} className="flex-1 p-3 border  rounded-lg hover:bg-white/5">Back</button><button onClick={onRestart} className="flex-1 p-3 bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2"><RefreshCw size={18} />Again</button></div>
+        {wrongWords.length > 0 && <div className={`text-left mb-4 p-3 rounded-xl ${isDark ? 'bg-red-500/10' : 'bg-red-50'}`}><div className={`text-sm mb-2 ${isDark ? 'text-red-400' : 'text-red-700'}`}>To review:</div><div className="flex flex-wrap gap-1">{wrongWords.map(w => <span key={w.id} className={`text-xs px-2 py-1 rounded-lg ${isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700'}`}>{w.word}</span>)}</div></div>}
+        <div className="flex gap-3"><button onClick={onBack} className={`flex-1 p-3 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Back</button><button onClick={onRestart} className="flex-1 p-3 bg-pink-vibrant text-white rounded-full font-medium flex items-center justify-center gap-2 hover:brightness-110"><RefreshCw size={18} />Again</button></div>
       </div>
     </div>
   );
@@ -1050,7 +1039,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               })}
             </div>
             <div className="relative w-20">
-              <select className="w-full h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none" value={form.level} onChange={e => setForm({ ...form, level: e.target.value })}>
+              <select className={`w-full h-10 pl-3 pr-8 rounded-xl text-sm appearance-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white hover:bg-[#222226]' : 'bg-white border border-gray-300 text-gray-900 hover:bg-gray-50'}`} value={form.level} onChange={e => setForm({ ...form, level: e.target.value })}>
                 {LEVELS.map(l => <option key={l}>{l}</option>)}
               </select>
               <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
@@ -1058,12 +1047,12 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               </div>
             </div>
           </div>
-          <input className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none" placeholder="IPA" value={form.forms} onChange={e => setForm({ ...form, forms: e.target.value })} />
-          <textarea className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none" placeholder="Meaning (English) *" value={form.meaningEn} onChange={e => setForm({ ...form, meaningEn: e.target.value })} rows={2} />
+          <input className={`w-full h-10 px-3 rounded-xl focus:outline-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} placeholder="IPA" value={form.forms} onChange={e => setForm({ ...form, forms: e.target.value })} />
+          <textarea className={`w-full px-3 py-2 rounded-xl focus:outline-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} placeholder="Meaning (English) *" value={form.meaningEn} onChange={e => setForm({ ...form, meaningEn: e.target.value })} rows={2} />
           <div>
             <div className="relative">
               <input
-                className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
+                className={`w-full h-10 px-3 rounded-xl focus:outline-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`}
                 placeholder="Перевод"
                 value={form.meaningRu}
                 onChange={e => setForm({ ...form, meaningRu: e.target.value })}
@@ -1500,7 +1489,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
         <div className={`dash-card flex-1 min-h-0 flex flex-col relative text-left`}>
           <div className={`text-xs mb-3 flex-shrink-0 font-medium ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Select text to see translation and add words</div>
-          <div className={`text-lg leading-relaxed p-4 rounded-2xl flex-1 overflow-y-auto min-h-0 whitespace-pre-wrap ${isDark ? 'bg-white/[0.02] text-white/90' : 'bg-black/[0.02] text-gray-900'}`}>{highlightText()}</div>
+          <div className={`text-lg leading-relaxed p-4 rounded-2xl flex-1 overflow-y-auto min-h-0 whitespace-pre-wrap ${isDark ? 'bg-[#141417] text-white/95' : 'bg-gray-50 text-gray-900'}`}>{highlightText()}</div>
 
         </div>
 
@@ -1560,9 +1549,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Selected ({selected.length})</h3>
               <div className="flex items-center gap-2">
                 {checkedWords.length > 0 && <select onChange={e => handleBulkSectionChange(e.target.value)}
-
-
-                  className="h-10 pl-3 pr-8 border border-white/10 rounded-lg liquid-glass text-white text-sm hover:brightness-110 appearance-none" defaultValue=""><option className="text-black" value="">Set section for {checkedWords.length}...</option>{sections.map(s => <option className="text-black" key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option className="text-black" value="new">+ New Section</option></select>
+                  className={`h-10 pl-3 pr-8 rounded-xl text-sm appearance-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white' : 'bg-white border border-gray-300 text-gray-900'}`} defaultValue=""><option value="" className={isDark ? 'bg-[#1a1a1e]' : ''}>Set section for {checkedWords.length}...</option>{sections.map(s => <option key={s.id} value={s.id} className={isDark ? 'bg-[#1a1a1e]' : ''}>{s.collectionName} › {s.name}</option>)}<option value="new" className={isDark ? 'bg-[#1a1a1e]' : ''}>+ New Section</option></select>
 
 
                 }
@@ -1578,8 +1565,22 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
                     <td className="p-2 font-medium">{w}</td>
                     <td className="p-2">
 
-                      <div class="flex items-center justify-between"><div class="relative"><select class="h-10 pl-3 pr-8 border border-white/10 rounded-lg liquid-glass text-white text-sm hover:brightness-110 appearance-none"><option className="text-black" value="">Select section...</option>{sections.map(s => <option className="text-black" key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option className="text-black" value="new">+ New Section</option></select><div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></div></div>
-                        <td className="p-2"><button onClick={() => removeFromList(w)} className="p-1 hover:bg-gray-700  rounded"><Trash2 size={14} /></button></td>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="relative flex-1">
+                          <select
+                            value={wordSections[w] || ''}
+                            onChange={e => { if(e.target.value === 'new') setShowNewSection({ forWord: w }); else setWordSections({ ...wordSections, [w]: e.target.value }); }}
+                            className={`w-full h-9 pl-3 pr-8 rounded-xl text-sm appearance-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white' : 'bg-white border border-gray-300 text-gray-900'}`}
+                          >
+                            <option value="" className={isDark ? 'bg-[#1a1a1e]' : ''}>Select section...</option>
+                            {sections.map(s => <option key={s.id} value={s.id} className={isDark ? 'bg-[#1a1a1e]' : ''}>{s.collectionName} › {s.name}</option>)}
+                            <option value="new" className={isDark ? 'bg-[#1a1a1e]' : ''}>+ New Section</option>
+                          </select>
+                          <div className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </div>
+                        </div>
+                        <button onClick={() => removeFromList(w)} className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'}`}><Trash2 size={14} /></button>
                       </div>
 
 
@@ -1598,17 +1599,17 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       </div>
 
       {showNewSection && (
-        <Modal onClose={() => setShowNewSection(null)}>
-          <h3 className="text-lg font-semibold mb-4">Create New Section</h3>
+        <Modal onClose={() => setShowNewSection(null)} isDark={isDark}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Create New Section</h3>
           <div className="relative mb-3">
-            <select id="new-sec-col" className="w-full h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none">{collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+            <select id="new-sec-col" className={`w-full h-10 pl-3 pr-8 rounded-xl text-sm appearance-none ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white' : 'bg-white border border-gray-300 text-gray-900 hover:bg-gray-50'}`}>{collections.map(c => <option key={c.id} value={c.id} className={isDark ? 'bg-[#1a1a1e]' : ''}>{c.name}</option>)}</select>
+            <div className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </div>
           </div>
-          <input id="new-sec-name" placeholder="Section name" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" />
+          <input id="new-sec-name" placeholder="Section name" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} />
           <div className="flex gap-2">
-            <button onClick={() => setShowNewSection(null)} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
+            <button onClick={() => setShowNewSection(null)} className={`flex-1 h-10 px-4 border rounded-full ${isDark ? 'border-white/10 text-white hover:bg-white/5' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
             <button onClick={async () => {
               const colId = document.getElementById('new-sec-col').value;
               const name = document.getElementById('new-sec-name').value;
@@ -1617,15 +1618,15 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
               if (showNewSection.forChecked) { const u = {}; checkedWords.forEach(w => u[w] = newId); setWordSections({ ...wordSections, ...u }); }
               else if (showNewSection.forWord) setWordSections({ ...wordSections, [showNewSection.forWord]: newId });
               setShowNewSection(null);
-            }} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Create</button>
+            }} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Create</button>
           </div>
         </Modal>
       )}
-      {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
+      {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
       {showExp && (
         <>
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[150] transition-opacity" onClick={() => setShowExp(false)}></div>
-          <div className={`fixed inset-y-0 right-0 w-[45vw] p-8 shadow-2xl z-[160] overflow-y-auto animate-slideInRight ${isDark ? 'bg-[#141416]/98 backdrop-blur-xl border-l border-white/10' : 'bg-white/98 backdrop-blur-xl border-l border-black/10'}`}>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[600] transition-opacity" onClick={() => setShowExp(false)}></div>
+          <div className={`fixed inset-y-0 right-0 w-[45vw] p-8 shadow-2xl z-[610] overflow-y-auto animate-slideInRight ${isDark ? 'bg-[#131315] border-l border-white/10' : 'bg-white border-l border-black/10'}`}>
             <div className={`flex justify-between items-center mb-8 border-b pb-4 ${isDark ? 'border-white/10' : 'border-black/10'}`}>
               <h3 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Song Explanation</h3>
               <button onClick={() => setShowExp(false)} className={`p-2.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/60 hover:text-white' : 'hover:bg-black/5 text-gray-400 hover:text-gray-900'}`}>
@@ -2844,19 +2845,19 @@ export default function VocabApp() {
   const renderFlashcards = () => {
     if (!filteredWords.length) return <div className="text-center py-12 text-gray-400">No words</div>;
     if (!cardSession) return null;
-    if (cardSession.completed) return <CompletionScreen title="Cards Complete!" stats={{ correct: cardSession.correct, total: cardSession.words.length }} wrongWords={cardSession.wrongWords} onRestart={() => setCardSession({ words: [...filteredWords], index: 0, flipped: false, correct: 0, wrong: 0, wrongWords: [], completed: false })} onBack={() => setView('list')} />;
+    if (cardSession.completed) return <CompletionScreen title="Cards Complete!" stats={{ correct: cardSession.correct, total: cardSession.words.length }} wrongWords={cardSession.wrongWords} onRestart={() => setCardSession({ words: [...filteredWords], index: 0, flipped: false, correct: 0, wrong: 0, wrongWords: [], completed: false })} onBack={() => setView('list')} isDark={isDark} />;
     const w = cardSession.words[cardSession.index];
     const handleAnswer = know => { updateWordProgress(w.id, 'cards', know); const nw = know ? cardSession.wrongWords : [...cardSession.wrongWords, w]; if (cardSession.index + 1 >= cardSession.words.length) setCardSession({ ...cardSession, correct: cardSession.correct + (know ? 1 : 0), wrongWords: nw, completed: true }); else setCardSession({ ...cardSession, index: cardSession.index + 1, flipped: false, correct: cardSession.correct + (know ? 1 : 0), wrongWords: nw }); };
     return (
       <div className="max-w-md mx-auto">
-        <ProgressBar current={cardSession.index} total={cardSession.words.length} correct={cardSession.correct} wrong={cardSession.wrong} />
+        <ProgressBar current={cardSession.index} total={cardSession.words.length} correct={cardSession.correct} wrong={cardSession.wrong} isDark={isDark} />
         <div onClick={() => setCardSession({ ...cardSession, flipped: !cardSession.flipped })} className="cursor-pointer" style={{ perspective: 1000 }}>
           <div style={{ transformStyle: 'preserve-3d', transition: 'transform 0.5s', transform: cardSession.flipped ? 'rotateY(180deg)' : '' }} className="relative h-72">
             <div style={{ backfaceVisibility: 'hidden' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col items-center justify-center`}><h2 className={`text-3xl font-display font-bold text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.word}</h2><p className={isDark ? "text-gray-400" : "text-gray-500"}>{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-pink-500/10 hover:bg-pink-500/20 rounded-full transition-colors"><Volume2 className="text-pink-vibrant" /></button></div>
             <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col justify-center border-2 border-pink-vibrant/30`}>
               <p className={`text-lg mb-2 font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{w.meaningEn}</p>
               {w.meaningRu && <p className="text-pink-vibrant font-medium mb-2">→ {w.meaningRu}</p>}
-              {w.example && <div className={`text-sm italic mt-2 mb-3 rounded-xl border-l-2 pl-3 py-2 ${isDark ? 'text-white/40 bg-white/[0.02] border-pink-vibrant/30' : 'text-gray-500 bg-black/[0.02] border-pink-500/30'}`}>{w.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), w.word)}"</div>)}</div>}
+              {w.example && <div className={`text-sm italic mt-2 mb-3 rounded-xl border-l-2 pl-3 py-2 ${isDark ? 'text-white/60 bg-[#1a1a1e] border-pink-vibrant/40' : 'text-gray-500 bg-gray-50 border-pink-500/30'}`}>{w.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), w.word)}"</div>)}</div>}
               {(w.singleRootWords || w.synonyms) && (
                 <div className={`mt-auto pt-3 border-t flex gap-4 text-xs font-medium ${isDark ? 'border-white/10' : 'border-black/5'}`}>
                   {w.singleRootWords && (
@@ -2874,7 +2875,7 @@ export default function VocabApp() {
             </div>
           </div>
         </div>
-        <div className="flex justify-center gap-4 mt-6"><button onClick={() => handleAnswer(false)} className="px-6 py-2 bg-red-100  text-red-600  rounded-lg flex items-center gap-2"><X size={18} /> Don't know</button><button onClick={() => handleAnswer(true)} className="px-6 py-2 bg-green-100  text-green-600  rounded-lg flex items-center gap-2"><Check size={18} /> Know it</button></div>
+        <div className="flex justify-center gap-4 mt-6"><button onClick={() => handleAnswer(false)} className={`px-6 py-2 rounded-full flex items-center gap-2 font-medium ${isDark ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}><X size={18} /> Don't know</button><button onClick={() => handleAnswer(true)} className={`px-6 py-2 rounded-full flex items-center gap-2 font-medium ${isDark ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}><Check size={18} /> Know it</button></div>
       </div>
     );
   };
@@ -2882,14 +2883,14 @@ export default function VocabApp() {
   const renderQuiz = () => {
     if (filteredWords.length < 4) return <div className="text-center py-12 text-gray-400">Need 4+ words</div>;
     if (!quizSession) return null;
-    if (quizSession.completed) return <CompletionScreen title="Quiz Complete!" stats={{ correct: quizSession.correct, total: quizSession.words.length }} wrongWords={quizSession.wrongWords} onRestart={() => setQuizSession({ words: [...filteredWords], index: 0, correct: 0, wrong: 0, wrongWords: [], selected: null, isAnswered: false, options: [], completed: false })} onBack={() => setView('list')} />;
+    if (quizSession.completed) return <CompletionScreen title="Quiz Complete!" stats={{ correct: quizSession.correct, total: quizSession.words.length }} wrongWords={quizSession.wrongWords} onRestart={() => setQuizSession({ words: [...filteredWords], index: 0, correct: 0, wrong: 0, wrongWords: [], selected: null, isAnswered: false, options: [], completed: false })} onBack={() => setView('list')} isDark={isDark} />;
     const w = quizSession.words[quizSession.index];
     if (!quizSession.options.length) { setQuizSession(s => ({ ...s, options: [...quizSession.words.filter(x => x.id !== w.id).sort(() => Math.random() - 0.5).slice(0, 3), w].sort(() => Math.random() - 0.5) })); return null; }
     const handleSelect = opt => { if (quizSession.isAnswered) return; const correct = opt.id === w.id; updateWordProgress(w.id, 'quiz', correct); setQuizSession(s => ({ ...s, isAnswered: true, selected: opt.id, correct: s.correct + (correct ? 1 : 0), wrongWords: correct ? s.wrongWords : [...s.wrongWords, w] })); };
     const handleNext = () => { if (quizSession.index + 1 >= quizSession.words.length) setQuizSession(s => ({ ...s, completed: true })); else setQuizSession(s => ({ ...s, index: s.index + 1, isAnswered: false, selected: null, options: [] })); };
     return (
       <div className="max-w-md mx-auto">
-        <ProgressBar current={quizSession.index} total={quizSession.words.length} correct={quizSession.correct} wrong={quizSession.wrong} />
+        <ProgressBar current={quizSession.index} total={quizSession.words.length} correct={quizSession.correct} wrong={quizSession.wrong} isDark={isDark} />
         <div className={`liquid-glass rounded-3xl p-6 mb-4 ${isDark ? '' : 'shadow-sm'}`}><h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.meaningEn}</h2>{w.meaningRu && <p className="text-pink-vibrant font-medium mb-4">→ {w.meaningRu}</p>}<div className="space-y-3">{quizSession.options.map(opt => <button key={opt.id} onClick={() => handleSelect(opt)} className={`w-full p-4 rounded-2xl text-left liquid-glass font-medium transition-all ${quizSession.isAnswered ? opt.id === w.id ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/50' : opt.id === quizSession.selected ? 'bg-red-500/20 text-red-600 border border-red-500/50' : 'opacity-50' : 'hover:brightness-110'}`}>{opt.word}</button>)}</div></div>
         {quizSession.isAnswered && <button onClick={handleNext} className="w-full p-4 bg-purple-vibrant text-white rounded-2xl font-semibold">Next</button>}
       </div>
@@ -2899,13 +2900,13 @@ export default function VocabApp() {
   const renderWrite = () => {
     if (!filteredWords.length) return <div className="text-center py-12 text-gray-400">No words</div>;
     if (!writeSession) return null;
-    if (writeSession.completed) return <CompletionScreen title="Practice Complete!" stats={{ correct: writeSession.correct, total: writeSession.words.length }} wrongWords={writeSession.wrongWords} onRestart={() => setWriteSession({ words: [...filteredWords], index: 0, correct: 0, wrong: 0, wrongWords: [], input: '', result: null, completed: false })} onBack={() => setView('list')} />;
+    if (writeSession.completed) return <CompletionScreen title="Practice Complete!" stats={{ correct: writeSession.correct, total: writeSession.words.length }} wrongWords={writeSession.wrongWords} onRestart={() => setWriteSession({ words: [...filteredWords], index: 0, correct: 0, wrong: 0, wrongWords: [], input: '', result: null, completed: false })} onBack={() => setView('list')} isDark={isDark} />;
     const w = writeSession.words[writeSession.index];
     const handleCheck = () => { const correct = writeSession.input.toLowerCase().trim() === w.word.toLowerCase().trim(); updateWordProgress(w.id, 'write', correct); setWriteSession(s => ({ ...s, result: { correct, answer: w.word }, correct: s.correct + (correct ? 1 : 0), wrongWords: correct ? s.wrongWords : [...s.wrongWords, w] })); };
     const handleNext = () => { if (writeSession.index + 1 >= writeSession.words.length) setWriteSession(s => ({ ...s, completed: true })); else setWriteSession(s => ({ ...s, index: s.index + 1, input: '', result: null })); };
     return (
       <div className="max-w-md mx-auto">
-        <ProgressBar current={writeSession.index} total={writeSession.words.length} correct={writeSession.correct} wrong={writeSession.wrong} />
+        <ProgressBar current={writeSession.index} total={writeSession.words.length} correct={writeSession.correct} wrong={writeSession.wrong} isDark={isDark} />
         <div className={`liquid-glass rounded-3xl p-6 ${isDark ? '' : 'shadow-sm'}`}><h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.meaningEn}</h2>{w.meaningRu && <p className="text-pink-vibrant mb-4">→ {w.meaningRu}</p>}<input value={writeSession.input} onChange={e => setWriteSession(s => ({ ...s, input: e.target.value }))} onKeyDown={e => e.key === 'Enter' && !writeSession.result && handleCheck()} placeholder="Type the word..." className={`w-full p-4 liquid-glass rounded-2xl mb-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'} focus:ring-2 ring-pink-vibrant/50`} disabled={!!writeSession.result} autoFocus />{writeSession.result && <div className={`p-4 rounded-2xl mb-4 font-medium ${writeSession.result.correct ? 'bg-emerald-500/20 text-emerald-600' : 'bg-red-500/20 text-red-600'}`}>{writeSession.result.correct ? '✓ Correct!' : `✗ Answer: ${writeSession.result.answer}`}</div>}<button onClick={writeSession.result ? handleNext : handleCheck} className="w-full p-4 bg-purple-vibrant text-white rounded-2xl font-semibold">{writeSession.result ? 'Next' : 'Check'}</button></div>
       </div>
     );
@@ -2953,7 +2954,7 @@ export default function VocabApp() {
               {showUserMenu && (
                 <>
                   <div className="fixed inset-0 z-[400]" onClick={() => setShowUserMenu(false)}></div>
-                  <div className={`absolute right-0 top-full mt-2 w-64 rounded-2xl shadow-2xl py-2 z-[410] animate-scaleIn ${isDark ? 'bg-[#1c1c1e]/98 backdrop-blur-xl border border-white/10' : 'bg-white/98 backdrop-blur-xl border border-black/5 shadow-lg'}`}>
+                  <div className={`absolute right-0 top-full mt-2 w-64 rounded-2xl shadow-2xl py-2 z-[410] animate-scaleIn ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-black/5 shadow-lg'}`}>
                     <div className={`px-4 py-2 border-b ${isDark ? 'border-white/5' : 'border-black/5'}`}>
                       <div className={`text-sm font-medium truncate ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{user.email}</div>
                     </div>
@@ -3485,7 +3486,7 @@ export default function VocabApp() {
       }
       {confirmDelete && <Modal onClose={() => setConfirmDelete(null)}><h3 className="text-lg font-semibold mb-2">Delete?</h3><p className="text-gray-600 mb-4">Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
-      {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
+      {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
       {wordPopup && console.log('=== wordPopup ===', wordPopup.word.singleRootWords)}
       {
