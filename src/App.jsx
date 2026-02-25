@@ -109,13 +109,7 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
 
   return (
     <div
-      className={`liquid-glass rounded-[2rem] p-6 relative overflow-hidden flex flex-col ${className}`}
-      style={{
-        background: isDark
-          ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
-          : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-        border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-      }}
+      className={`dash-card relative overflow-hidden flex flex-col ${className}`}
     >
       {/* Ambient glow */}
       <div
@@ -1629,23 +1623,21 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
       {showExp && (
         <>
-          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowExp(false)}></div>
-          <div className="fixed inset-y-0 right-0 w-1/2 bg-white shadow-2xl z-50 overflow-y-auto border-l-2 border-blue-500">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Song Explanation</h3>
-                <button onClick={() => setShowExp(false)} className="p-2 hover:bg-white/5 rounded">
-                  <X size={20} />
-                </button>
-              </div>
-              {loadingExp ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader size={32} className="animate-spin text-blue-500" />
-                </div>
-              ) : (
-                <div className="prose max-w-none whitespace-pre-wrap">{explanation}</div>
-              )}
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] transition-opacity" onClick={() => setShowExp(false)}></div>
+          <div className={`fixed inset-y-0 right-0 w-[45vw] p-8 shadow-2xl z-[80] overflow-y-auto animate-slideInRight ${isDark ? 'liquid-glass border-l border-white/10' : 'bg-white border-l border-black/10'}`}>
+            <div className={`flex justify-between items-center mb-8 border-b pb-4 ${isDark ? 'border-white/10' : 'border-black/5'}`}>
+              <h3 className={`text-2xl font-display font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Song Explanation</h3>
+              <button onClick={() => setShowExp(false)} className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}>
+                <X size={24} />
+              </button>
             </div>
+            {loadingExp ? (
+              <div className="flex items-center justify-center py-24">
+                <Loader size={48} className={`animate-spin ${isDark ? 'text-pink-vibrant' : 'text-pink-500'}`} />
+              </div>
+            ) : (
+              <div className={`prose max-w-none whitespace-pre-wrap text-lg leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{explanation}</div>
+            )}
           </div>
         </>
       )}
@@ -2878,10 +2870,10 @@ export default function VocabApp() {
         <ProgressBar current={cardSession.index} total={cardSession.words.length} correct={cardSession.correct} wrong={cardSession.wrong} />
         <div onClick={() => setCardSession({ ...cardSession, flipped: !cardSession.flipped })} className="cursor-pointer" style={{ perspective: 1000 }}>
           <div style={{ transformStyle: 'preserve-3d', transition: 'transform 0.5s', transform: cardSession.flipped ? 'rotateY(180deg)' : '' }} className="relative h-72">
-            <div style={{ backfaceVisibility: 'hidden' }} className="absolute inset-0 bg-[#1a1a1a] rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center border border-gray-800"><h2 className="text-3xl font-bold text-center text-white">{w.word}</h2><p className="text-gray-400">{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-orange-500/20 rounded-full"><Volume2 className="text-orange-400" /></button></div>
-            <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="absolute inset-0 bg-[#1f1a1a] rounded-2xl shadow-lg p-6 flex flex-col justify-center border border-orange-900/30">
-              <p className="text-lg text-gray-200 mb-2">{w.meaningEn}</p>
-              {w.meaningRu && <p className="text-orange-400 font-medium mb-2">→ {w.meaningRu}</p>}
+            <div style={{ backfaceVisibility: 'hidden' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col items-center justify-center`}><h2 className={`text-3xl font-display font-bold text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.word}</h2><p className={isDark ? "text-gray-400" : "text-gray-500"}>{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-pink-500/10 hover:bg-pink-500/20 rounded-full transition-colors"><Volume2 className="text-pink-vibrant" /></button></div>
+            <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col justify-center border-2 border-pink-vibrant/30`}>
+              <p className={`text-lg mb-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{w.meaningEn}</p>
+              {w.meaningRu && <p className="text-pink-vibrant font-medium mb-2">→ {w.meaningRu}</p>}
               {w.example && <div className="text-sm text-gray-400 italic mt-2 mb-3">{w.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), w.word)}"</div>)}</div>}
               {(w.singleRootWords || w.synonyms) && (
                 <div className="mt-auto pt-3 border-t border-gray-700 flex gap-3 text-xs">
@@ -2916,7 +2908,7 @@ export default function VocabApp() {
     return (
       <div className="max-w-md mx-auto">
         <ProgressBar current={quizSession.index} total={quizSession.words.length} correct={quizSession.correct} wrong={quizSession.wrong} />
-        <div className="bg-[#1a1a1a] rounded-xl shadow-lg p-6 mb-4"><h2 className="text-xl font-semibold mb-2">{w.meaningEn}</h2>{w.meaningRu && <p className="text-blue-400 mb-4">→ {w.meaningRu}</p>}<div className="space-y-2">{quizSession.options.map(opt => <button key={opt.id} onClick={() => handleSelect(opt)} className={`w-full p-3 rounded-lg border  text-left ${quizSession.isAnswered ? opt.id === w.id ? 'bg-green-100  border-green-500 ' : opt.id === quizSession.selected ? 'bg-red-100  border-red-500 ' : '' : 'hover:bg-white/5'}`}>{opt.word}</button>)}</div></div>
+        <div className={`liquid-glass rounded-3xl p-6 mb-4 ${isDark ? '' : 'shadow-sm'}`}><h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.meaningEn}</h2>{w.meaningRu && <p className="text-pink-vibrant mb-4">→ {w.meaningRu}</p>}<div className="space-y-3">{quizSession.options.map(opt => <button key={opt.id} onClick={() => handleSelect(opt)} className={`w-full p-4 rounded-2xl text-left liquid-glass font-medium transition-all ${quizSession.isAnswered ? opt.id === w.id ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/50' : opt.id === quizSession.selected ? 'bg-red-500/20 text-red-600 border border-red-500/50' : 'opacity-50' : 'hover:brightness-110'}`}>{opt.word}</button>)}</div></div>
         {quizSession.isAnswered && <button onClick={handleNext} className="w-full p-3 bg-blue-500 text-white rounded-lg">Next</button>}
       </div>
     );
@@ -2932,7 +2924,7 @@ export default function VocabApp() {
     return (
       <div className="max-w-md mx-auto">
         <ProgressBar current={writeSession.index} total={writeSession.words.length} correct={writeSession.correct} wrong={writeSession.wrong} />
-        <div className="bg-[#1a1a1a] rounded-xl shadow-lg p-6"><h2 className="text-lg font-semibold mb-2">{w.meaningEn}</h2>{w.meaningRu && <p className="text-blue-400 mb-2">→ {w.meaningRu}</p>}<input value={writeSession.input} onChange={e => setWriteSession(s => ({ ...s, input: e.target.value }))} onKeyDown={e => e.key === 'Enter' && !writeSession.result && handleCheck()} placeholder="Type the word..." className="w-full p-3 border   rounded-lg mb-3" disabled={!!writeSession.result} autoFocus />{writeSession.result && <div className={`p-3 rounded-lg mb-3 ${writeSession.result.correct ? 'bg-green-100  text-green-700 ' : 'bg-red-100  text-red-700 '}`}>{writeSession.result.correct ? '✓ Correct!' : `✗ Answer: ${writeSession.result.answer}`}</div>}<button onClick={writeSession.result ? handleNext : handleCheck} className="w-full p-3 bg-blue-500 text-white rounded-lg">{writeSession.result ? 'Next' : 'Check'}</button></div>
+        <div className={`liquid-glass rounded-3xl p-6 ${isDark ? '' : 'shadow-sm'}`}><h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.meaningEn}</h2>{w.meaningRu && <p className="text-pink-vibrant mb-4">→ {w.meaningRu}</p>}<input value={writeSession.input} onChange={e => setWriteSession(s => ({ ...s, input: e.target.value }))} onKeyDown={e => e.key === 'Enter' && !writeSession.result && handleCheck()} placeholder="Type the word..." className={`w-full p-4 liquid-glass rounded-2xl mb-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'} focus:ring-2 ring-pink-vibrant/50`} disabled={!!writeSession.result} autoFocus />{writeSession.result && <div className={`p-4 rounded-2xl mb-4 font-medium ${writeSession.result.correct ? 'bg-emerald-500/20 text-emerald-600' : 'bg-red-500/20 text-red-600'}`}>{writeSession.result.correct ? '✓ Correct!' : `✗ Answer: ${writeSession.result.answer}`}</div>}<button onClick={writeSession.result ? handleNext : handleCheck} className="w-full p-4 bg-purple-vibrant text-white rounded-2xl font-semibold">{writeSession.result ? 'Next' : 'Check'}</button></div>
       </div>
     );
   };
@@ -3031,7 +3023,7 @@ export default function VocabApp() {
             const wordsToReview = data.words.filter(w => w.status === STATUS.LEARNING).slice(0, 5);
 
             return (
-              <div className="space-y-5 max-w-6xl mx-auto animate-fadeIn">
+              <div className="space-y-6 w-full animate-fadeIn">
                 {/* Stats row - clean pill buttons */}
                 <div className="grid grid-cols-4 gap-3">
                   <button
@@ -3103,7 +3095,7 @@ export default function VocabApp() {
                   <div className="flex flex-col gap-6">
                     {/* Collections */}
                     <div
-                      className={`liquid-glass rounded-[2rem] p-6`}
+                      className="dash-card"
                     >
                       <h3 className={`font-display font-semibold text-lg mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
                         <BookOpen size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
@@ -3134,15 +3126,7 @@ export default function VocabApp() {
                     {/* Levels and Review Mini-Grid inside right column */}
                     <div className="grid grid-cols-2 gap-6">
                       {/* Уровни */}
-                      <div
-                        className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
-                        style={{
-                          background: isDark
-                            ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
-                            : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                          border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                        }}
-                      >
+                      <div className="dash-card">
                         <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
                           <TrendingUp size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
                           By Level
@@ -3165,15 +3149,7 @@ export default function VocabApp() {
                       </div>
 
                       {/* Recently Added / To Review */}
-                      <div
-                        className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
-                        style={{
-                          background: isDark
-                            ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
-                            : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                          border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                        }}
-                      >
+                      <div className="dash-card">
                         {wordsToReview.length > 0 ? (
                           <>
                             <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
@@ -3232,7 +3208,7 @@ export default function VocabApp() {
 
                     {data.collections.length === 0 && totalWords === 0 && (
                       <div
-                        className={`text-center py-12 liquid-glass rounded-3xl ${isDark ? '' : 'shadow-sm'}`}
+                        className="dash-card text-center py-12 flex flex-col justify-center items-center"
                       >
                         <div className="text-6xl mb-4">📚</div>
                         <h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome to VocabMaster!</h2>
@@ -3250,21 +3226,21 @@ export default function VocabApp() {
           {view === 'all-words' && (
             <>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">{viewTitle}</h2>
+                <h2 className={`text-xl font-display font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{viewTitle}</h2>
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none">
-                      <option value="all">All levels</option>{LEVELS.map(l => <option key={l}>{l}</option>)}
+                    <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className={`h-10 pl-4 pr-10 rounded-xl text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/5 text-white hover:bg-white/10 border border-white/10' : 'bg-black/5 text-gray-900 border border-transparent hover:bg-black/10'}`}>
+                      <option className="text-black" value="all">All levels</option>{LEVELS.map(l => <option className="text-black" key={l}>{l}</option>)}
                     </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                   <div className="relative">
-                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none">
-                      <option value="all">All status</option><option value="new">New</option><option value="learning">Learning</option><option value="learned">Learned</option>
+                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`h-10 pl-4 pr-10 rounded-xl text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/5 text-white hover:bg-white/10 border border-white/10' : 'bg-black/5 text-gray-900 border border-transparent hover:bg-black/10'}`}>
+                      <option className="text-black" value="all">All status</option><option className="text-black" value="new">New</option><option className="text-black" value="learning">Learning</option><option className="text-black" value="learned">Learned</option>
                     </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
@@ -3362,17 +3338,17 @@ export default function VocabApp() {
                     </div>
                   </div>
                   <div className="relative">
-                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none">
-                      <option value="all">All status</option><option value="new">New</option><option value="learning">Learning</option><option value="learned">Learned</option>
+                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`h-10 pl-4 pr-10 rounded-2xl text-sm font-medium transition-all appearance-none cursor-pointer ${isDark ? 'bg-white/5 text-white hover:bg-white/10 border border-white/10' : 'bg-black/5 text-gray-900 border border-transparent hover:bg-black/10'}`}>
+                      <option className="text-black" value="all">All status</option><option className="text-black" value="new">New</option><option className="text-black" value="learning">Learning</option><option className="text-black" value="learned">Learned</option>
                     </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div>
                   </div>
                 </div>
               </div>
               {!currentSection && currentCollection && <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-800">Select a section to add words.</div>}
-              <div className="grid grid-cols-4 gap-2 mb-4">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg ${view === m.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}><m.icon size={18} /> {m.label}</button>)}</div>
+              <div className="grid grid-cols-4 gap-4 mb-6">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-semibold transition-all ${view === m.id ? 'bg-pink-vibrant text-white shadow-lg shadow-pink-500/20' : isDark ? 'liquid-glass text-white/70 hover:text-white hover:brightness-110' : 'liquid-glass text-gray-600 hover:text-gray-900'}`}><m.icon size={20} /> {m.label}</button>)}</div>
               {view === 'list' && <div className="space-y-3">{filteredWords.length ? filteredWords.map(w => <WordCard key={w.id} word={w} />) : <div className="text-center py-12 text-gray-400">No words</div>}</div>}
               {view === 'cards' && renderFlashcards()}
               {view === 'quiz' && renderQuiz()}
