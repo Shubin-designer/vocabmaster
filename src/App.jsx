@@ -27,6 +27,86 @@ const highlightWord = (text, word) => {
     return text; // Если regex не работает - возвращаем текст как есть
   }
 };
+
+// Activity Tracker Component
+const ActivityTracker = ({ activityData, streak }) => {
+  const today = new Date();
+  const days = [];
+
+  // Generate last 90 days
+  for (let i = 89; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const activity = activityData.find(a => a.date === dateStr);
+    days.push({ date: dateStr, activity, dayOfWeek: date.getDay() });
+  }
+
+  const getColor = (activity) => {
+    if (!activity) return 'bg-gray-200 dark:bg-gray-700'; // Нет данных
+    const newPct = activity.goal_new > 0 ? activity.new_words_learned / activity.goal_new : 1;
+    const reviewPct = activity.goal_review > 0 ? activity.words_reviewed / activity.goal_review : 1;
+    const avgPct = (newPct + reviewPct) / 2;
+
+    if (avgPct >= 1) return 'bg-green-500 dark:bg-green-600'; // Цель выполнена
+    if (avgPct >= 0.5) return 'bg-yellow-400 dark:bg-yellow-500'; // Частично
+    if (activity.new_words_learned > 0 || activity.words_reviewed > 0) return 'bg-yellow-300 dark:bg-yellow-400'; // Что-то делал
+    return 'bg-red-400 dark:bg-red-500'; // Заходил, но ничего
+  };
+
+  const getTitle = (day) => {
+    if (!day.activity) return `${day.date}: Нет активности`;
+    const { new_words_learned, words_reviewed, goal_new, goal_review } = day.activity;
+    return `${day.date}\nНовых: ${new_words_learned}/${goal_new}\nПовторено: ${words_reviewed}/${goal_review}`;
+  };
+
+  // Group by weeks (7 days per row)
+  const weeks = [];
+  for (let i = 0; i < days.length; i += 7) {
+    weeks.push(days.slice(i, i + 7));
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border dark:border-gray-700">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold flex items-center gap-2">
+          <Calendar size={18} /> Активность
+        </h3>
+        {streak > 0 && (
+          <div className="flex items-center gap-1 text-orange-500">
+            <Flame size={18} />
+            <span className="font-bold">{streak}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">дней</span>
+          </div>
+        )}
+      </div>
+      <div className="flex gap-0.5 overflow-x-auto pb-2">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="flex flex-col gap-0.5">
+            {week.map((day, di) => (
+              <div
+                key={di}
+                title={getTitle(day)}
+                className={`w-3 h-3 rounded-sm ${getColor(day.activity)} cursor-pointer hover:ring-2 hover:ring-blue-400`}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <span>Меньше</span>
+        <div className="flex gap-0.5">
+          <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-gray-700" />
+          <div className="w-3 h-3 rounded-sm bg-red-400 dark:bg-red-500" />
+          <div className="w-3 h-3 rounded-sm bg-yellow-400 dark:bg-yellow-500" />
+          <div className="w-3 h-3 rounded-sm bg-green-500 dark:bg-green-600" />
+        </div>
+        <span>Больше</span>
+      </div>
+    </div>
+  );
+};
+
 const SECTION_ICONS = ['📖', '📝', '🎬', '🎥', '💼', '🏢', '✈️', '🌍', '🍕', '🍔', '🎵', '🎸', '⚽', '🏀', '💻', '🖥️', '🎓', '📚', '🏥', '⚕️', '🎨', '🖼️', '🏠', '🏡', '🚗', '🚙', '👔', '👗', '🌳', '🌺', '🎯', '⭐'];
 
 const initialData = { collections: [{ id: 'c1', name: 'English', icon: '📚', sections: [{ id: 's1', name: 'Topic 1', icon: '📖' }] }], words: [], allTags: [], songFolders: [{ id: 'sf1', name: 'My Songs' }], songs: [] };
@@ -1597,6 +1677,9 @@ const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [activityData, setActivityData] = useState([]);
+  const [userGoals, setUserGoals] = useState({ daily_new_words: 5, daily_review_words: 10 });
+  const [streak, setStreak] = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('vocabmaster_theme') || 'light');
   const [cardSession, setCardSession] = useState(null);
@@ -1710,6 +1793,49 @@ const [expandedSongFolders, setExpandedSongFolders] = useState(() => {
         text: s.text,
         explanation: s.explanation
       }));
+
+      // Загружаем активность (последние 90 дней)
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      const { data: activityRows } = await supabase
+        .from('activity_log')
+        .select('*')
+        .gte('date', ninetyDaysAgo.toISOString().split('T')[0])
+        .order('date');
+
+      if (activityRows) {
+        setActivityData(activityRows);
+        // Считаем streak
+        let currentStreak = 0;
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+        for (let i = activityRows.length - 1; i >= 0; i--) {
+          const a = activityRows[i];
+          const newPct = a.goal_new > 0 ? a.new_words_learned / a.goal_new : 1;
+          const reviewPct = a.goal_review > 0 ? a.words_reviewed / a.goal_review : 1;
+          if ((newPct >= 1 && reviewPct >= 1) || a.date === today || a.date === yesterday) {
+            if (newPct >= 1 && reviewPct >= 1) currentStreak++;
+            else if (a.date !== today) break;
+          } else {
+            break;
+          }
+        }
+        setStreak(currentStreak);
+      }
+
+      // Загружаем цели пользователя
+      const { data: goalsData } = await supabase
+        .from('user_goals')
+        .select('*')
+        .single();
+
+      if (goalsData) {
+        setUserGoals({
+          daily_new_words: goalsData.daily_new_words || 5,
+          daily_review_words: goalsData.daily_review_words || 10
+        });
+      }
 
       setData({
         collections: collections || [],
@@ -2034,6 +2160,8 @@ console.log('Error:', error);
       passedModes: newWord.passed_modes
     };
     setData(d => ({ ...d, words: [...d.words, converted] }));
+    // Track new word
+    trackActivity(1, 0);
   }
   }
   
@@ -2212,36 +2340,97 @@ const saveCollection = async (name) => {
 };
   const undoDelete = () => { if (!deletedItem) return; if (deletedItem.type === 'word') setData(d => ({ ...d, words: [...d.words, deletedItem.data] })); else if (deletedItem.type === 'song') setData(d => ({ ...d, songs: [...d.songs, deletedItem.data] })); else if (deletedItem.type === 'songFolder') setData(d => ({ ...d, songFolders: [...d.songFolders, deletedItem.data.folder], songs: [...d.songs, ...deletedItem.data.songs] })); else if (deletedItem.type === 'collection') setData(d => ({ ...d, collections: [...d.collections, deletedItem.data.collection], words: [...d.words, ...deletedItem.data.words] })); else if (deletedItem.type === 'section') setData(d => ({ ...d, collections: d.collections.map(c => c.id === deletedItem.data.colId ? { ...c, sections: [...c.sections, deletedItem.data.section] } : c), words: [...d.words, ...deletedItem.data.words] })); setDeletedItem(null); setToast(null); };
 
+  // Track activity (new words or reviewed words)
+  const trackActivity = async (newWords = 0, reviewedWords = 0) => {
+    if (!user) return;
+    const today = new Date().toISOString().split('T')[0];
+
+    // Try to update existing record or insert new
+    const { data: existing } = await supabase
+      .from('activity_log')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('date', today)
+      .single();
+
+    if (existing) {
+      await supabase
+        .from('activity_log')
+        .update({
+          new_words_learned: existing.new_words_learned + newWords,
+          words_reviewed: existing.words_reviewed + reviewedWords,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id);
+    } else {
+      await supabase
+        .from('activity_log')
+        .insert({
+          user_id: user.id,
+          date: today,
+          new_words_learned: newWords,
+          words_reviewed: reviewedWords,
+          goal_new: userGoals.daily_new_words,
+          goal_review: userGoals.daily_review_words
+        });
+    }
+
+    // Update local state
+    setActivityData(prev => {
+      const idx = prev.findIndex(a => a.date === today);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = {
+          ...updated[idx],
+          new_words_learned: updated[idx].new_words_learned + newWords,
+          words_reviewed: updated[idx].words_reviewed + reviewedWords
+        };
+        return updated;
+      } else {
+        return [...prev, {
+          date: today,
+          new_words_learned: newWords,
+          words_reviewed: reviewedWords,
+          goal_new: userGoals.daily_new_words,
+          goal_review: userGoals.daily_review_words
+        }];
+      }
+    });
+  };
+
   const updateWordProgress = async (id, mode, correct) => {
   const word = data.words.find(w => w.id === id);
   if (!word) return;
-  
+
   let pm = word.passedModes || [];
   if (correct && !pm.includes(mode)) pm = [...pm, mode];
   else if (!correct) {
     pm = pm.filter(m => m !== mode && m !== 'cards');
   }
-  
+
   const newStatus = pm.length >= 3 ? STATUS.LEARNED : pm.length > 0 ? STATUS.LEARNING : STATUS.NEW;
-  
+
   // Сохраняем в базу
   await supabase
     .from('words')
-    .update({ 
-      passed_modes: pm, 
-      status: newStatus 
+    .update({
+      passed_modes: pm,
+      status: newStatus
     })
     .eq('id', id);
-  
+
   // Обновляем state
-  setData(d => ({ 
-    ...d, 
-    words: d.words.map(w => 
-      w.id === id 
-        ? { ...w, passedModes: pm, status: newStatus } 
+  setData(d => ({
+    ...d,
+    words: d.words.map(w =>
+      w.id === id
+        ? { ...w, passedModes: pm, status: newStatus }
         : w
-    ) 
+    )
   }));
+
+  // Track reviewed word
+  trackActivity(0, 1);
 };
 
   const exportData = () => { const j = JSON.stringify({ ...data, exportedAt: new Date().toISOString(), version: 'v7' }, null, 2); const a = document.createElement('a'); a.href = 'data:application/json;base64,' + btoa(unescape(encodeURIComponent(j))); a.download = `vocabmaster-backup-${new Date().toISOString().split('T')[0]}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); setToast({ message: 'Backup downloaded!', canUndo: false }); };
@@ -2637,6 +2826,9 @@ const saveCollection = async (name) => {
                       <button onClick={() => { setModal({ type: 'changePassword', data: null }); setShowUserMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
                         <Settings size={16}/> Change Password
                       </button>
+                      <button onClick={() => { setModal({ type: 'dailyGoals', data: userGoals }); setShowUserMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
+                        <Target size={16}/> Daily Goals
+                      </button>
                     </div>
                     <div className="border-t dark:border-gray-700 pt-1">
                       <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
@@ -2719,6 +2911,9 @@ const saveCollection = async (name) => {
                   <div className="text-gray-500 dark:text-gray-400 text-sm">Learned</div>
                 </button>
               </div>
+
+              {/* Activity Tracker */}
+              <ActivityTracker activityData={activityData} streak={streak} />
 
               <div className="grid grid-cols-2 gap-6">
                 {/* Уровни */}
@@ -3219,6 +3414,62 @@ const saveCollection = async (name) => {
             <div className="flex gap-2">
               <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
               <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+      {modal.type === 'dailyGoals' && (
+        <Modal onClose={() => setModal({ type: null, data: null })}>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Target size={20}/> Daily Goals</h3>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            const newWords = parseInt(e.target.newWords.value) || 5;
+            const reviewWords = parseInt(e.target.reviewWords.value) || 10;
+
+            const { error } = await supabase
+              .from('user_goals')
+              .upsert({
+                user_id: user.id,
+                daily_new_words: newWords,
+                daily_review_words: reviewWords,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'user_id' });
+
+            if (!error) {
+              setUserGoals({ daily_new_words: newWords, daily_review_words: reviewWords });
+              setToast({ message: 'Goals updated!', canUndo: false });
+              setModal({ type: null, data: null });
+            } else {
+              setToast({ message: 'Failed to save goals', canUndo: false });
+            }
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">New words per day</label>
+                <input
+                  name="newWords"
+                  type="number"
+                  min="1"
+                  max="100"
+                  defaultValue={userGoals.daily_new_words}
+                  className="w-full h-10 px-3 border dark:border-gray-600 dark:bg-gray-700 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Words to review per day</label>
+                <input
+                  name="reviewWords"
+                  type="number"
+                  min="1"
+                  max="100"
+                  defaultValue={userGoals.daily_review_words}
+                  className="w-full h-10 px-3 border dark:border-gray-600 dark:bg-gray-700 rounded-lg"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
+              <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
             </div>
           </form>
         </Modal>
