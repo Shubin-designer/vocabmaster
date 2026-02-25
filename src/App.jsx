@@ -1138,7 +1138,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
   );
 };
 
-const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, onCreateSection, onUnsavedChange, onClose }) => {
+const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, onCreateSection, onUnsavedChange, onClose, isDark = true }) => {
   const [selected, setSelected] = useState([]);
   const [wordSections, setWordSections] = useState({});
   const [checkedWords, setCheckedWords] = useState([]);
@@ -3289,6 +3289,7 @@ export default function VocabApp() {
 
                 onCreateSection={createSectionFromSong}
                 onUnsavedChange={setHasUnsavedWords}
+                isDark={isDark}
                 onClose={() => {
                   if (hasUnsavedWords) {
                     const confirmed = window.confirm('⚠️ You have unsaved words in the list.\n\nAre you sure you want to leave?\n\nProgress will be lost.');
