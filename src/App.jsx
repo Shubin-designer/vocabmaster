@@ -28,159 +28,166 @@ const highlightWord = (text, word) => {
   }
 };
 
-// Activity Tracker Component - Beautiful dot grid like habit tracker
+// Activity Tracker Component - Beautiful pixel-style habit tracker
 const ActivityTracker = ({ activityData, streak, userGoals }) => {
   const today = new Date();
   const goalNew = userGoals?.daily_new_words || 5;
   const goalReview = userGoals?.daily_review_words || 10;
 
-  // Generate last 30 days for each row
-  const generateDays = (metric) => {
+  // Generate days for the grid (7 columns x 8 rows = 56 days)
+  const generateAllDays = () => {
     const days = [];
-    for (let i = 29; i >= 0; i--) {
+    for (let i = 55; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
       const activity = activityData.find(a => a.date === dateStr);
 
-      let completed = false;
-      let partial = false;
+      let status = 'none';
       if (activity) {
-        if (metric === 'new') {
-          completed = activity.new_words_learned >= activity.goal_new;
-          partial = activity.new_words_learned > 0;
-        } else {
-          completed = activity.words_reviewed >= activity.goal_review;
-          partial = activity.words_reviewed > 0;
-        }
+        const newDone = activity.new_words_learned >= activity.goal_new;
+        const reviewDone = activity.words_reviewed >= activity.goal_review;
+        if (newDone && reviewDone) status = 'complete';
+        else if (newDone || reviewDone) status = 'partial';
+        else if (activity.new_words_learned > 0 || activity.words_reviewed > 0) status = 'started';
       }
-      days.push({ date: dateStr, completed, partial, isToday: i === 0 });
+      days.push({ date: dateStr, status, isToday: i === 0 });
     }
     return days;
   };
 
-  const newWordsDays = generateDays('new');
-  const reviewDays = generateDays('review');
-
-  // Today's stats
+  const days = generateAllDays();
   const todayActivity = activityData.find(a => a.date === today.toISOString().split('T')[0]);
   const todayNew = todayActivity?.new_words_learned || 0;
   const todayReview = todayActivity?.words_reviewed || 0;
 
-  const DotRow = ({ days, label, isOrange }) => {
-    const colors = isOrange
-      ? { full: '#f97316', partial: 'rgba(249, 115, 22, 0.4)', glow: 'rgba(249, 115, 22, 0.6)' }
-      : { full: '#22c55e', partial: 'rgba(34, 197, 94, 0.4)', glow: 'rgba(34, 197, 94, 0.6)' };
+  // Dot colors
+  const getDotStyle = (status, isToday) => {
+    const base = {
+      width: '10px',
+      height: '10px',
+      borderRadius: '50%',
+      transition: 'all 0.3s ease',
+      cursor: 'pointer',
+    };
 
-    return (
-      <div className="flex items-center gap-4">
-        <span className="text-gray-400 text-sm w-20 text-right font-medium">{label}</span>
-        <div className="flex gap-1.5 flex-wrap">
-          {days.map((day, i) => (
-            <div
-              key={i}
-              title={day.date}
-              className={`
-                w-3 h-3 rounded-full transition-all duration-300 cursor-pointer
-                ${day.isToday ? 'ring-2 ring-white/50 ring-offset-1 ring-offset-black' : ''}
-                hover:scale-150
-              `}
-              style={{
-                backgroundColor: day.completed ? colors.full : day.partial ? colors.partial : 'rgba(55, 65, 81, 0.6)',
-                boxShadow: day.completed ? `0 0 12px ${colors.glow}` : 'none'
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    );
+    if (status === 'complete') {
+      return { ...base, backgroundColor: '#f97316', boxShadow: '0 0 8px rgba(249, 115, 22, 0.7), 0 0 16px rgba(249, 115, 22, 0.4)' };
+    } else if (status === 'partial') {
+      return { ...base, backgroundColor: '#fb923c', boxShadow: '0 0 6px rgba(251, 146, 60, 0.5)' };
+    } else if (status === 'started') {
+      return { ...base, backgroundColor: 'rgba(249, 115, 22, 0.4)' };
+    }
+    return { ...base, backgroundColor: 'rgba(75, 85, 99, 0.4)' };
   };
 
   return (
     <div
-      className="rounded-3xl p-6 shadow-2xl relative overflow-hidden"
+      className="rounded-[28px] p-6 relative overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1f1a 50%, #1a1a1a 100%)'
+        background: 'linear-gradient(145deg, #1c1917 0%, #292018 40%, #1c1412 100%)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.03)'
       }}
     >
-      {/* Subtle glow effect */}
+      {/* Ambient glow */}
       <div
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at 70% 20%, rgba(249, 115, 22, 0.15) 0%, transparent 50%)'
+          background: 'radial-gradient(ellipse at 80% 0%, rgba(249, 115, 22, 0.08) 0%, transparent 60%)'
         }}
       />
 
-      {/* Header with streak */}
-      <div className="relative flex items-center justify-between mb-6">
+      {/* Header */}
+      <div className="relative flex items-center justify-between mb-5">
         <div>
-          <h3 className="text-white font-bold text-xl tracking-tight">Daily Progress</h3>
-          <p className="text-gray-500 text-sm mt-0.5">Track your learning habits</p>
+          <h3 className="text-white/90 font-semibold text-lg">Daily Progress</h3>
+          <p className="text-white/30 text-sm">Track your learning</p>
         </div>
         {streak > 0 && (
-          <div className="flex items-center gap-2 bg-orange-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-500/20">
-            <Flame size={22} className="text-orange-400" />
-            <span className="text-orange-400 font-bold text-xl">{streak}</span>
-            <span className="text-orange-400/60 text-sm">days</span>
+          <div className="flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-full">
+            <Flame size={18} className="text-orange-400" />
+            <span className="text-orange-400 font-bold">{streak}</span>
           </div>
         )}
       </div>
 
-      {/* Today's Progress Cards */}
-      <div className="relative grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50" />
-            <span className="text-gray-400 text-sm">New words</span>
+      {/* Today's Stats */}
+      <div className="relative grid grid-cols-2 gap-3 mb-5">
+        <div className="bg-white/[0.03] rounded-2xl p-4 border border-white/[0.04]">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-orange-400" style={{ boxShadow: '0 0 8px rgba(251, 146, 60, 0.6)' }} />
+            <span className="text-white/40 text-xs uppercase tracking-wide">New words</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-white text-3xl font-bold">{todayNew}</span>
-            <span className="text-gray-500 text-lg">/ {goalNew}</span>
+            <span className="text-white text-2xl font-semibold">{todayNew}</span>
+            <span className="text-white/30 text-sm">/{goalNew}</span>
           </div>
-          <div className="mt-3 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+          <div className="mt-2 h-1 bg-white/[0.06] rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full rounded-full"
               style={{
                 width: `${Math.min((todayNew / goalNew) * 100, 100)}%`,
-                background: 'linear-gradient(90deg, #f97316 0%, #fb923c 100%)'
+                background: 'linear-gradient(90deg, #f97316, #fbbf24)',
+                boxShadow: todayNew > 0 ? '0 0 8px rgba(249, 115, 22, 0.5)' : 'none'
               }}
             />
           </div>
         </div>
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/5">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-            <span className="text-gray-400 text-sm">Reviewed</span>
+        <div className="bg-white/[0.03] rounded-2xl p-4 border border-white/[0.04]">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)' }} />
+            <span className="text-white/40 text-xs uppercase tracking-wide">Reviews</span>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-white text-3xl font-bold">{todayReview}</span>
-            <span className="text-gray-500 text-lg">/ {goalReview}</span>
+            <span className="text-white text-2xl font-semibold">{todayReview}</span>
+            <span className="text-white/30 text-sm">/{goalReview}</span>
           </div>
-          <div className="mt-3 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+          <div className="mt-2 h-1 bg-white/[0.06] rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full rounded-full"
               style={{
                 width: `${Math.min((todayReview / goalReview) * 100, 100)}%`,
-                background: 'linear-gradient(90deg, #22c55e 0%, #4ade80 100%)'
+                background: 'linear-gradient(90deg, #10b981, #34d399)',
+                boxShadow: todayReview > 0 ? '0 0 8px rgba(16, 185, 129, 0.5)' : 'none'
               }}
             />
           </div>
         </div>
       </div>
 
-      {/* Dot Grid with Labels */}
-      <div className="relative space-y-4">
-        <DotRow days={newWordsDays} label="new words" isOrange={true} />
-        <DotRow days={reviewDays} label="reviews" isOrange={false} />
+      {/* Dot Grid - 8 rows x 7 columns */}
+      <div className="relative">
+        <div className="grid gap-[6px]" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+          {days.map((day, i) => (
+            <div
+              key={i}
+              title={`${day.date}${day.status !== 'none' ? ` • ${day.status}` : ''}`}
+              style={getDotStyle(day.status, day.isToday)}
+              className={`mx-auto hover:scale-150 ${day.isToday ? 'ring-1 ring-white/30 ring-offset-1 ring-offset-transparent' : ''}`}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Subtle bottom gradient */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
-        style={{
-          background: 'linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 100%)'
-        }}
-      />
+      {/* Legend */}
+      <div className="relative flex items-center justify-center gap-4 mt-4 text-[10px]">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-gray-600/40" />
+          <span className="text-white/25">None</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-orange-500/40" />
+          <span className="text-white/25">Started</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-orange-400" />
+          <span className="text-white/25">Partial</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-orange-500" style={{ boxShadow: '0 0 6px rgba(249, 115, 22, 0.6)' }} />
+          <span className="text-white/25">Complete</span>
+        </div>
+      </div>
     </div>
   );
 };
@@ -190,8 +197,16 @@ const SECTION_ICONS = ['📖', '📝', '🎬', '🎥', '💼', '🏢', '✈️',
 const initialData = { collections: [{ id: 'c1', name: 'English', icon: '📚', sections: [{ id: 's1', name: 'Topic 1', icon: '📖' }] }], words: [], allTags: [], songFolders: [{ id: 'sf1', name: 'My Songs' }], songs: [] };
 
 const Modal = ({ children, onClose, preventClose, wide, medium }) => (
-  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={preventClose ? undefined : onClose}>
-    <div className={`relative bg-[#1a1a1a] text-gray-100 rounded-2xl p-6 w-full ${wide ? 'max-w-6xl' : medium ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto border border-gray-800 shadow-2xl`} onClick={e => e.stopPropagation()}>{children}</div>
+  <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50" onClick={preventClose ? undefined : onClose}>
+    <div
+      className={`relative text-gray-100 rounded-[24px] p-6 w-full ${wide ? 'max-w-6xl' : medium ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto`}
+      style={{
+        background: 'linear-gradient(145deg, rgba(28, 28, 28, 0.98) 0%, rgba(18, 18, 18, 0.98) 100%)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.03) inset'
+      }}
+      onClick={e => e.stopPropagation()}
+    >{children}</div>
   </div>
 );
 
@@ -319,7 +334,7 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId }) => {
         value={text}
         onChange={e => setText(e.target.value)}
         placeholder="Paste text in format: word [tab] translation"
-        className="w-full px-3 py-2 border   rounded-lg h-48 mb-3 font-mono text-sm"
+        className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none h-48 mb-3 font-mono text-sm"
       />
       {preview.length === 0 && (
         <div className="flex gap-2">
@@ -1017,12 +1032,12 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               </div>
             </div>
           </div>
-          <input className="w-full h-10 px-3 border   rounded-lg" placeholder="IPA" value={form.forms} onChange={e => setForm({ ...form, forms: e.target.value })} />
-          <textarea className="w-full px-3 py-2 border   rounded-lg" placeholder="Meaning (English) *" value={form.meaningEn} onChange={e => setForm({ ...form, meaningEn: e.target.value })} rows={2} />
+          <input className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none" placeholder="IPA" value={form.forms} onChange={e => setForm({ ...form, forms: e.target.value })} />
+          <textarea className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none" placeholder="Meaning (English) *" value={form.meaningEn} onChange={e => setForm({ ...form, meaningEn: e.target.value })} rows={2} />
           <div>
             <div className="relative">
               <input
-                className="w-full h-10 px-3 border   rounded-lg"
+                className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
                 placeholder="Перевод"
                 value={form.meaningRu}
                 onChange={e => setForm({ ...form, meaningRu: e.target.value })}
@@ -1084,10 +1099,10 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               </div>
             )}
           </div>
-          <textarea className="w-full px-3 py-2 border   rounded-lg" placeholder="Example" value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} rows={2} />
-          <textarea className="w-full px-3 py-2 border rounded-lg bg-yellow-900/30 text-gray-100  " placeholder="My example" value={form.myExample || ''} onChange={e => setForm({ ...form, myExample: e.target.value })} rows={2} />
+          <textarea className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none" placeholder="Example" value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} rows={2} />
+          <textarea className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none bg-yellow-900/30 text-gray-100  " placeholder="My example" value={form.myExample || ''} onChange={e => setForm({ ...form, myExample: e.target.value })} rows={2} />
           <input className="w-full h-10 px-3 border border-gray-700 rounded-lg bg-purple-900/30 text-gray-100" placeholder="Single-root words (e.g., teach, teacher, teaching)" value={form.singleRootWords || ''} onChange={e => setForm({ ...form, singleRootWords: e.target.value })} />
-          <input className="w-full h-10 px-3 border rounded-lg bg-blue-900/30 text-gray-100  " placeholder="Synonyms (e.g., big, large, huge)" value={form.synonyms || ''} onChange={e => setForm({ ...form, synonyms: e.target.value })} />
+          <input className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none bg-blue-900/30 text-gray-100  " placeholder="Synonyms (e.g., big, large, huge)" value={form.synonyms || ''} onChange={e => setForm({ ...form, synonyms: e.target.value })} />
         </div>
         <div className="flex gap-2 mt-4">
           <button onClick={onCancel} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
@@ -1565,7 +1580,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
           </div>
-          <input id="new-sec-name" placeholder="Section name" className="w-full h-10 px-3 border   rounded-lg mb-4" />
+          <input id="new-sec-name" placeholder="Section name" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" />
           <div className="flex gap-2">
             <button onClick={() => setShowNewSection(null)} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
             <button onClick={async () => {
@@ -1626,8 +1641,8 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel }) => {
   return (
     <Modal onClose={onCancel} preventClose medium>
       <h3 className="text-lg font-semibold mb-4">{song?.id ? 'Edit Song' : 'Add Song'}</h3>
-      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Song title *" className="w-full h-10 px-3 border   rounded-lg mb-3" />
-      <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste lyrics..." className="w-full px-3 py-2 border rounded-lg h-64 mb-3" />
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Song title *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-3" />
+      <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste lyrics..." className="w-full px-3 py-2 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none h-64 mb-3" />
       <div className="flex gap-2"><button onClick={onCancel} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={handleSave} disabled={!title.trim() || !text.trim()} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg disabled:opacity-50 hover:bg-blue-600">Save</button></div>
     </Modal>
   );
@@ -2680,32 +2695,69 @@ const saveCollection = async (name) => {
 
   const WordCard = ({ word }) => {
     return (
-      <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 p-4 relative hover:border-gray-700 transition-colors">
-        <div className="flex items-start justify-between mb-2">
-          <div><div className="flex items-center gap-2"><span className="text-xl font-semibold text-white">{word.word}</span><button onClick={() => playPronunciation(word.word)} className="p-1 hover:bg-white/5 rounded"><Volume2 size={18} className="text-orange-400" /></button></div><span className="text-sm text-gray-500">{word.type}{word.forms && ` · ${word.forms}`}</span></div>
-          <div className="flex gap-1"><button onClick={() => setModal({ type: 'word', data: word })} className="p-1 hover:bg-white/5 rounded"><Edit2 size={16} className="text-gray-500" /></button><button onClick={() => requestDelete('word', word)} className="p-1 hover:bg-white/5 rounded"><Trash2 size={16} className="text-gray-500" /></button></div>
+      <div
+        className="rounded-[20px] p-5 relative transition-all duration-300 hover:translate-y-[-2px]"
+        style={{
+          background: 'linear-gradient(145deg, rgba(30, 30, 30, 0.9) 0%, rgba(20, 20, 20, 0.95) 100%)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03)'
+        }}
+      >
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-semibold text-white/90">{word.word}</span>
+              <button onClick={() => playPronunciation(word.word)} className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
+                <Volume2 size={16} className="text-orange-400/80" />
+              </button>
+            </div>
+            <span className="text-sm text-white/30">{word.type}{word.forms && ` · ${word.forms}`}</span>
+          </div>
+          <div className="flex gap-1">
+            <button onClick={() => setModal({ type: 'word', data: word })} className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
+              <Edit2 size={14} className="text-white/30 hover:text-white/50" />
+            </button>
+            <button onClick={() => requestDelete('word', word)} className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
+              <Trash2 size={14} className="text-white/30 hover:text-red-400/70" />
+            </button>
+          </div>
         </div>
-        <div className="text-gray-300 mb-1">{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
-        {word.meaningRu && <p className="text-orange-400 text-sm mb-2">→ {word.meaningRu}</p>}
-        {word.example && <div className="text-sm text-gray-400 italic border-l-2 border-orange-500/50 pl-2 mb-2">{word.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), word.word)}"</div>)}</div>}
-        {word.myExample && <p className="text-sm text-yellow-400 italic border-l-2 border-yellow-500/50 pl-2 bg-yellow-900/20 py-1 mb-2">✏️ "{word.myExample}"</p>}
+        <div className="text-white/70 mb-2 leading-relaxed">{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
+        {word.meaningRu && <p className="text-orange-400/90 text-sm mb-3">→ {word.meaningRu}</p>}
+        {word.example && (
+          <div className="text-sm text-white/40 italic rounded-xl bg-white/[0.02] border-l-2 border-orange-500/30 pl-3 py-2 mb-3">
+            {word.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), word.word)}"</div>)}
+          </div>
+        )}
+        {word.myExample && (
+          <p className="text-sm text-amber-300/80 italic rounded-xl border-l-2 border-amber-500/30 pl-3 py-2 bg-amber-900/10 mb-3">
+            ✏️ "{word.myExample}"
+          </p>
+        )}
         {(word.singleRootWords || word.synonyms) && (
-          <div className="flex gap-3 mb-2 text-xs">
+          <div className="flex gap-3 mb-3 text-xs">
             {word.singleRootWords && (
-              <button onClick={() => setWordPopup({ type: 'roots', word })} className="text-purple-400 hover:text-purple-300 underline">
-                Single-root words
+              <button onClick={() => setWordPopup({ type: 'roots', word })} className="text-purple-400/80 hover:text-purple-300 transition-colors">
+                Single-root words →
               </button>
             )}
             {word.synonyms && (
-              <button onClick={() => setWordPopup({ type: 'synonyms', word })} className="text-blue-400 hover:text-blue-300 underline">
-                Synonyms
+              <button onClick={() => setWordPopup({ type: 'synonyms', word })} className="text-blue-400/80 hover:text-blue-300 transition-colors">
+                Synonyms →
               </button>
             )}
           </div>
         )}
-        <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-800">
-          <div className="flex gap-1"><span className={`px-2 py-0.5 rounded text-xs font-medium ${getLevelColor(word.level)}`}>{word.level}</span><span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(word.status)}`}>{word.status}</span></div>
-          <div className="flex gap-1 text-xs"><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('cards') ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-500'}`}>C</span><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('quiz') ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-500'}`}>Q</span><span className={`px-1.5 py-0.5 rounded ${(word.passedModes || []).includes('write') ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-500'}`}>W</span></div>
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+          <div className="flex gap-1.5">
+            <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(word.level)}`}>{word.level}</span>
+            <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getStatusColor(word.status)}`}>{word.status}</span>
+          </div>
+          <div className="flex gap-1 text-xs">
+            <span className={`px-1.5 py-0.5 rounded-md ${(word.passedModes || []).includes('cards') ? 'bg-green-500/20 text-green-400/80' : 'bg-white/5 text-white/20'}`}>C</span>
+            <span className={`px-1.5 py-0.5 rounded-md ${(word.passedModes || []).includes('quiz') ? 'bg-green-500/20 text-green-400/80' : 'bg-white/5 text-white/20'}`}>Q</span>
+            <span className={`px-1.5 py-0.5 rounded-md ${(word.passedModes || []).includes('write') ? 'bg-green-500/20 text-green-400/80' : 'bg-white/5 text-white/20'}`}>W</span>
+          </div>
         </div>
       </div>
     );
@@ -3333,7 +3385,7 @@ const saveCollection = async (name) => {
       
       onCancel={() => setModal({ type: null, data: null })} />}
       {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} />}
-      {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })}><h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className="w-full h-10 px-3 border   rounded-lg mb-4" autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button></div></Modal>}
+      {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })}><h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button></div></Modal>}
       {modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })}>
         <h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
         <div className="mb-3">
@@ -3347,7 +3399,7 @@ const saveCollection = async (name) => {
             <span className="text-3xl" id="col-icon">{modal.data?.icon || '📚'}</span>
           </div>
         </div>
-        <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className="w-full h-10 px-3 border   rounded-lg mb-4" autoFocus />
+        <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus />
         <div className="flex gap-2">
           <button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
           <button onClick={() => saveCollection(document.getElementById('col-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
@@ -3366,7 +3418,7 @@ const saveCollection = async (name) => {
             <span className="text-3xl" id="sec-icon">{modal.data?.section?.icon || '📖'}</span>
           </div>
         </div>
-        <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className="w-full h-10 px-3 border   rounded-lg mb-4" autoFocus />
+        <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus />
         <div className="flex gap-2">
           <button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
           <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
@@ -3540,8 +3592,8 @@ const saveCollection = async (name) => {
             }
             handleChangePassword(newPass);
           }}>
-            <input name="newPassword" type="password" placeholder="New password" className="w-full h-10 px-3 border   rounded-lg mb-3" required minLength={6} />
-            <input name="confirmPassword" type="password" placeholder="Confirm password" className="w-full h-10 px-3 border   rounded-lg mb-4" required minLength={6} />
+            <input name="newPassword" type="password" placeholder="New password" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-3" required minLength={6} />
+            <input name="confirmPassword" type="password" placeholder="Confirm password" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" required minLength={6} />
             <div className="flex gap-2">
               <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border  rounded-lg hover:bg-white/5">Cancel</button>
               <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change</button>
@@ -3583,7 +3635,7 @@ const saveCollection = async (name) => {
                   min="1"
                   max="100"
                   defaultValue={userGoals.daily_new_words}
-                  className="w-full h-10 px-3 border   rounded-lg"
+                  className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
                 />
               </div>
               <div>
@@ -3594,7 +3646,7 @@ const saveCollection = async (name) => {
                   min="1"
                   max="100"
                   defaultValue={userGoals.daily_review_words}
-                  className="w-full h-10 px-3 border   rounded-lg"
+                  className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
                 />
               </div>
             </div>
