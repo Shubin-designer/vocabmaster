@@ -51,7 +51,7 @@ const highlightWord = (text, word) => {
 };
 
 // Activity Tracker Component - Beautiful pixel-style habit tracker
-const ActivityTracker = ({ activityData, streak, userGoals, isDark = true }) => {
+const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, className = '' }) => {
   const today = new Date();
   const goalNew = userGoals?.daily_new_words || 5;
   const goalReview = userGoals?.daily_review_words || 10;
@@ -73,7 +73,12 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true }) => 
         else if (newDone || reviewDone) status = 'partial';
         else if (activity.new_words_learned > 0 || activity.words_reviewed > 0) status = 'started';
       }
-      days.push({ date: dateStr, status, isToday: i === 0 });
+
+      const newLearned = activity?.new_words_learned || 0;
+      const reviewLearned = activity?.words_reviewed || 0;
+      const toolTipText = `${dateStr}\nNew: ${newLearned}, Rev: ${reviewLearned}`;
+
+      days.push({ date: dateStr, status, isToday: i === 0, toolTipText });
     }
     return days;
   };
@@ -86,10 +91,10 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true }) => 
   // Dot colors
   const getDotStyle = (status, isToday) => {
     const base = {
-      width: '8px',
-      height: '8px',
+      width: '100%',
+      paddingTop: '100%',
       borderRadius: '50%',
-      transition: 'all 0.2s ease',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     };
 
     if (status === 'complete') {
@@ -104,7 +109,7 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true }) => 
 
   return (
     <div
-      className={`rounded-[2rem] p-6 relative overflow-hidden backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+      className={`liquid-glass rounded-[2rem] p-6 relative overflow-hidden flex flex-col ${className}`}
       style={{
         background: isDark
           ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
@@ -181,14 +186,14 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true }) => 
       </div>
 
       {/* Dot Grid - 7 rows x 7 columns */}
-      <div className="relative">
-        <div className="grid gap-[6px]" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <div className="relative flex-1 flex flex-col justify-center">
+        <div className="grid gap-[8px] w-full max-w-[280px] mx-auto" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
           {days.map((day, i) => (
             <div
               key={i}
-              title={`${day.date}${day.status !== 'none' ? ` • ${day.status}` : ''}`}
+              title={day.toolTipText}
               style={getDotStyle(day.status, day.isToday)}
-              className={`mx-auto transition-transform hover:scale-125 ${day.isToday ? (isDark ? 'ring-1 ring-white/30 ring-offset-1 ring-offset-[#151515]' : 'ring-1 ring-black/20') : ''}`}
+              className={`transition-transform cursor-crosshair hover:scale-[1.4] hover:z-10 relative ${day.isToday ? (isDark ? 'ring-1 ring-white/30 ring-offset-2 ring-offset-[#151515]' : 'ring-1 ring-black/20') : ''}`}
             />
           ))}
         </div>
@@ -228,12 +233,8 @@ const Modal = ({ children, onClose, preventClose, wide, medium, isDark = true })
     onClick={preventClose ? undefined : onClose}
   >
     <div
-      className={`relative rounded-3xl p-6 w-full ${wide ? 'max-w-6xl' : medium ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto animate-scaleIn ${isDark ? 'text-gray-100' : 'text-gray-900'}`}
+      className={`relative liquid-glass rounded-3xl p-6 w-full ${wide ? 'max-w-6xl' : medium ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto animate-scaleIn ${isDark ? 'text-gray-100 border-white/10' : 'text-gray-900 border-black/10'}`}
       style={{
-        background: isDark
-          ? 'linear-gradient(145deg, rgba(32, 32, 32, 0.98) 0%, rgba(22, 22, 22, 0.98) 100%)'
-          : 'linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 250, 250, 0.98) 100%)',
-        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
         boxShadow: isDark
           ? '0 25px 50px -12px rgba(0, 0, 0, 0.6)'
           : '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
@@ -1398,7 +1399,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         if (cleanRemaining.startsWith(sel)) {
           const startOffset = remaining.length - cleanRemaining.length;
           result.push(<span key={i}>{text.slice(i, i + startOffset)}</span>);
-          result.push(<span key={i + startOffset} className="bg-blue-200 rounded-sm px-0.5">{text.slice(i + startOffset, i + startOffset + sel.length)}</span>);
+          result.push(<span key={i + startOffset} className="bg-pink-500/20 text-pink-400 rounded px-1 py-0.5">{text.slice(i + startOffset, i + startOffset + sel.length)}</span>);
           i += startOffset + sel.length;
           matched = true;
           break;
@@ -1416,7 +1417,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             result.push(
               <span
                 key={i + startOffset}
-                className="border-b-2 border-dashed border-gray-400 cursor-help"
+                className="border-b-2 border-dashed border-emerald-400/40 text-emerald-400 cursor-help"
                 onMouseEnter={e => {
                   const r = e.currentTarget.getBoundingClientRect();
                   setHoveredWord({
@@ -1448,12 +1449,12 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           const isComplexFromPhrase = complexWordsMap.has(cleaned) && matches.length === 0;
 
           if (isSelected) {
-            result.push(<span key={i} className="bg-blue-200 rounded-sm px-0.5">{word}</span>);
+            result.push(<span key={i} className="bg-pink-500/20 text-pink-400 rounded px-1 py-0.5">{word}</span>);
           } else if (matches.length > 0) {
             result.push(
               <span
                 key={i}
-                className="border-b-2 border-dashed border-gray-400 cursor-help"
+                className="border-b-2 border-dashed border-emerald-400/40 text-emerald-400 cursor-help"
                 onMouseEnter={e => {
                   const r = e.currentTarget.getBoundingClientRect();
                   setHoveredWord({
@@ -1471,7 +1472,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           }
           else if (isComplexFromPhrase) {
             result.push(
-              <span key={i} className="border-b border-dotted border-gray-400 cursor-help"
+              <span key={i} className="border-b border-dotted border-white/40 text-white/80 cursor-help"
                 onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setHoveredWord({ word: cleaned, phrases: complexWordsMap.get(cleaned), pos: { x: r.left + r.width / 2, y: r.top } }); }}
                 onMouseLeave={() => setHoveredWord(null)}
               >{word}</span>
@@ -1503,12 +1504,12 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
-        <div className="bg-[#1a1a1a] rounded-xl shadow-sm border border-gray-800 p-4 flex-1 min-h-0 flex flex-col relative">
+        <div className="liquid-glass rounded-3xl p-6 flex-1 min-h-0 flex flex-col relative">
           <div className="text-xs text-gray-600 mb-2 flex-shrink-0">Select text to see translation and add words</div>
-          <div className="bg-gray-50 p-4 rounded-lg flex-1 overflow-y-auto min-h-0">{highlightText()}</div>
+          <div className="bg-transparent text-gray-200 text-lg leading-relaxed p-4 rounded-xl flex-1 overflow-y-auto min-h-0">{highlightText()}</div>
 
           {hoveredWord && (
-            <div className="fixed bg-gray-800 text-white rounded-lg shadow-xl p-3 z-50 min-w-48 max-w-xs" style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
+            <div className="fixed liquid-glass text-white rounded-2xl shadow-2xl p-4 z-50 min-w-48 max-w-xs animate-scaleIn" style={{ left: hoveredWord.pos.x, top: hoveredWord.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
               {hoveredWord.phrases ? (
                 <>
                   <div className="font-semibold mb-1">{hoveredWord.word}</div>
@@ -1534,7 +1535,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             </div>
           )}
           {popup && (
-            <div className="song-popup fixed bg-white border-2 border-blue-500 rounded-lg shadow-xl p-3 z-50 min-w-48" style={{ left: popup.pos.x, top: popup.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
+            <div className="song-popup fixed liquid-glass border border-white/20 text-white rounded-2xl shadow-2xl p-4 z-50 min-w-48 animate-scaleIn" style={{ left: popup.pos.x, top: popup.pos.y, transform: 'translate(-50%, -100%)', marginTop: -10 }}>
               <div className="font-semibold">{popup.original}</div>
               <div className="text-sm text-blue-600 mb-2">→ {translating ? <Loader size={14} className="inline animate-spin" /> : popup.translation}</div>
               {existingSet.has(popup.word) ? (
@@ -1559,30 +1560,30 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         </div>
 
         {selected.length > 0 && (
-          <div className="bg-[#1a1a1a] rounded-xl shadow-sm border border-gray-800 p-4 flex-shrink-0 max-h-64 overflow-y-auto">
+          <div className="liquid-glass rounded-3xl p-6 flex-shrink-0 max-h-64 overflow-y-auto">
             <div className="flex justify-between items-center mb-3 gap-2 flex-wrap">
               <h3 className="font-semibold">Selected ({selected.length})</h3>
               <div className="flex items-center gap-2">
                 {checkedWords.length > 0 && <select onChange={e => handleBulkSectionChange(e.target.value)}
 
 
-                  className="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none" defaultValue=""><option value="">Set section for {checkedWords.length}...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select>
+                  className="h-10 pl-3 pr-8 border border-white/10 rounded-lg liquid-glass text-white text-sm hover:brightness-110 appearance-none" defaultValue=""><option className="text-black" value="">Set section for {checkedWords.length}...</option>{sections.map(s => <option className="text-black" key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option className="text-black" value="new">+ New Section</option></select>
 
 
                 }
-                <button onClick={addSelectedWords} className="px-4 py-2 bg-green-500 text-white rounded text-sm">Add to vocabulary</button>
+                <button onClick={addSelectedWords} className="px-4 py-2 bg-emerald-500 text-white font-medium rounded-xl hover:brightness-110 hover:shadow-lg transition-all text-sm">Add to vocabulary</button>
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b"><tr><th className="p-2 text-left w-10"><input type="checkbox" checked={checkedWords.length === selected.length && selected.length > 0} onChange={toggleCheckAll} /></th><th className="p-2 text-left">Word/Phrase</th><th className="p-2 text-left">Section</th></tr></thead>
+                <thead className="bg-white/5 border-b border-white/10 text-white/50"><tr><th className="p-2 text-left w-10"><input type="checkbox" checked={checkedWords.length === selected.length && selected.length > 0} onChange={toggleCheckAll} className="rounded border-white/20 accent-pink-500" /></th><th className="p-2 text-left">Word/Phrase</th><th className="p-2 text-left">Section</th></tr></thead>
                 <tbody>{selected.map(w => (
-                  <tr key={w} className="border-b hover:bg-white/5">
+                  <tr key={w} className="border-b border-white/5 hover:bg-white/5 text-white/90">
                     <td className="p-2"><input type="checkbox" checked={checkedWords.includes(w)} onChange={() => toggleCheck(w)} /></td>
                     <td className="p-2 font-medium">{w}</td>
                     <td className="p-2">
 
-                      <div class="flex items-center justify-between"><div class="relative"><select class="h-10 pl-3 pr-8 border border-gray-300 rounded-lg bg-white   text-sm hover:bg-gray-50  appearance-none"><option value="">Select section...</option>{sections.map(s => <option key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option value="new">+ New Section</option></select><div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></div></div>
+                      <div class="flex items-center justify-between"><div class="relative"><select class="h-10 pl-3 pr-8 border border-white/10 rounded-lg liquid-glass text-white text-sm hover:brightness-110 appearance-none"><option className="text-black" value="">Select section...</option>{sections.map(s => <option className="text-black" key={s.id} value={s.id}>{s.collectionName} › {s.name}</option>)}<option className="text-black" value="new">+ New Section</option></select><div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></div></div>
                         <td className="p-2"><button onClick={() => removeFromList(w)} className="p-1 hover:bg-gray-700  rounded"><Trash2 size={14} /></button></td>
                       </div>
 
@@ -3091,165 +3092,158 @@ export default function VocabApp() {
                   </button>
                 </div>
 
-                {/* Main Grid - Activity Tracker + Collections */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Activity Tracker - Left side */}
-                  <ActivityTracker activityData={activityData} streak={streak} userGoals={userGoals} isDark={isDark} />
-
-                  {/* Collections - Right side */}
-                  <div
-                    className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
-                    style={{
-                      background: isDark
-                        ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
-                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                    }}
-                  >
-                    <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                      <BookOpen size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
-                      Collections
-                    </h3>
-                    {data.collections.length > 0 ? (
-                      <div className="space-y-1">
-                        {data.collections.slice(0, 6).map(col => {
-                          const colWords = data.words.filter(w => col.sections.some(s => s.id === w.sectionId));
-                          return (
-                            <button
-                              key={col.id}
-                              onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }}
-                              className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
-                            >
-                              <span className="text-lg">{col.icon || '📚'}</span>
-                              <span className={`flex-1 truncate text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{col.name}</span>
-                              <span className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{colWords.length}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No collections yet</p>
-                    )}
+                {/* Main Dashboard Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                  {/* Left side - Activity Tracker (spans height) */}
+                  <div className="flex flex-col h-full">
+                    <ActivityTracker activityData={activityData} streak={streak} userGoals={userGoals} isDark={isDark} className="flex-1" />
                   </div>
-                </div>
 
-                {/* Second Row - Levels + Recent/Review */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Уровни */}
-                  <div
-                    className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
-                    style={{
-                      background: isDark
-                        ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
-                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                    }}
-                  >
-                    <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                      <TrendingUp size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
-                      By Level
-                    </h3>
-                    {levelStats.length > 0 ? (
-                      <div className="space-y-2.5">
-                        {levelStats.map(({ level, count }) => (
-                          <div key={level} className="flex items-center gap-3">
-                            <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(level)}`}>{level}</span>
-                            <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
-                              <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" style={{ width: `${(count / totalWords) * 100}%` }}></div>
-                            </div>
-                            <span className={`text-sm w-8 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{count}</span>
+                  {/* Right side - Collections & Stats */}
+                  <div className="flex flex-col gap-6">
+                    {/* Collections */}
+                    <div
+                      className={`liquid-glass rounded-[2rem] p-6`}
+                    >
+                      <h3 className={`font-display font-semibold text-lg mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                        <BookOpen size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                        Collections
+                      </h3>
+                      {data.collections.length > 0 ? (
+                        <div className="space-y-1">
+                          {data.collections.slice(0, 5).map(col => {
+                            const colWords = data.words.filter(w => col.sections.some(s => s.id === w.sectionId));
+                            return (
+                              <button
+                                key={col.id}
+                                onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }}
+                                className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                              >
+                                <span className="text-lg">{col.icon || '📚'}</span>
+                                <span className={`flex-1 truncate text-sm font-medium ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{col.name}</span>
+                                <span className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{colWords.length}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No collections yet</p>
+                      )}
+                    </div>
+
+                    {/* Levels and Review Mini-Grid inside right column */}
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Уровни */}
+                      <div
+                        className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+                        style={{
+                          background: isDark
+                            ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
+                            : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                          border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                        }}
+                      >
+                        <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                          <TrendingUp size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                          By Level
+                        </h3>
+                        {levelStats.length > 0 ? (
+                          <div className="space-y-2.5">
+                            {levelStats.map(({ level, count }) => (
+                              <div key={level} className="flex items-center gap-3">
+                                <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(level)}`}>{level}</span>
+                                <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
+                                  <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" style={{ width: `${(count / totalWords) * 100}%` }}></div>
+                                </div>
+                                <span className={`text-sm w-8 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{count}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
-                    )}
-                  </div>
-
-                  {/* Recently Added / To Review */}
-                  <div
-                    className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
-                    style={{
-                      background: isDark
-                        ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
-                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                    }}
-                  >
-                    {wordsToReview.length > 0 ? (
-                      <>
-                        <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                          <RotateCcw size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
-                          Review These
-                        </h3>
-                        <div className="space-y-1">
-                          {wordsToReview.map(w => (
-                            <div
-                              key={w.id}
-                              className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
-                              onClick={() => setModal({ type: 'word', data: w })}
-                            >
-                              <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
-                              <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {learningWords > 5 && (
-                          <button onClick={() => { setFilterStatus('learning'); setView('all-words'); }} className="mt-3 text-sm text-orange-500 hover:text-orange-400 transition-colors">
-                            View all {learningWords} →
-                          </button>
+                        ) : (
+                          <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
                         )}
-                      </>
-                    ) : recentWords.length > 0 ? (
-                      <>
-                        <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                          <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
-                          Recently Added
-                        </h3>
-                        <div className="space-y-1">
-                          {recentWords.slice(0, 5).map(w => (
-                            <div
-                              key={w.id}
-                              className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
-                              onClick={() => setModal({ type: 'word', data: w })}
-                            >
-                              <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
-                              <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] ${getLevelColor(w.level)}`}>{w.level}</span>
+                      </div>
+
+                      {/* Recently Added / To Review */}
+                      <div
+                        className={`rounded-[2rem] p-6 backdrop-blur-xl ${isDark ? '' : 'shadow-sm'}`}
+                        style={{
+                          background: isDark
+                            ? 'linear-gradient(145deg, rgba(20, 20, 22, 0.95) 0%, rgba(15, 15, 17, 0.95) 100%)'
+                            : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
+                          border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                        }}
+                      >
+                        {wordsToReview.length > 0 ? (
+                          <>
+                            <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                              <RotateCcw size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                              Review These
+                            </h3>
+                            <div className="space-y-1">
+                              {wordsToReview.map(w => (
+                                <div
+                                  key={w.id}
+                                  className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                                  onClick={() => setModal({ type: 'word', data: w })}
+                                >
+                                  <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
+                                  <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
-                          <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
-                          Recent
-                        </h3>
-                        <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
-                      </>
+                            {learningWords > 5 && (
+                              <button onClick={() => { setFilterStatus('learning'); setView('all-words'); }} className="mt-3 text-sm text-orange-500 hover:text-orange-400 transition-colors">
+                                View all {learningWords} →
+                              </button>
+                            )}
+                          </>
+                        ) : recentWords.length > 0 ? (
+                          <>
+                            <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                              <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                              Recently Added
+                            </h3>
+                            <div className="space-y-1">
+                              {recentWords.slice(0, 5).map(w => (
+                                <div
+                                  key={w.id}
+                                  className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
+                                  onClick={() => setModal({ type: 'word', data: w })}
+                                >
+                                  <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
+                                  <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${getLevelColor(w.level)}`}>{w.level}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <h3 className={`font-medium text-base mb-4 flex items-center gap-2 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+                              <Calendar size={16} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                              Recent
+                            </h3>
+                            <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No words yet</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {data.collections.length === 0 && totalWords === 0 && (
+                      <div
+                        className={`text-center py-12 liquid-glass rounded-3xl ${isDark ? '' : 'shadow-sm'}`}
+                      >
+                        <div className="text-6xl mb-4">📚</div>
+                        <h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome to VocabMaster!</h2>
+                        <p className={`mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Create a collection and start adding words.</p>
+                        <button onClick={() => setModal({ type: 'collection', data: null })} className="px-5 py-2.5 bg-pink-vibrant text-white rounded-full hover:brightness-110 transition-all font-medium">
+                          <Plus size={18} className="inline mr-1" /> Create Collection
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
-
-                {data.collections.length === 0 && totalWords === 0 && (
-                  <div
-                    className={`text-center py-12 rounded-3xl ${isDark ? '' : 'shadow-sm'}`}
-                    style={{
-                      background: isDark
-                        ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%)'
-                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%)',
-                      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                    }}
-                  >
-                    <div className="text-6xl mb-4">📚</div>
-                    <h2 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome to VocabMaster!</h2>
-                    <p className={`mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Create a collection and start adding words.</p>
-                    <button onClick={() => setModal({ type: 'collection', data: null })} className="px-5 py-2.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors">
-                      <Plus size={18} className="inline mr-1" /> Create Collection
-                    </button>
-                  </div>
-                )}
               </div>
             );
           })()}
@@ -3388,340 +3382,356 @@ export default function VocabApp() {
         </div>
       </div>
       {modal.type === 'word' && <WordForm word={modal.data} allTags={data.allTags} existingWords={data.words} sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} onSave={saveWord} onCancel={() => setModal({ type: null, data: null })} onAddTag={t => { if (!data.allTags.includes(t)) setData(d => ({ ...d, allTags: [...d.allTags, t] })); }} onDuplicateFound={msg => setAlert(msg)} />}
-      {modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id}
+      {
+        modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id}
 
-        onImport={async (words) => {
-          console.log('=== Starting import ===', words.length, 'words');
+          onImport={async (words) => {
+            console.log('=== Starting import ===', words.length, 'words');
 
-          const savedWords = [];
-          for (const w of words) {
-            console.log('Importing word:', w.word);
+            const savedWords = [];
+            for (const w of words) {
+              console.log('Importing word:', w.word);
 
-            const { data: newWord, error } = await supabase
-              .from('words')
-              .insert([{
-                user_id: user.id,
-                section_id: w.sectionId,
-                word: w.word,
-                type: w.type,
-                level: w.level,
-                forms: w.forms || '',
-                meaning_en: w.meaningEn || '',
-                meaning_ru: w.meaningRu || '',
-                example: w.example || '',
-                my_example: w.myExample || '',
-                single_root_words: w.singleRootWords || '',
-                synonyms: w.synonyms || '',
-                tags: w.tags || [],
-                status: STATUS.NEW,
-                passed_modes: []
-              }])
-              .select()
-              .single();
-            console.log('Result:', { newWord: newWord?.word, error });
+              const { data: newWord, error } = await supabase
+                .from('words')
+                .insert([{
+                  user_id: user.id,
+                  section_id: w.sectionId,
+                  word: w.word,
+                  type: w.type,
+                  level: w.level,
+                  forms: w.forms || '',
+                  meaning_en: w.meaningEn || '',
+                  meaning_ru: w.meaningRu || '',
+                  example: w.example || '',
+                  my_example: w.myExample || '',
+                  single_root_words: w.singleRootWords || '',
+                  synonyms: w.synonyms || '',
+                  tags: w.tags || [],
+                  status: STATUS.NEW,
+                  passed_modes: []
+                }])
+                .select()
+                .single();
+              console.log('Result:', { newWord: newWord?.word, error });
 
 
-            if (!error && newWord) {
-              console.error('Supabase error details:', error);
+              if (!error && newWord) {
+                console.error('Supabase error details:', error);
 
-              savedWords.push({
-                id: newWord.id,
-                sectionId: newWord.section_id,
-                word: newWord.word,
-                type: newWord.type,
-                level: newWord.level,
-                forms: newWord.forms,
-                meaningEn: newWord.meaning_en,
-                meaningRu: newWord.meaning_ru,
-                example: newWord.example,
-                myExample: newWord.my_example,
-                singleRootWords: newWord.single_root_words,
-                synonyms: newWord.synonyms,
-                tags: newWord.tags,
-                status: newWord.status,
-                passedModes: newWord.passed_modes
-              });
+                savedWords.push({
+                  id: newWord.id,
+                  sectionId: newWord.section_id,
+                  word: newWord.word,
+                  type: newWord.type,
+                  level: newWord.level,
+                  forms: newWord.forms,
+                  meaningEn: newWord.meaning_en,
+                  meaningRu: newWord.meaning_ru,
+                  example: newWord.example,
+                  myExample: newWord.my_example,
+                  singleRootWords: newWord.single_root_words,
+                  synonyms: newWord.synonyms,
+                  tags: newWord.tags,
+                  status: newWord.status,
+                  passedModes: newWord.passed_modes
+                });
+              }
             }
-          }
 
-          setData(d => ({ ...d, words: [...d.words, ...savedWords] }));
-          setToast({ message: `${savedWords.length} words imported!`, canUndo: false });
-        }}
+            setData(d => ({ ...d, words: [...d.words, ...savedWords] }));
+            setToast({ message: `${savedWords.length} words imported!`, canUndo: false });
+          }}
 
-        onCancel={() => setModal({ type: null, data: null })} />}
+          onCancel={() => setModal({ type: null, data: null })} />
+      }
       {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} />}
       {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })}><h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button></div></Modal>}
-      {modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })}>
-        <h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
-        <div className="mb-3">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
-          <div className="grid grid-cols-10 gap-2 p-3 border rounded-lg bg-gray-50 max-h-32 overflow-y-auto">
-            {COLLECTION_ICONS.map(icon => (
-              <button key={icon} type="button" onClick={() => document.getElementById('col-icon').textContent = icon} className="text-2xl hover:bg-white rounded p-1 transition">{icon}</button>
-            ))}
+      {
+        modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })}>
+          <h3 className="text-lg font-semibold mb-4">{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
+          <div className="mb-3">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+            <div className="grid grid-cols-10 gap-2 p-3 border rounded-lg bg-gray-50 max-h-32 overflow-y-auto">
+              {COLLECTION_ICONS.map(icon => (
+                <button key={icon} type="button" onClick={() => document.getElementById('col-icon').textContent = icon} className="text-2xl hover:bg-white rounded p-1 transition">{icon}</button>
+              ))}
+            </div>
+            <div className="mt-2 text-center">
+              <span className="text-3xl" id="col-icon">{modal.data?.icon || '📚'}</span>
+            </div>
           </div>
-          <div className="mt-2 text-center">
-            <span className="text-3xl" id="col-icon">{modal.data?.icon || '📚'}</span>
+          <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus />
+          <div className="flex gap-2">
+            <button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
+            <button onClick={() => saveCollection(document.getElementById('col-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
           </div>
-        </div>
-        <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus />
-        <div className="flex gap-2">
-          <button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
-          <button onClick={() => saveCollection(document.getElementById('col-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
-        </div>
-      </Modal>}
-      {modal.type === 'section' && <Modal onClose={() => setModal({ type: null, data: null })}>
-        <h3 className="text-lg font-semibold mb-4">{modal.data?.section ? 'Edit Section' : 'New Section'}</h3>
-        <div className="mb-3">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
-          <div className="grid grid-cols-10 gap-2 p-3 border rounded-lg bg-gray-50 max-h-32 overflow-y-auto">
-            {SECTION_ICONS.map(icon => (
-              <button key={icon} type="button" onClick={() => document.getElementById('sec-icon').textContent = icon} className="text-2xl hover:bg-white rounded p-1 transition">{icon}</button>
-            ))}
+        </Modal>
+      }
+      {
+        modal.type === 'section' && <Modal onClose={() => setModal({ type: null, data: null })}>
+          <h3 className="text-lg font-semibold mb-4">{modal.data?.section ? 'Edit Section' : 'New Section'}</h3>
+          <div className="mb-3">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+            <div className="grid grid-cols-10 gap-2 p-3 border rounded-lg bg-gray-50 max-h-32 overflow-y-auto">
+              {SECTION_ICONS.map(icon => (
+                <button key={icon} type="button" onClick={() => document.getElementById('sec-icon').textContent = icon} className="text-2xl hover:bg-white rounded p-1 transition">{icon}</button>
+              ))}
+            </div>
+            <div className="mt-2 text-center">
+              <span className="text-3xl" id="sec-icon">{modal.data?.section?.icon || '📖'}</span>
+            </div>
           </div>
-          <div className="mt-2 text-center">
-            <span className="text-3xl" id="sec-icon">{modal.data?.section?.icon || '📖'}</span>
+          <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus />
+          <div className="flex gap-2">
+            <button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
+            <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
           </div>
-        </div>
-        <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" autoFocus />
-        <div className="flex gap-2">
-          <button onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
-          <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
-        </div>
-      </Modal>}
-      {modal.type === 'fillCards' && <FillCardsModal
-        words={modal.data}
-        onSave={async (filledWords) => {
-          // Обновляем state
-          setData(d => ({
-            ...d,
-            words: d.words.map(w => {
-              const filled = filledWords.find(x => x.id === w.id);
-              return filled || w;
-            })
-          }));
-
-          // Сохраняем в базу
-          for (const word of filledWords) {
-            await supabase
-              .from('words')
-              .update({
-                type: word.type,
-                level: word.level,
-                forms: word.forms,
-                meaning_en: word.meaningEn,
-                meaning_ru: word.meaningRu,
-                example: word.example,
-                single_root_words: word.singleRootWords || '',
-                synonyms: word.synonyms || ''
+        </Modal>
+      }
+      {
+        modal.type === 'fillCards' && <FillCardsModal
+          words={modal.data}
+          onSave={async (filledWords) => {
+            // Обновляем state
+            setData(d => ({
+              ...d,
+              words: d.words.map(w => {
+                const filled = filledWords.find(x => x.id === w.id);
+                return filled || w;
               })
-              .eq('id', word.id);
-          }
+            }));
 
-          setToast({ message: `${filledWords.length} cards filled!`, canUndo: false });
-        }}
-        onCancel={() => setModal({ type: null, data: null })}
-      />}
+            // Сохраняем в базу
+            for (const word of filledWords) {
+              await supabase
+                .from('words')
+                .update({
+                  type: word.type,
+                  level: word.level,
+                  forms: word.forms,
+                  meaning_en: word.meaningEn,
+                  meaning_ru: word.meaningRu,
+                  example: word.example,
+                  single_root_words: word.singleRootWords || '',
+                  synonyms: word.synonyms || ''
+                })
+                .eq('id', word.id);
+            }
+
+            setToast({ message: `${filledWords.length} cards filled!`, canUndo: false });
+          }}
+          onCancel={() => setModal({ type: null, data: null })}
+        />
+      }
       {confirmDelete && <Modal onClose={() => setConfirmDelete(null)}><h3 className="text-lg font-semibold mb-2">Delete?</h3><p className="text-gray-600 mb-4">Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} />}
 
       {wordPopup && console.log('=== wordPopup ===', wordPopup.word.singleRootWords)}
-      {wordPopup && (
+      {
+        wordPopup && (
 
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setWordPopup(null)}>
-          <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
-                {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
-              </h3>
-              <button onClick={() => setWordPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            {wordPopup.type === 'roots' ? (
-              <div className="overflow-hidden rounded-lg border border-gray-200">
-                <div className="flex items-center gap-4 px-4 py-2 bg-gray-100 border-b font-medium text-xs text-gray-600 uppercase">
-                  <div className="w-32">Word</div>
-                  <div className="w-24">Part of Speech</div>
-                  <div className="w-36">IPA</div>
-                  <div className="flex-1">Translation</div>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setWordPopup(null)}>
+            <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">
+                  {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
+                </h3>
+                <button onClick={() => setWordPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              {wordPopup.type === 'roots' ? (
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-4 px-4 py-2 bg-gray-100 border-b font-medium text-xs text-gray-600 uppercase">
+                    <div className="w-32">Word</div>
+                    <div className="w-24">Part of Speech</div>
+                    <div className="w-36">IPA</div>
+                    <div className="flex-1">Translation</div>
+                  </div>
+                  {wordPopup.word.singleRootWords.split(',').map((item, idx) => {
+                    const trimmed = item.trim();
+
+                    // Парсинг формата: word (part_of_speech) /ipa/ - translation
+                    // 1. Слово: все до первой открывающей скобки или пробела
+                    const wordMatch = trimmed.match(/^(\S+)/);
+                    const word = wordMatch ? wordMatch[1] : '';
+
+                    // 2. Часть речи: все между круглыми скобками
+                    const typeMatch = trimmed.match(/\(([^)]+)\)/);
+                    const type = typeMatch ? typeMatch[1] : '';
+
+                    // 3. IPA: все между слешами
+                    const ipaMatch = trimmed.match(/\/([^/]+)\//);
+                    const ipa = ipaMatch ? ipaMatch[1] : '';
+
+                    // 4. Перевод: все после тире до конца строки или следующей запятой на верхнем уровне
+                    // Ищем последнее вхождение тире, которое не в скобках или слешах
+                    const dashIndex = trimmed.lastIndexOf(' - ');
+                    const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
+
+                    return (
+                      <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                        <div className="w-32 font-medium text-gray-100">{word || '—'}</div>
+                        <div className="w-24 text-sm text-gray-600">{type || '—'}</div>
+                        <div className="w-36 text-sm text-gray-500 font-mono">{ipa ? `/${ipa}/` : '—'}</div>
+                        <div className="flex-1 text-sm text-blue-600">{translation || '—'}</div>
+                      </div>
+                    );
+                  })}
                 </div>
-                {wordPopup.word.singleRootWords.split(',').map((item, idx) => {
-                  const trimmed = item.trim();
-
-                  // Парсинг формата: word (part_of_speech) /ipa/ - translation
-                  // 1. Слово: все до первой открывающей скобки или пробела
-                  const wordMatch = trimmed.match(/^(\S+)/);
-                  const word = wordMatch ? wordMatch[1] : '';
-
-                  // 2. Часть речи: все между круглыми скобками
-                  const typeMatch = trimmed.match(/\(([^)]+)\)/);
-                  const type = typeMatch ? typeMatch[1] : '';
-
-                  // 3. IPA: все между слешами
-                  const ipaMatch = trimmed.match(/\/([^/]+)\//);
-                  const ipa = ipaMatch ? ipaMatch[1] : '';
-
-                  // 4. Перевод: все после тире до конца строки или следующей запятой на верхнем уровне
-                  // Ищем последнее вхождение тире, которое не в скобках или слешах
-                  const dashIndex = trimmed.lastIndexOf(' - ');
-                  const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
-
-                  return (
-                    <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                      <div className="w-32 font-medium text-gray-100">{word || '—'}</div>
-                      <div className="w-24 text-sm text-gray-600">{type || '—'}</div>
-                      <div className="w-36 text-sm text-gray-500 font-mono">{ipa ? `/${ipa}/` : '—'}</div>
-                      <div className="flex-1 text-sm text-blue-600">{translation || '—'}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-gray-700 leading-relaxed">
-                {wordPopup.word.synonyms}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {cardPopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setCardPopup(null)}>
-          <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
-                {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
-              </h3>
-              <button onClick={() => setCardPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            {cardPopup.type === 'roots' ? (
-              <div className="overflow-hidden rounded-lg border border-gray-200">
-                <div className="flex items-center gap-4 px-4 py-2 bg-gray-100 border-b font-medium text-xs text-gray-600 uppercase">
-                  <div className="w-32">Word</div>
-                  <div className="w-24">Part of Speech</div>
-                  <div className="w-36">IPA</div>
-                  <div className="flex-1">Translation</div>
+              ) : (
+                <div className="text-gray-700 leading-relaxed">
+                  {wordPopup.word.synonyms}
                 </div>
-                {cardPopup.word.singleRootWords.split(',').map((item, idx) => {
-                  const trimmed = item.trim();
-
-                  // Парсинг формата: word (part_of_speech) /ipa/ - translation
-                  // 1. Слово: все до первой открывающей скобки или пробела
-                  const wordMatch = trimmed.match(/^(\S+)/);
-                  const word = wordMatch ? wordMatch[1] : '';
-
-                  // 2. Часть речи: все между круглыми скобками
-                  const typeMatch = trimmed.match(/\(([^)]+)\)/);
-                  const type = typeMatch ? typeMatch[1] : '';
-
-                  // 3. IPA: все между слешами
-                  const ipaMatch = trimmed.match(/\/([^/]+)\//);
-                  const ipa = ipaMatch ? ipaMatch[1] : '';
-
-                  // 4. Перевод: все после тире до конца строки
-                  const dashIndex = trimmed.lastIndexOf(' - ');
-                  const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
-
-                  return (
-                    <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                      <div className="w-32 font-medium text-gray-100">{word || '—'}</div>
-                      <div className="w-24 text-sm text-gray-600">{type || '—'}</div>
-                      <div className="w-36 text-sm text-gray-500 font-mono">{ipa ? `/${ipa}/` : '—'}</div>
-                      <div className="flex-1 text-sm text-blue-600">{translation || '—'}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-gray-700 leading-relaxed">
-                {cardPopup.word.synonyms}
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
-      {modal.type === 'changePassword' && (
-        <Modal onClose={() => setModal({ type: null, data: null })}>
-          <h3 className="text-lg font-semibold mb-4">Change Password</h3>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const newPass = e.target.newPassword.value;
-            const confirmPass = e.target.confirmPassword.value;
-            if (newPass.length < 6) {
-              setToast({ message: 'Password must be at least 6 characters', canUndo: false });
-              return;
-            }
-            if (newPass !== confirmPass) {
-              setToast({ message: 'Passwords do not match', canUndo: false });
-              return;
-            }
-            handleChangePassword(newPass);
-          }}>
-            <input name="newPassword" type="password" placeholder="New password" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-3" required minLength={6} />
-            <input name="confirmPassword" type="password" placeholder="Confirm password" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" required minLength={6} />
-            <div className="flex gap-2">
-              <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border  rounded-lg hover:bg-white/5">Cancel</button>
-              <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change</button>
-            </div>
-          </form>
-        </Modal>
-      )}
-      {modal.type === 'dailyGoals' && (
-        <Modal onClose={() => setModal({ type: null, data: null })}>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Target size={20} /> Daily Goals</h3>
-          <form onSubmit={async (e) => {
-            e.preventDefault();
-            const newWords = parseInt(e.target.newWords.value) || 5;
-            const reviewWords = parseInt(e.target.reviewWords.value) || 10;
+        )
+      }
 
-            const { error } = await supabase
-              .from('user_goals')
-              .upsert({
-                user_id: user.id,
-                daily_new_words: newWords,
-                daily_review_words: reviewWords,
-                updated_at: new Date().toISOString()
-              }, { onConflict: 'user_id' });
+      {
+        cardPopup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setCardPopup(null)}>
+            <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">
+                  {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
+                </h3>
+                <button onClick={() => setCardPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              </div>
+              {cardPopup.type === 'roots' ? (
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-4 px-4 py-2 bg-gray-100 border-b font-medium text-xs text-gray-600 uppercase">
+                    <div className="w-32">Word</div>
+                    <div className="w-24">Part of Speech</div>
+                    <div className="w-36">IPA</div>
+                    <div className="flex-1">Translation</div>
+                  </div>
+                  {cardPopup.word.singleRootWords.split(',').map((item, idx) => {
+                    const trimmed = item.trim();
 
-            if (!error) {
-              setUserGoals({ daily_new_words: newWords, daily_review_words: reviewWords });
-              setToast({ message: 'Goals updated!', canUndo: false });
-              setModal({ type: null, data: null });
-            } else {
-              setToast({ message: 'Failed to save goals', canUndo: false });
-            }
-          }}>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">New words per day</label>
-                <input
-                  name="newWords"
-                  type="number"
-                  min="1"
-                  max="100"
-                  defaultValue={userGoals.daily_new_words}
-                  className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Words to review per day</label>
-                <input
-                  name="reviewWords"
-                  type="number"
-                  min="1"
-                  max="100"
-                  defaultValue={userGoals.daily_review_words}
-                  className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
-                />
-              </div>
+                    // Парсинг формата: word (part_of_speech) /ipa/ - translation
+                    // 1. Слово: все до первой открывающей скобки или пробела
+                    const wordMatch = trimmed.match(/^(\S+)/);
+                    const word = wordMatch ? wordMatch[1] : '';
+
+                    // 2. Часть речи: все между круглыми скобками
+                    const typeMatch = trimmed.match(/\(([^)]+)\)/);
+                    const type = typeMatch ? typeMatch[1] : '';
+
+                    // 3. IPA: все между слешами
+                    const ipaMatch = trimmed.match(/\/([^/]+)\//);
+                    const ipa = ipaMatch ? ipaMatch[1] : '';
+
+                    // 4. Перевод: все после тире до конца строки
+                    const dashIndex = trimmed.lastIndexOf(' - ');
+                    const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
+
+                    return (
+                      <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                        <div className="w-32 font-medium text-gray-100">{word || '—'}</div>
+                        <div className="w-24 text-sm text-gray-600">{type || '—'}</div>
+                        <div className="w-36 text-sm text-gray-500 font-mono">{ipa ? `/${ipa}/` : '—'}</div>
+                        <div className="flex-1 text-sm text-blue-600">{translation || '—'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-gray-700 leading-relaxed">
+                  {cardPopup.word.synonyms}
+                </div>
+              )}
             </div>
-            <div className="flex gap-2 mt-6">
-              <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border  rounded-lg hover:bg-white/5">Cancel</button>
-              <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
-            </div>
-          </form>
-        </Modal>
-      )}
+          </div>
+        )
+      }
+      {
+        modal.type === 'changePassword' && (
+          <Modal onClose={() => setModal({ type: null, data: null })}>
+            <h3 className="text-lg font-semibold mb-4">Change Password</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const newPass = e.target.newPassword.value;
+              const confirmPass = e.target.confirmPassword.value;
+              if (newPass.length < 6) {
+                setToast({ message: 'Password must be at least 6 characters', canUndo: false });
+                return;
+              }
+              if (newPass !== confirmPass) {
+                setToast({ message: 'Passwords do not match', canUndo: false });
+                return;
+              }
+              handleChangePassword(newPass);
+            }}>
+              <input name="newPassword" type="password" placeholder="New password" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-3" required minLength={6} />
+              <input name="confirmPassword" type="password" placeholder="Confirm password" className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none mb-4" required minLength={6} />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border  rounded-lg hover:bg-white/5">Cancel</button>
+                <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change</button>
+              </div>
+            </form>
+          </Modal>
+        )
+      }
+      {
+        modal.type === 'dailyGoals' && (
+          <Modal onClose={() => setModal({ type: null, data: null })}>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Target size={20} /> Daily Goals</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const newWords = parseInt(e.target.newWords.value) || 5;
+              const reviewWords = parseInt(e.target.reviewWords.value) || 10;
+
+              const { error } = await supabase
+                .from('user_goals')
+                .upsert({
+                  user_id: user.id,
+                  daily_new_words: newWords,
+                  daily_review_words: reviewWords,
+                  updated_at: new Date().toISOString()
+                }, { onConflict: 'user_id' });
+
+              if (!error) {
+                setUserGoals({ daily_new_words: newWords, daily_review_words: reviewWords });
+                setToast({ message: 'Goals updated!', canUndo: false });
+                setModal({ type: null, data: null });
+              } else {
+                setToast({ message: 'Failed to save goals', canUndo: false });
+              }
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">New words per day</label>
+                  <input
+                    name="newWords"
+                    type="number"
+                    min="1"
+                    max="100"
+                    defaultValue={userGoals.daily_new_words}
+                    className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Words to review per day</label>
+                  <input
+                    name="reviewWords"
+                    type="number"
+                    min="1"
+                    max="100"
+                    defaultValue={userGoals.daily_review_words}
+                    className="w-full h-10 px-3 border border-gray-700 rounded-xl bg-white/5 text-gray-100 placeholder-gray-500 focus:border-orange-500/50 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-6">
+                <button type="button" onClick={() => setModal({ type: null, data: null })} className="flex-1 h-10 border  rounded-lg hover:bg-white/5">Cancel</button>
+                <button type="submit" className="flex-1 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+              </div>
+            </form>
+          </Modal>
+        )
+      }
     </div>
   );
 }
