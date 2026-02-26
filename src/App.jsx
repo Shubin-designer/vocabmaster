@@ -3445,12 +3445,12 @@ export default function VocabApp() {
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
             <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               {(() => {
-                const colorClass = ICON_COLORS.find(c => c.name === selectedColor)?.text || 'text-gray-400';
+                const selectedColorObj = ICON_COLORS.find(c => c.name === selectedColor);
                 return COLLECTION_ICONS.map(iconName => {
                   const Icon = ICON_MAP[iconName];
                   const isSelected = selectedIcon === iconName;
                   return (
-                    <button key={iconName} type="button" onClick={() => setSelectedIcon(iconName)} className={`p-2 rounded-lg transition flex items-center justify-center ${isSelected ? 'bg-white/10 ring-2 ring-pink-500' : isDark ? 'hover:bg-white/10' : 'hover:bg-gray-200'} ${colorClass}`}>
+                    <button key={iconName} type="button" onClick={() => setSelectedIcon(iconName)} className={`p-2 rounded-lg transition flex items-center justify-center ${isSelected ? `bg-white/10 ring-2 ${selectedColorObj?.ring || 'ring-gray-400'} ${selectedColorObj?.text || 'text-gray-400'}` : isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-200 text-gray-500'}`}>
                       <Icon size={20} />
                     </button>
                   );
@@ -3480,12 +3480,12 @@ export default function VocabApp() {
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
             <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               {(() => {
-                const colorClass = ICON_COLORS.find(c => c.name === selectedColor)?.text || 'text-gray-400';
+                const selectedColorObj = ICON_COLORS.find(c => c.name === selectedColor);
                 return SECTION_ICONS.map(iconName => {
                   const Icon = ICON_MAP[iconName];
                   const isSelected = selectedIcon === iconName;
                   return (
-                    <button key={iconName} type="button" onClick={() => setSelectedIcon(iconName)} className={`p-2 rounded-lg transition flex items-center justify-center ${isSelected ? 'bg-white/10 ring-2 ring-pink-500' : isDark ? 'hover:bg-white/10' : 'hover:bg-gray-200'} ${colorClass}`}>
+                    <button key={iconName} type="button" onClick={() => setSelectedIcon(iconName)} className={`p-2 rounded-lg transition flex items-center justify-center ${isSelected ? `bg-white/10 ring-2 ${selectedColorObj?.ring || 'ring-gray-400'} ${selectedColorObj?.text || 'text-gray-400'}` : isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-200 text-gray-500'}`}>
                       <Icon size={20} />
                     </button>
                   );
