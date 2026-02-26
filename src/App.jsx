@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award } from 'lucide-react';
+import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award, Folder, FolderOpen, Book, Bookmark, Music, Film, Briefcase, Plane, Coffee, Gamepad2, Palette, GraduationCap, Heart, Star, Zap, Globe, Camera, Mic, Code, Headphones, ShoppingBag, Utensils, Car, Building2, TreePine, Dumbbell, Sparkles, MessageCircle, FileText, Lightbulb, Rocket, Crown, Gift, Clock, Map, Compass, Layers, Hash, AtSign, Terminal } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -30,7 +30,36 @@ const getStatusColor = (s, isDark = true) => {
   return colors[s] || (isDark ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-200 text-gray-700');
 };
 
-const COLLECTION_ICONS = ['📚', '📖', '🎬', '💼', '✈️', '🍕', '🎵', '⚽', '💻', '🎓', '🏥', '🎨', '🏠', '🚗', '👔', '🌳', '🎯', '⭐', '🔥', '💡'];
+// Lucide icon mapping for collections/sections
+const ICON_MAP = {
+  'folder': Folder, 'folder-open': FolderOpen, 'book': Book, 'book-open': BookOpen,
+  'bookmark': Bookmark, 'music': Music, 'film': Film, 'briefcase': Briefcase,
+  'plane': Plane, 'coffee': Coffee, 'gamepad': Gamepad2, 'palette': Palette,
+  'graduation': GraduationCap, 'heart': Heart, 'star': Star, 'zap': Zap,
+  'globe': Globe, 'camera': Camera, 'mic': Mic, 'code': Code,
+  'headphones': Headphones, 'shopping': ShoppingBag, 'utensils': Utensils, 'car': Car,
+  'building': Building2, 'tree': TreePine, 'dumbbell': Dumbbell, 'sparkles': Sparkles,
+  'message': MessageCircle, 'file': FileText, 'lightbulb': Lightbulb, 'rocket': Rocket,
+  'crown': Crown, 'gift': Gift, 'clock': Clock, 'map': Map,
+  'compass': Compass, 'layers': Layers, 'hash': Hash, 'target': Target
+};
+const COLLECTION_ICONS = Object.keys(ICON_MAP);
+const SECTION_ICONS = Object.keys(ICON_MAP);
+
+// Icon colors for collections/sections
+const ICON_COLORS = [
+  { name: 'gray', class: 'text-gray-400' },
+  { name: 'pink', class: 'text-pink-400' },
+  { name: 'red', class: 'text-red-400' },
+  { name: 'orange', class: 'text-orange-400' },
+  { name: 'yellow', class: 'text-yellow-400' },
+  { name: 'green', class: 'text-green-400' },
+  { name: 'teal', class: 'text-teal-400' },
+  { name: 'cyan', class: 'text-cyan-400' },
+  { name: 'blue', class: 'text-blue-400' },
+  { name: 'indigo', class: 'text-indigo-400' },
+  { name: 'purple', class: 'text-purple-400' },
+];
 
 // Подсветка слова в примере
 const highlightWord = (text, word) => {
@@ -216,7 +245,14 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
   );
 };
 
-const SECTION_ICONS = ['📖', '📝', '🎬', '🎥', '💼', '🏢', '✈️', '🌍', '🍕', '🍔', '🎵', '🎸', '⚽', '🏀', '💻', '🖥️', '🎓', '📚', '🏥', '⚕️', '🎨', '🖼️', '🏠', '🏡', '🚗', '🚙', '👔', '👗', '🌳', '🌺', '🎯', '⭐'];
+// Helper to render icon by name with optional color
+const IconComponent = ({ name, size = 18, className = '', color }) => {
+  const Icon = ICON_MAP[name];
+  const colorClass = color ? ICON_COLORS.find(c => c.name === color)?.class || '' : '';
+  const combinedClass = `${colorClass} ${className}`.trim();
+  if (!Icon) return <Folder size={size} className={combinedClass} />;
+  return <Icon size={size} className={combinedClass} />;
+};
 
 const initialData = { collections: [{ id: 'c1', name: 'English', icon: '📚', sections: [{ id: 's1', name: 'Topic 1', icon: '📖' }] }], words: [], allTags: [], songFolders: [{ id: 'sf1', name: 'My Songs' }], songs: [] };
 
@@ -1956,8 +1992,18 @@ export default function VocabApp() {
           });
         }
 
+        // Конвертируем snake_case в camelCase для коллекций и секций
+        const mappedCollections = (collections || []).map(col => ({
+          ...col,
+          iconColor: col.icon_color,
+          sections: (col.sections || []).map(sec => ({
+            ...sec,
+            iconColor: sec.icon_color
+          }))
+        }));
+
         setData({
-          collections: collections || [],
+          collections: mappedCollections,
           words: words || [],
           allTags: [],
           songFolders: songFolders || [],
@@ -2287,19 +2333,20 @@ export default function VocabApp() {
     setModal({ type: null, data: null });
   };
 
-  const saveCollection = async (name) => {
+  const saveCollection = async (name, iconParam, colorParam) => {
     if (!name.trim()) return;
-    const icon = document.getElementById('col-icon')?.textContent || '📚';
+    const icon = iconParam || 'folder';
+    const iconColor = colorParam || 'gray';
 
     if (modal.data?.id) {
       // Обновление
       const { error } = await supabase
         .from('collections')
-        .update({ name, icon })
+        .update({ name, icon, icon_color: iconColor })
         .eq('id', modal.data.id);
 
       if (!error) {
-        const u = { ...modal.data, name, icon };
+        const u = { ...modal.data, name, icon, iconColor };
         setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.id ? u : c) }));
         if (currentCollection?.id === modal.data.id) setCurrentCollection(u);
       }
@@ -2307,33 +2354,34 @@ export default function VocabApp() {
       // Создание
       const { data: newCol, error } = await supabase
         .from('collections')
-        .insert([{ user_id: user.id, name, icon }])
+        .insert([{ user_id: user.id, name, icon, icon_color: iconColor }])
         .select()
         .single();
 
       if (!error && newCol) {
-        setData(d => ({ ...d, collections: [...d.collections, { ...newCol, sections: [] }] }));
+        setData(d => ({ ...d, collections: [...d.collections, { ...newCol, iconColor: newCol.icon_color, sections: [] }] }));
         setExpandedCollections(e => [...e, newCol.id]);
       }
     }
     setModal({ type: null, data: null });
   };
 
-  const saveSection = async (name) => {
+  const saveSection = async (name, iconParam, colorParam) => {
     console.log('Creating section:', name, modal.data?.colId);
 
     if (!name.trim() || !modal.data?.colId) return;
-    const icon = document.getElementById('sec-icon')?.textContent || '📖';
+    const icon = iconParam || 'book';
+    const iconColor = colorParam || 'gray';
 
     if (modal.data.section?.id) {
       // Обновление
       const { error } = await supabase
         .from('sections')
-        .update({ name, icon })
+        .update({ name, icon, icon_color: iconColor })
         .eq('id', modal.data.section.id);
 
       if (!error) {
-        const u = { ...modal.data.section, name, icon };
+        const u = { ...modal.data.section, name, icon, iconColor };
         setData(d => ({ ...d, collections: d.collections.map(c => ({ ...c, sections: c.sections.map(s => s.id === modal.data.section.id ? u : s) })) }));
         if (currentSection?.id === modal.data.section.id) setCurrentSection(u);
       }
@@ -2341,12 +2389,12 @@ export default function VocabApp() {
       // Создание
       const { data: newSection, error } = await supabase
         .from('sections')
-        .insert([{ collection_id: modal.data.colId, name, icon }])
+        .insert([{ collection_id: modal.data.colId, name, icon, icon_color: iconColor }])
         .select()
         .single();
 
       if (!error && newSection) {
-        setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.colId ? { ...c, sections: [...c.sections, newSection] } : c) }));
+        setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.colId ? { ...c, sections: [...c.sections, { ...newSection, iconColor: newSection.icon_color }] } : c) }));
       }
     }
     setModal({ type: null, data: null });
@@ -2688,8 +2736,18 @@ export default function VocabApp() {
           passedModes: w.passed_modes
         }));
 
+        // Конвертируем snake_case в camelCase для коллекций и секций
+        const mappedCollections = (collections || []).map(col => ({
+          ...col,
+          iconColor: col.icon_color,
+          sections: (col.sections || []).map(sec => ({
+            ...sec,
+            iconColor: sec.icon_color
+          }))
+        }));
+
         setData({
-          collections: collections || [],
+          collections: mappedCollections,
           words: words || [],
           allTags: imported.allTags || [],
           songFolders: imported.songFolders || [{ id: 'sf1', name: 'My Songs' }],
@@ -2812,7 +2870,7 @@ export default function VocabApp() {
           <div key={col.id} className="mb-1">
             <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
               <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedCollections.includes(col.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</button>
-              <span className="text-base">{col.icon || '📚'}</span>
+              <IconComponent name={col.icon || 'folder'} size={18} color={col.iconColor} />
               <span onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className="flex-1 truncate text-sm">{col.name}</span>
               <div className="flex opacity-0 group-hover:opacity-100">
                 {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12} /></button>}
@@ -2824,7 +2882,7 @@ export default function VocabApp() {
             {expandedCollections.includes(col.id) && <div className="ml-6 space-y-1">
               {col.sections.map((sec, secIdx) => (
                 <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSection?.id === sec.id ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
-                  <span className="text-base">{sec.icon || '📖'}</span>
+                  <IconComponent name={sec.icon || 'book'} size={16} color={sec.iconColor} />
                   <span className="flex-1 truncate">{sec.name}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
                     {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12} /></button>}
@@ -3094,7 +3152,7 @@ export default function VocabApp() {
                                 onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }}
                                 className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
                               >
-                                <span className="text-lg">{col.icon || '📚'}</span>
+                                <IconComponent name={col.icon || 'folder'} size={20} color={col.iconColor} />
                                 <span className={`flex-1 truncate text-sm font-medium ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{col.name}</span>
                                 <span className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{colWords.length}</span>
                               </button>
@@ -3412,19 +3470,33 @@ export default function VocabApp() {
           <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
           <div className="mb-3">
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
-            <div className={`grid grid-cols-10 gap-2 p-3 rounded-xl max-h-32 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-              {COLLECTION_ICONS.map(icon => (
-                <button key={icon} type="button" onClick={() => document.getElementById('col-icon').textContent = icon} className={`text-2xl rounded p-1 transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'}`}>{icon}</button>
+            <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+              {COLLECTION_ICONS.map(iconName => {
+                const Icon = ICON_MAP[iconName];
+                return (
+                  <button key={iconName} type="button" onClick={() => document.getElementById('col-icon-input').value = iconName} className={`p-2 rounded-lg transition flex items-center justify-center ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
+                    <Icon size={20} />
+                  </button>
+                );
+              })}
+            </div>
+            <input type="hidden" id="col-icon-input" defaultValue={modal.data?.icon || 'folder'} />
+          </div>
+          <div className="mb-3">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
+            <div className="flex gap-2 flex-wrap">
+              {ICON_COLORS.map(c => (
+                <button key={c.name} type="button" onClick={() => document.getElementById('col-color-input').value = c.name} className={`w-8 h-8 rounded-full flex items-center justify-center transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}>
+                  <span className={`w-5 h-5 rounded-full ${c.class.replace('text-', 'bg-')}`}></span>
+                </button>
               ))}
             </div>
-            <div className="mt-2 text-center">
-              <span className="text-3xl" id="col-icon">{modal.data?.icon || '📚'}</span>
-            </div>
+            <input type="hidden" id="col-color-input" defaultValue={modal.data?.iconColor || 'gray'} />
           </div>
           <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
             <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveCollection(document.getElementById('col-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => saveCollection(document.getElementById('col-name').value, document.getElementById('col-icon-input').value, document.getElementById('col-color-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
@@ -3433,19 +3505,33 @@ export default function VocabApp() {
           <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data?.section ? 'Edit Section' : 'New Section'}</h3>
           <div className="mb-3">
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
-            <div className={`grid grid-cols-10 gap-2 p-3 rounded-xl max-h-32 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-              {SECTION_ICONS.map(icon => (
-                <button key={icon} type="button" onClick={() => document.getElementById('sec-icon').textContent = icon} className={`text-2xl rounded p-1 transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'}`}>{icon}</button>
+            <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+              {SECTION_ICONS.map(iconName => {
+                const Icon = ICON_MAP[iconName];
+                return (
+                  <button key={iconName} type="button" onClick={() => document.getElementById('sec-icon-input').value = iconName} className={`p-2 rounded-lg transition flex items-center justify-center ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
+                    <Icon size={20} />
+                  </button>
+                );
+              })}
+            </div>
+            <input type="hidden" id="sec-icon-input" defaultValue={modal.data?.section?.icon || 'book'} />
+          </div>
+          <div className="mb-3">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
+            <div className="flex gap-2 flex-wrap">
+              {ICON_COLORS.map(c => (
+                <button key={c.name} type="button" onClick={() => document.getElementById('sec-color-input').value = c.name} className={`w-8 h-8 rounded-full flex items-center justify-center transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}>
+                  <span className={`w-5 h-5 rounded-full ${c.class.replace('text-', 'bg-')}`}></span>
+                </button>
               ))}
             </div>
-            <div className="mt-2 text-center">
-              <span className="text-3xl" id="sec-icon">{modal.data?.section?.icon || '📖'}</span>
-            </div>
+            <input type="hidden" id="sec-color-input" defaultValue={modal.data?.section?.iconColor || 'gray'} />
           </div>
           <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
             <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => saveSection(document.getElementById('sec-name').value, document.getElementById('sec-icon-input').value, document.getElementById('sec-color-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
