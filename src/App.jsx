@@ -969,7 +969,7 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
 
   return (
     <Modal onClose={onCancel} preventClose isDark={isDark}>
-      <div style={{ maxHeight: '90vh', overflow: 'auto' }}>
+      <div>
         <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{word.id ? 'Edit Word' : 'Add Word'}</h3>
         <div className="space-y-3">
           <div className="flex gap-2">
@@ -2922,7 +2922,7 @@ export default function VocabApp() {
       <div className="max-w-md mx-auto">
         <ProgressBar current={cardSession.index} total={cardSession.words.length} correct={cardSession.correct} wrong={cardSession.wrong} isDark={isDark} />
         <div onClick={() => setCardSession({ ...cardSession, flipped: !cardSession.flipped })} className="cursor-pointer" style={{ perspective: 1000 }}>
-          <div style={{ transformStyle: 'preserve-3d', transition: 'transform 0.5s', transform: cardSession.flipped ? 'rotateY(180deg)' : '' }} className="relative h-72">
+          <div style={{ transformStyle: 'preserve-3d', transition: 'transform 0.5s', transform: cardSession.flipped ? 'rotateY(180deg)' : '' }} className="relative min-h-[400px]">
             <div style={{ backfaceVisibility: 'hidden' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col items-center justify-center`}><h2 className={`text-3xl font-display font-bold text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.word}</h2><p className={isDark ? "text-gray-400" : "text-gray-500"}>{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-pink-500/10 hover:bg-pink-500/20 rounded-full transition-colors"><Volume2 className="text-pink-vibrant" /></button></div>
             <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col justify-center border-2 border-pink-vibrant/30`}>
               <p className={`text-lg mb-2 font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{w.meaningEn}</p>
@@ -3000,7 +3000,7 @@ export default function VocabApp() {
     <div className={`min-h-screen flex ${isDark ? 'bg-theme-main text-gray-100 dark' : 'bg-[#f5f5f7] text-gray-900'}`}>
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 h-screen">
-        <header className={`${isDark ? 'bg-[#0d0d10]/80 border-white/5' : 'bg-white/90 border-black/5'} backdrop-blur-xl border-b px-8 py-3 h-auto flex items-center justify-between flex-shrink-0 relative z-[500]`}>
+        <header className={`${isDark ? 'bg-[#0d0d10]/80 border-white/5' : 'bg-white/90 border-black/5'} backdrop-blur-xl border-b px-8 py-3 h-auto flex items-center justify-between flex-shrink-0 relative z-40`}>
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-black/5 text-gray-600'}`}>
               <Menu size={20} />
@@ -3587,21 +3587,19 @@ export default function VocabApp() {
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
-      {wordPopup && console.log('=== wordPopup ===', wordPopup.word.singleRootWords)}
       {
         wordPopup && (
-
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setWordPopup(null)}>
-            <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className={`rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto ${isDark ? 'bg-[#232328] border border-white/10' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
                 </h3>
-                <button onClick={() => setWordPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+                <button onClick={() => setWordPopup(null)} className={isDark ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}><X size={20} /></button>
               </div>
               {wordPopup.type === 'roots' ? (
-                <div className="overflow-hidden rounded-lg border border-gray-200">
-                  <div className="flex items-center gap-4 px-4 py-2 bg-gray-100 border-b font-medium text-xs text-gray-600 uppercase">
+                <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
+                  <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
                     <div className="w-32">Word</div>
                     <div className="w-24">Part of Speech</div>
                     <div className="w-36">IPA</div>
@@ -3609,37 +3607,27 @@ export default function VocabApp() {
                   </div>
                   {wordPopup.word.singleRootWords.split(',').map((item, idx) => {
                     const trimmed = item.trim();
-
-                    // Парсинг формата: word (part_of_speech) /ipa/ - translation
-                    // 1. Слово: все до первой открывающей скобки или пробела
                     const wordMatch = trimmed.match(/^(\S+)/);
                     const word = wordMatch ? wordMatch[1] : '';
-
-                    // 2. Часть речи: все между круглыми скобками
                     const typeMatch = trimmed.match(/\(([^)]+)\)/);
                     const type = typeMatch ? typeMatch[1] : '';
-
-                    // 3. IPA: все между слешами
                     const ipaMatch = trimmed.match(/\/([^/]+)\//);
                     const ipa = ipaMatch ? ipaMatch[1] : '';
-
-                    // 4. Перевод: все после тире до конца строки или следующей запятой на верхнем уровне
-                    // Ищем последнее вхождение тире, которое не в скобках или слешах
                     const dashIndex = trimmed.lastIndexOf(' - ');
                     const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
 
                     return (
-                      <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                        <div className="w-32 font-medium text-gray-100">{word || '—'}</div>
-                        <div className="w-24 text-sm text-gray-600">{type || '—'}</div>
-                        <div className="w-36 text-sm text-gray-500 font-mono">{ipa ? `/${ipa}/` : '—'}</div>
-                        <div className="flex-1 text-sm text-blue-600">{translation || '—'}</div>
+                      <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${isDark ? (idx % 2 === 0 ? 'bg-white/5' : 'bg-transparent') : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50')}`}>
+                        <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
+                        <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
+                        <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
+                        <div className="flex-1 text-sm text-pink-500 font-medium">{translation || '—'}</div>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <div className="text-gray-700 leading-relaxed">
+                <div className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   {wordPopup.word.synonyms}
                 </div>
               )}
@@ -3651,16 +3639,16 @@ export default function VocabApp() {
       {
         cardPopup && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setCardPopup(null)}>
-            <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className={`rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto ${isDark ? 'bg-[#232328] border border-white/10' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
                 </h3>
-                <button onClick={() => setCardPopup(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+                <button onClick={() => setCardPopup(null)} className={isDark ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}><X size={20} /></button>
               </div>
               {cardPopup.type === 'roots' ? (
-                <div className="overflow-hidden rounded-lg border border-gray-200">
-                  <div className="flex items-center gap-4 px-4 py-2 bg-gray-100 border-b font-medium text-xs text-gray-600 uppercase">
+                <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
+                  <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
                     <div className="w-32">Word</div>
                     <div className="w-24">Part of Speech</div>
                     <div className="w-36">IPA</div>
@@ -3687,17 +3675,17 @@ export default function VocabApp() {
                     const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
 
                     return (
-                      <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                        <div className="w-32 font-medium text-gray-100">{word || '—'}</div>
-                        <div className="w-24 text-sm text-gray-600">{type || '—'}</div>
-                        <div className="w-36 text-sm text-gray-500 font-mono">{ipa ? `/${ipa}/` : '—'}</div>
-                        <div className="flex-1 text-sm text-blue-600">{translation || '—'}</div>
+                      <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${isDark ? (idx % 2 === 0 ? 'bg-white/5' : 'bg-transparent') : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50')}`}>
+                        <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
+                        <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
+                        <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
+                        <div className="flex-1 text-sm text-pink-500 font-medium">{translation || '—'}</div>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <div className="text-gray-700 leading-relaxed">
+                <div className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   {cardPopup.word.synonyms}
                 </div>
               )}
