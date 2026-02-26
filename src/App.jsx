@@ -7,27 +7,27 @@ const WORD_TYPES = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'idio
 const STATUS = { NEW: 'new', LEARNING: 'learning', LEARNED: 'learned' };
 const getLevelColor = (l, isDark = true) => {
   const colors = isDark ? {
-    A1: 'bg-green-500/15 text-green-400', A2: 'bg-green-500/20 text-green-400',
-    B1: 'bg-yellow-500/15 text-yellow-400', B2: 'bg-yellow-500/20 text-yellow-400',
-    C1: 'bg-red-500/15 text-red-400', C2: 'bg-red-500/20 text-red-400'
+    A1: 'bg-green-500/20 text-green-400', A2: 'bg-green-500/25 text-green-400',
+    B1: 'bg-yellow-500/20 text-yellow-400', B2: 'bg-yellow-500/25 text-yellow-400',
+    C1: 'bg-red-500/20 text-red-400', C2: 'bg-red-500/25 text-red-400'
   } : {
-    A1: 'bg-green-100 text-green-700', A2: 'bg-green-100 text-green-700',
-    B1: 'bg-yellow-100 text-yellow-700', B2: 'bg-yellow-100 text-yellow-700',
-    C1: 'bg-red-100 text-red-700', C2: 'bg-red-100 text-red-700'
+    A1: 'bg-green-200 text-green-800', A2: 'bg-green-200 text-green-800',
+    B1: 'bg-yellow-200 text-yellow-800', B2: 'bg-yellow-200 text-yellow-800',
+    C1: 'bg-red-200 text-red-800', C2: 'bg-red-200 text-red-800'
   };
-  return colors[l] || (isDark ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-600');
+  return colors[l] || (isDark ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-200 text-gray-700');
 };
 const getStatusColor = (s, isDark = true) => {
   const colors = isDark ? {
-    'new': 'bg-blue-500/15 text-blue-400',
-    'learning': 'bg-orange-500/15 text-orange-400',
-    'learned': 'bg-green-500/15 text-green-400'
+    'new': 'bg-blue-500/20 text-blue-400',
+    'learning': 'bg-orange-500/20 text-orange-400',
+    'learned': 'bg-green-500/20 text-green-400'
   } : {
-    'new': 'bg-blue-100 text-blue-700',
-    'learning': 'bg-orange-100 text-orange-700',
-    'learned': 'bg-green-100 text-green-700'
+    'new': 'bg-blue-200 text-blue-800',
+    'learning': 'bg-orange-200 text-orange-800',
+    'learned': 'bg-green-200 text-green-800'
   };
-  return colors[s] || (isDark ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-600');
+  return colors[s] || (isDark ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-200 text-gray-700');
 };
 
 const COLLECTION_ICONS = ['📚', '📖', '🎬', '💼', '✈️', '🍕', '🎵', '⚽', '💻', '🎓', '🏥', '🎨', '🏠', '🚗', '👔', '🌳', '🎯', '⭐', '🔥', '💡'];
@@ -2756,8 +2756,8 @@ export default function VocabApp() {
         )}
         <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isDark ? 'border-white/5' : 'border-black/5'}`}>
           <div className="flex gap-1.5">
-            <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(word.level)}`}>{word.level}</span>
-            <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getStatusColor(word.status)}`}>{word.status}</span>
+            <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(word.level, isDark)}`}>{word.level}</span>
+            <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getStatusColor(word.status, isDark)}`}>{word.status}</span>
           </div>
           <div className="flex gap-1 text-xs font-medium">
             <span className={`px-1.5 py-0.5 rounded-md transition-colors ${(word.passedModes || []).includes('cards') ? 'bg-emerald-500/20 text-emerald-600' : isDark ? 'bg-white/5 text-white/30' : 'bg-black/5 text-gray-400'}`}>C</span>
@@ -3118,7 +3118,7 @@ export default function VocabApp() {
                           <div className="space-y-2.5">
                             {levelStats.map(({ level, count }) => (
                               <div key={level} className="flex items-center gap-3">
-                                <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(level)}`}>{level}</span>
+                                <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${getLevelColor(level, isDark)}`}>{level}</span>
                                 <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
                                   <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" style={{ width: `${(count / totalWords) * 100}%` }}></div>
                                 </div>
@@ -3172,7 +3172,7 @@ export default function VocabApp() {
                                 >
                                   <span className={`font-medium text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{w.word}</span>
                                   <span className={`text-sm truncate flex-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{w.meaningRu}</span>
-                                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${getLevelColor(w.level)}`}>{w.level}</span>
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${getLevelColor(w.level, isDark)}`}>{w.level}</span>
                                 </div>
                               ))}
                             </div>
