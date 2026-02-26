@@ -1794,6 +1794,8 @@ export default function VocabApp() {
   });
   const [stateRestored, setStateRestored] = useState(false);
   const [modal, setModal] = useState({ type: null, data: null });
+  const [selectedIcon, setSelectedIcon] = useState('folder');
+  const [selectedColor, setSelectedColor] = useState('gray');
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
   const [deletedItem, setDeletedItem] = useState(null);
@@ -2836,7 +2838,7 @@ export default function VocabApp() {
             );
           })}
         </div>
-        <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>Collections</span><button onClick={() => setModal({ type: 'collection', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
+        <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>Collections</span><button onClick={() => { setSelectedIcon('folder'); setSelectedColor('gray'); setModal({ type: 'collection', data: null }); }} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
         {data.collections.map((col, colIdx) => (
           <div key={col.id} className="mb-1">
             <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
@@ -2846,7 +2848,7 @@ export default function VocabApp() {
               <div className="flex opacity-0 group-hover:opacity-100">
                 {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12} /></button>}
                 {colIdx < data.collections.length - 1 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move down"><ChevronDown size={12} /></button>}
-                <button onClick={() => setModal({ type: 'collection', data: col })} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Edit2 size={12} /></button>
+                <button onClick={() => { setSelectedIcon(col.icon || 'folder'); setSelectedColor(col.icon_color || 'gray'); setModal({ type: 'collection', data: col }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Edit2 size={12} /></button>
                 <button onClick={() => requestDelete('collection', col)} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`}><Trash2 size={12} /></button>
               </div>
             </div>
@@ -2858,12 +2860,12 @@ export default function VocabApp() {
                   <div className="flex opacity-0 group-hover:opacity-100">
                     {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12} /></button>}
                     {secIdx < col.sections.length - 1 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'down'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move down"><ChevronDown size={12} /></button>}
-                    <button onClick={e => { e.stopPropagation(); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Edit2 size={12} /></button>
+                    <button onClick={e => { e.stopPropagation(); setSelectedIcon(sec.icon || 'book'); setSelectedColor(sec.icon_color || 'gray'); setModal({ type: 'section', data: { colId: col.id, section: sec } }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Edit2 size={12} /></button>
                     <button onClick={e => { e.stopPropagation(); requestDelete('section', { colId: col.id, section: sec }); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}><Trash2 size={12} /></button>
                   </div>
                 </div>
               ))}
-              <button onClick={() => setModal({ type: 'section', data: { colId: col.id, section: null } })} className={`flex items-center gap-2 p-2 text-sm transition-colors ${sidebarIsDark ? 'text-white/30 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}><Plus size={14} /> Add section</button>
+              <button onClick={() => { setSelectedIcon('book'); setSelectedColor('gray'); setModal({ type: 'section', data: { colId: col.id, section: null } }); }} className={`flex items-center gap-2 p-2 text-sm transition-colors ${sidebarIsDark ? 'text-white/30 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}><Plus size={14} /> Add section</button>
             </div>}
           </div>
         ))}
@@ -3225,7 +3227,7 @@ export default function VocabApp() {
                         <div className="text-6xl mb-4">📚</div>
                         <h2 className={`text-xl font-display font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome to VocabMaster!</h2>
                         <p className={`mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Create a collection and start adding words.</p>
-                        <button onClick={() => setModal({ type: 'collection', data: null })} className="px-5 py-2.5 bg-pink-vibrant text-white rounded-full hover:brightness-110 transition-all font-medium">
+                        <button onClick={() => { setSelectedIcon('folder'); setSelectedColor('gray'); setModal({ type: 'collection', data: null }); }} className="px-5 py-2.5 bg-pink-vibrant text-white rounded-full hover:brightness-110 transition-all font-medium">
                           <Plus size={18} className="inline mr-1" /> Create Collection
                         </button>
                       </div>
@@ -3444,28 +3446,27 @@ export default function VocabApp() {
             <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               {COLLECTION_ICONS.map(iconName => {
                 const Icon = ICON_MAP[iconName];
+                const isSelected = selectedIcon === iconName;
                 return (
-                  <button key={iconName} type="button" onClick={() => document.getElementById('col-icon-input').value = iconName} className={`p-2 rounded-lg transition flex items-center justify-center ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
+                  <button key={iconName} type="button" onClick={() => setSelectedIcon(iconName)} className={`p-2 rounded-lg transition flex items-center justify-center ${isSelected ? 'bg-pink-500/20 text-pink-500 ring-2 ring-pink-500' : isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
                     <Icon size={20} />
                   </button>
                 );
               })}
             </div>
-            <input type="hidden" id="col-icon-input" defaultValue={modal.data?.icon || 'folder'} />
           </div>
           <div className="mb-3">
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
             <div className="flex gap-2 flex-wrap">
               {ICON_COLORS.map(c => (
-                <button key={c.name} type="button" onClick={() => document.getElementById('col-color-input').value = c.name} className={`w-7 h-7 rounded-full ${c.bg} hover:ring-2 hover:ring-offset-2 ${isDark ? 'hover:ring-offset-[#232328]' : 'hover:ring-offset-white'} ${c.ring} transition`} />
+                <button key={c.name} type="button" onClick={() => setSelectedColor(c.name)} className={`w-7 h-7 rounded-full ${c.bg} ${selectedColor === c.name ? 'ring-2 ring-offset-2' : 'hover:ring-2 hover:ring-offset-2'} ${isDark ? 'ring-offset-[#232328]' : 'ring-offset-white'} ${c.ring} transition`} />
               ))}
             </div>
-            <input type="hidden" id="col-color-input" defaultValue={modal.data?.icon_color || 'gray'} />
           </div>
           <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
             <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveCollection(document.getElementById('col-name').value, document.getElementById('col-icon-input').value, document.getElementById('col-color-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => saveCollection(document.getElementById('col-name').value, selectedIcon, selectedColor)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
@@ -3477,28 +3478,27 @@ export default function VocabApp() {
             <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               {SECTION_ICONS.map(iconName => {
                 const Icon = ICON_MAP[iconName];
+                const isSelected = selectedIcon === iconName;
                 return (
-                  <button key={iconName} type="button" onClick={() => document.getElementById('sec-icon-input').value = iconName} className={`p-2 rounded-lg transition flex items-center justify-center ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
+                  <button key={iconName} type="button" onClick={() => setSelectedIcon(iconName)} className={`p-2 rounded-lg transition flex items-center justify-center ${isSelected ? 'bg-pink-500/20 text-pink-500 ring-2 ring-pink-500' : isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
                     <Icon size={20} />
                   </button>
                 );
               })}
             </div>
-            <input type="hidden" id="sec-icon-input" defaultValue={modal.data?.section?.icon || 'book'} />
           </div>
           <div className="mb-3">
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
             <div className="flex gap-2 flex-wrap">
               {ICON_COLORS.map(c => (
-                <button key={c.name} type="button" onClick={() => document.getElementById('sec-color-input').value = c.name} className={`w-7 h-7 rounded-full ${c.bg} hover:ring-2 hover:ring-offset-2 ${isDark ? 'hover:ring-offset-[#232328]' : 'hover:ring-offset-white'} ${c.ring} transition`} />
+                <button key={c.name} type="button" onClick={() => setSelectedColor(c.name)} className={`w-7 h-7 rounded-full ${c.bg} ${selectedColor === c.name ? 'ring-2 ring-offset-2' : 'hover:ring-2 hover:ring-offset-2'} ${isDark ? 'ring-offset-[#232328]' : 'ring-offset-white'} ${c.ring} transition`} />
               ))}
             </div>
-            <input type="hidden" id="sec-color-input" defaultValue={modal.data?.section?.icon_color || 'gray'} />
           </div>
           <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
             <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveSection(document.getElementById('sec-name').value, document.getElementById('sec-icon-input').value, document.getElementById('sec-color-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => saveSection(document.getElementById('sec-name').value, selectedIcon, selectedColor)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
