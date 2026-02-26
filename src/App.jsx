@@ -2314,19 +2314,20 @@ export default function VocabApp() {
     setModal({ type: null, data: null });
   };
 
-  const saveCollection = async (name, iconParam) => {
+  const saveCollection = async (name, iconParam, colorParam) => {
     if (!name.trim()) return;
     const icon = iconParam || 'folder';
+    const icon_color = colorParam || 'gray';
 
     if (modal.data?.id) {
       // Обновление
       const { error } = await supabase
         .from('collections')
-        .update({ name, icon })
+        .update({ name, icon, icon_color })
         .eq('id', modal.data.id);
 
       if (!error) {
-        const u = { ...modal.data, name, icon };
+        const u = { ...modal.data, name, icon, icon_color };
         setData(d => ({ ...d, collections: d.collections.map(c => c.id === modal.data.id ? u : c) }));
         if (currentCollection?.id === modal.data.id) setCurrentCollection(u);
       }
@@ -2334,7 +2335,7 @@ export default function VocabApp() {
       // Создание
       const { data: newCol, error } = await supabase
         .from('collections')
-        .insert([{ user_id: user.id, name, icon }])
+        .insert([{ user_id: user.id, name, icon, icon_color }])
         .select()
         .single();
 
@@ -2346,21 +2347,22 @@ export default function VocabApp() {
     setModal({ type: null, data: null });
   };
 
-  const saveSection = async (name, iconParam) => {
+  const saveSection = async (name, iconParam, colorParam) => {
     console.log('Creating section:', name, modal.data?.colId);
 
     if (!name.trim() || !modal.data?.colId) return;
     const icon = iconParam || 'book';
+    const icon_color = colorParam || 'gray';
 
     if (modal.data.section?.id) {
       // Обновление
       const { error } = await supabase
         .from('sections')
-        .update({ name, icon })
+        .update({ name, icon, icon_color })
         .eq('id', modal.data.section.id);
 
       if (!error) {
-        const u = { ...modal.data.section, name, icon };
+        const u = { ...modal.data.section, name, icon, icon_color };
         setData(d => ({ ...d, collections: d.collections.map(c => ({ ...c, sections: c.sections.map(s => s.id === modal.data.section.id ? u : s) })) }));
         if (currentSection?.id === modal.data.section.id) setCurrentSection(u);
       }
@@ -2368,7 +2370,7 @@ export default function VocabApp() {
       // Создание
       const { data: newSection, error } = await supabase
         .from('sections')
-        .insert([{ collection_id: modal.data.colId, name, icon }])
+        .insert([{ collection_id: modal.data.colId, name, icon, icon_color }])
         .select()
         .single();
 
@@ -2839,7 +2841,7 @@ export default function VocabApp() {
           <div key={col.id} className="mb-1">
             <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
               <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedCollections.includes(col.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</button>
-              {(() => { const Icon = ICON_MAP[col.icon] || Folder; return <Icon size={18} className="text-gray-400" />; })()}
+              {(() => { const Icon = ICON_MAP[col.icon] || Folder; const colorClass = ICON_COLORS.find(c => c.name === col.icon_color)?.text || 'text-gray-400'; return <Icon size={18} className={colorClass} />; })()}
               <span onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className="flex-1 truncate text-sm">{col.name}</span>
               <div className="flex opacity-0 group-hover:opacity-100">
                 {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12} /></button>}
@@ -2851,7 +2853,7 @@ export default function VocabApp() {
             {expandedCollections.includes(col.id) && <div className="ml-6 space-y-1">
               {col.sections.map((sec, secIdx) => (
                 <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSection?.id === sec.id ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
-                  {(() => { const Icon = ICON_MAP[sec.icon] || Book; return <Icon size={16} className="text-gray-400" />; })()}
+                  {(() => { const Icon = ICON_MAP[sec.icon] || Book; const colorClass = ICON_COLORS.find(c => c.name === sec.icon_color)?.text || 'text-gray-400'; return <Icon size={16} className={colorClass} />; })()}
                   <span className="flex-1 truncate">{sec.name}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
                     {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12} /></button>}
@@ -3121,7 +3123,7 @@ export default function VocabApp() {
                                 onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }}
                                 className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
                               >
-                                {(() => { const Icon = ICON_MAP[col.icon] || Folder; return <Icon size={20} className="text-gray-400" />; })()}
+                                {(() => { const Icon = ICON_MAP[col.icon] || Folder; const colorClass = ICON_COLORS.find(c => c.name === col.icon_color)?.text || 'text-gray-400'; return <Icon size={20} className={colorClass} />; })()}
                                 <span className={`flex-1 truncate text-sm font-medium ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{col.name}</span>
                                 <span className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{colWords.length}</span>
                               </button>
@@ -3451,10 +3453,19 @@ export default function VocabApp() {
             </div>
             <input type="hidden" id="col-icon-input" defaultValue={modal.data?.icon || 'folder'} />
           </div>
+          <div className="mb-3">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
+            <div className="flex gap-2 flex-wrap">
+              {ICON_COLORS.map(c => (
+                <button key={c.name} type="button" onClick={() => document.getElementById('col-color-input').value = c.name} className={`w-7 h-7 rounded-full ${c.bg} hover:ring-2 hover:ring-offset-2 ${isDark ? 'hover:ring-offset-[#232328]' : 'hover:ring-offset-white'} ${c.ring} transition`} />
+              ))}
+            </div>
+            <input type="hidden" id="col-color-input" defaultValue={modal.data?.icon_color || 'gray'} />
+          </div>
           <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
             <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveCollection(document.getElementById('col-name').value, document.getElementById('col-icon-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => saveCollection(document.getElementById('col-name').value, document.getElementById('col-icon-input').value, document.getElementById('col-color-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
@@ -3475,10 +3486,19 @@ export default function VocabApp() {
             </div>
             <input type="hidden" id="sec-icon-input" defaultValue={modal.data?.section?.icon || 'book'} />
           </div>
+          <div className="mb-3">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
+            <div className="flex gap-2 flex-wrap">
+              {ICON_COLORS.map(c => (
+                <button key={c.name} type="button" onClick={() => document.getElementById('sec-color-input').value = c.name} className={`w-7 h-7 rounded-full ${c.bg} hover:ring-2 hover:ring-offset-2 ${isDark ? 'hover:ring-offset-[#232328]' : 'hover:ring-offset-white'} ${c.ring} transition`} />
+              ))}
+            </div>
+            <input type="hidden" id="sec-color-input" defaultValue={modal.data?.section?.icon_color || 'gray'} />
+          </div>
           <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
             <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveSection(document.getElementById('sec-name').value, document.getElementById('sec-icon-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => saveSection(document.getElementById('sec-name').value, document.getElementById('sec-icon-input').value, document.getElementById('sec-color-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
