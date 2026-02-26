@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award } from 'lucide-react';
+import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award, Folder, FolderOpen, Book, Bookmark, Music, Film, Briefcase, Plane, Coffee, Gamepad2, Palette, GraduationCap, Heart, Star, Zap, Globe, Camera, Mic, Code, Headphones, ShoppingBag, Utensils, Car, Building2, TreePine, Dumbbell, Sparkles, MessageCircle, FileText, Lightbulb, Rocket, Crown, Gift, Clock, Map, Compass, Layers, Hash } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -30,7 +30,45 @@ const getStatusColor = (s, isDark = true) => {
   return colors[s] || (isDark ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-200 text-gray-700');
 };
 
-const COLLECTION_ICONS = ['📚', '📖', '🎬', '💼', '✈️', '🍕', '🎵', '⚽', '💻', '🎓', '🏥', '🎨', '🏠', '🚗', '👔', '🌳', '🎯', '⭐', '🔥', '💡'];
+// Lucide icon mapping for collections/sections
+const ICON_MAP = {
+  'folder': Folder, 'folder-open': FolderOpen, 'book': Book, 'book-open': BookOpen,
+  'bookmark': Bookmark, 'music': Music, 'film': Film, 'briefcase': Briefcase,
+  'plane': Plane, 'coffee': Coffee, 'gamepad': Gamepad2, 'palette': Palette,
+  'graduation': GraduationCap, 'heart': Heart, 'star': Star, 'zap': Zap,
+  'globe': Globe, 'camera': Camera, 'mic': Mic, 'code': Code,
+  'headphones': Headphones, 'shopping': ShoppingBag, 'utensils': Utensils, 'car': Car,
+  'building': Building2, 'tree': TreePine, 'dumbbell': Dumbbell, 'sparkles': Sparkles,
+  'message': MessageCircle, 'file': FileText, 'lightbulb': Lightbulb, 'rocket': Rocket,
+  'crown': Crown, 'gift': Gift, 'clock': Clock, 'map': Map,
+  'compass': Compass, 'layers': Layers, 'hash': Hash, 'target': Target
+};
+const COLLECTION_ICONS = Object.keys(ICON_MAP);
+const SECTION_ICONS = Object.keys(ICON_MAP);
+
+// Icon colors for collections/sections
+const ICON_COLORS = [
+  { name: 'gray', text: 'text-gray-400', bg: 'bg-gray-400', ring: 'ring-gray-400' },
+  { name: 'pink', text: 'text-pink-400', bg: 'bg-pink-400', ring: 'ring-pink-400' },
+  { name: 'red', text: 'text-red-400', bg: 'bg-red-400', ring: 'ring-red-400' },
+  { name: 'orange', text: 'text-orange-400', bg: 'bg-orange-400', ring: 'ring-orange-400' },
+  { name: 'yellow', text: 'text-yellow-400', bg: 'bg-yellow-400', ring: 'ring-yellow-400' },
+  { name: 'green', text: 'text-green-400', bg: 'bg-green-400', ring: 'ring-green-400' },
+  { name: 'teal', text: 'text-teal-400', bg: 'bg-teal-400', ring: 'ring-teal-400' },
+  { name: 'cyan', text: 'text-cyan-400', bg: 'bg-cyan-400', ring: 'ring-cyan-400' },
+  { name: 'blue', text: 'text-blue-400', bg: 'bg-blue-400', ring: 'ring-blue-400' },
+  { name: 'indigo', text: 'text-indigo-400', bg: 'bg-indigo-400', ring: 'ring-indigo-400' },
+  { name: 'purple', text: 'text-purple-400', bg: 'bg-purple-400', ring: 'ring-purple-400' },
+];
+
+// Helper to render icon by name with optional color
+const IconComponent = ({ name, size = 18, className = '', color }) => {
+  const Icon = ICON_MAP[name];
+  const colorClass = color ? ICON_COLORS.find(c => c.name === color)?.text || '' : '';
+  const combinedClass = `${colorClass} ${className}`.trim();
+  if (!Icon) return <Folder size={size} className={combinedClass} />;
+  return <Icon size={size} className={combinedClass} />;
+};
 
 // Подсветка слова в примере
 const highlightWord = (text, word) => {
@@ -215,8 +253,6 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
     </div>
   );
 };
-
-const SECTION_ICONS = ['📖', '📝', '🎬', '🎥', '💼', '🏢', '✈️', '🌍', '🍕', '🍔', '🎵', '🎸', '⚽', '🏀', '💻', '🖥️', '🎓', '📚', '🏥', '⚕️', '🎨', '🖼️', '🏠', '🏡', '🚗', '🚙', '👔', '👗', '🌳', '🌺', '🎯', '⭐'];
 
 const initialData = { collections: [{ id: 'c1', name: 'English', icon: '📚', sections: [{ id: 's1', name: 'Topic 1', icon: '📖' }] }], words: [], allTags: [], songFolders: [{ id: 'sf1', name: 'My Songs' }], songs: [] };
 
@@ -2812,7 +2848,7 @@ export default function VocabApp() {
           <div key={col.id} className="mb-1">
             <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
               <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedCollections.includes(col.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</button>
-              <span className="text-base">{col.icon || '📚'}</span>
+              <IconComponent name={col.icon || 'folder'} size={18} color={col.iconColor} />
               <span onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className="flex-1 truncate text-sm">{col.name}</span>
               <div className="flex opacity-0 group-hover:opacity-100">
                 {colIdx > 0 && <button onClick={e => { e.stopPropagation(); moveCollection(col.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/10 text-gray-400'}`} title="Move up"><ChevronUp size={12} /></button>}
@@ -2824,7 +2860,7 @@ export default function VocabApp() {
             {expandedCollections.includes(col.id) && <div className="ml-6 space-y-1">
               {col.sections.map((sec, secIdx) => (
                 <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSection?.id === sec.id ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
-                  <span className="text-base">{sec.icon || '📖'}</span>
+                  <IconComponent name={sec.icon || 'book'} size={16} color={sec.iconColor} />
                   <span className="flex-1 truncate">{sec.name}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
                     {secIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSection(col.id, sec.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12} /></button>}
@@ -3094,7 +3130,7 @@ export default function VocabApp() {
                                 onClick={() => { setCurrentCollection(col); setCurrentSection(null); setView('list'); }}
                                 className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}
                               >
-                                <span className="text-lg">{col.icon || '📚'}</span>
+                                <IconComponent name={col.icon || 'folder'} size={20} color={col.iconColor} />
                                 <span className={`flex-1 truncate text-sm font-medium ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{col.name}</span>
                                 <span className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{colWords.length}</span>
                               </button>
