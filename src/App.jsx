@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award } from 'lucide-react';
+import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award, Folder, FolderOpen, Book, Bookmark, Music, Film, Briefcase, Plane, Coffee, Gamepad2, Palette, GraduationCap, Heart, Star, Zap, Globe, Camera, Mic, Code, Headphones, ShoppingBag, Utensils, Car, Building2, TreePine, Dumbbell, Sparkles, MessageCircle, FileText, Lightbulb, Rocket, Crown, Gift, Clock, Map as MapIcon, Compass, Layers, Hash } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
