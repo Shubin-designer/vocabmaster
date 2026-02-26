@@ -48,17 +48,17 @@ const SECTION_ICONS = Object.keys(ICON_MAP);
 
 // Icon colors for collections/sections
 const ICON_COLORS = [
-  { name: 'gray', class: 'text-gray-400' },
-  { name: 'pink', class: 'text-pink-400' },
-  { name: 'red', class: 'text-red-400' },
-  { name: 'orange', class: 'text-orange-400' },
-  { name: 'yellow', class: 'text-yellow-400' },
-  { name: 'green', class: 'text-green-400' },
-  { name: 'teal', class: 'text-teal-400' },
-  { name: 'cyan', class: 'text-cyan-400' },
-  { name: 'blue', class: 'text-blue-400' },
-  { name: 'indigo', class: 'text-indigo-400' },
-  { name: 'purple', class: 'text-purple-400' },
+  { name: 'gray', text: 'text-gray-400', bg: 'bg-gray-400', ring: 'ring-gray-400' },
+  { name: 'pink', text: 'text-pink-400', bg: 'bg-pink-400', ring: 'ring-pink-400' },
+  { name: 'red', text: 'text-red-400', bg: 'bg-red-400', ring: 'ring-red-400' },
+  { name: 'orange', text: 'text-orange-400', bg: 'bg-orange-400', ring: 'ring-orange-400' },
+  { name: 'yellow', text: 'text-yellow-400', bg: 'bg-yellow-400', ring: 'ring-yellow-400' },
+  { name: 'green', text: 'text-green-400', bg: 'bg-green-400', ring: 'ring-green-400' },
+  { name: 'teal', text: 'text-teal-400', bg: 'bg-teal-400', ring: 'ring-teal-400' },
+  { name: 'cyan', text: 'text-cyan-400', bg: 'bg-cyan-400', ring: 'ring-cyan-400' },
+  { name: 'blue', text: 'text-blue-400', bg: 'bg-blue-400', ring: 'ring-blue-400' },
+  { name: 'indigo', text: 'text-indigo-400', bg: 'bg-indigo-400', ring: 'ring-indigo-400' },
+  { name: 'purple', text: 'text-purple-400', bg: 'bg-purple-400', ring: 'ring-purple-400' },
 ];
 
 // Подсветка слова в примере
@@ -248,7 +248,7 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
 // Helper to render icon by name with optional color
 const IconComponent = ({ name, size = 18, className = '', color }) => {
   const Icon = ICON_MAP[name];
-  const colorClass = color ? ICON_COLORS.find(c => c.name === color)?.class || '' : '';
+  const colorClass = color ? ICON_COLORS.find(c => c.name === color)?.text || '' : '';
   const combinedClass = `${colorClass} ${className}`.trim();
   if (!Icon) return <Folder size={size} className={combinedClass} />;
   return <Icon size={size} className={combinedClass} />;
@@ -285,6 +285,8 @@ const CollectionModal = ({ data, onSave, onClose, isDark }) => {
   const [selectedColor, setSelectedColor] = useState(data?.iconColor || 'gray');
   const [name, setName] = useState(data?.name || '');
 
+  const colorConfig = ICON_COLORS.find(c => c.name === selectedColor) || ICON_COLORS[0];
+
   return (
     <Modal onClose={onClose} isDark={isDark}>
       <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{data ? 'Edit Collection' : 'New Collection'}</h3>
@@ -302,7 +304,7 @@ const CollectionModal = ({ data, onSave, onClose, isDark }) => {
                 onClick={() => setSelectedIcon(iconName)}
                 className={`p-2 rounded-lg transition flex items-center justify-center ${
                   isSelected
-                    ? 'bg-pink-500/20 text-pink-400 ring-2 ring-pink-500'
+                    ? `${colorConfig.text} ring-2 ${colorConfig.ring} bg-black/10`
                     : isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'
                 }`}
               >
@@ -325,11 +327,11 @@ const CollectionModal = ({ data, onSave, onClose, isDark }) => {
                 onClick={() => setSelectedColor(c.name)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
                   isSelected
-                    ? 'ring-2 ring-pink-500 ring-offset-2 ring-offset-[#232328]'
-                    : isDark ? 'hover:scale-110' : 'hover:scale-110'
+                    ? `ring-2 ${c.ring} ring-offset-2 ${isDark ? 'ring-offset-[#232328]' : 'ring-offset-white'}`
+                    : 'hover:scale-110'
                 }`}
               >
-                <span className={`w-6 h-6 rounded-full ${c.class.replace('text-', 'bg-')}`}></span>
+                <span className={`w-6 h-6 rounded-full ${c.bg}`}></span>
               </button>
             );
           })}
@@ -358,6 +360,8 @@ const SectionModal = ({ data, onSave, onClose, isDark }) => {
   const [selectedColor, setSelectedColor] = useState(data?.section?.iconColor || 'gray');
   const [name, setName] = useState(data?.section?.name || '');
 
+  const colorConfig = ICON_COLORS.find(c => c.name === selectedColor) || ICON_COLORS[0];
+
   return (
     <Modal onClose={onClose} isDark={isDark}>
       <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{data?.section ? 'Edit Section' : 'New Section'}</h3>
@@ -375,7 +379,7 @@ const SectionModal = ({ data, onSave, onClose, isDark }) => {
                 onClick={() => setSelectedIcon(iconName)}
                 className={`p-2 rounded-lg transition flex items-center justify-center ${
                   isSelected
-                    ? 'bg-pink-500/20 text-pink-400 ring-2 ring-pink-500'
+                    ? `${colorConfig.text} ring-2 ${colorConfig.ring} bg-black/10`
                     : isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'
                 }`}
               >
@@ -398,11 +402,11 @@ const SectionModal = ({ data, onSave, onClose, isDark }) => {
                 onClick={() => setSelectedColor(c.name)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
                   isSelected
-                    ? 'ring-2 ring-pink-500 ring-offset-2 ring-offset-[#232328]'
-                    : isDark ? 'hover:scale-110' : 'hover:scale-110'
+                    ? `ring-2 ${c.ring} ring-offset-2 ${isDark ? 'ring-offset-[#232328]' : 'ring-offset-white'}`
+                    : 'hover:scale-110'
                 }`}
               >
-                <span className={`w-6 h-6 rounded-full ${c.class.replace('text-', 'bg-')}`}></span>
+                <span className={`w-6 h-6 rounded-full ${c.bg}`}></span>
               </button>
             );
           })}
@@ -1974,6 +1978,7 @@ export default function VocabApp() {
     return ['sf1'];
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(256); // 256px = w-64
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -2975,9 +2980,28 @@ export default function VocabApp() {
 
   const sidebarIsDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
+  const handleSidebarResize = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+
+    const onMouseMove = (e) => {
+      const newWidth = Math.min(400, Math.max(200, startWidth + e.clientX - startX));
+      setSidebarWidth(newWidth);
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
   const Sidebar = () => (
-    <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all flex-shrink-0 overflow-hidden ${sidebarIsDark ? 'bg-transparent border-r border-white/5' : 'bg-white border-r border-black/5'}`}>
-      <div className="w-64 p-3 h-full overflow-y-auto">
+    <div className={`${sidebarOpen ? '' : 'w-0'} transition-all flex-shrink-0 overflow-hidden relative ${sidebarIsDark ? 'bg-transparent border-r border-white/5' : 'bg-white border-r border-black/5'}`} style={sidebarOpen ? { width: sidebarWidth } : {}}>
+      <div className="p-3 h-full overflow-y-auto" style={{ width: sidebarWidth }}>
         <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'dashboard' ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18} /> Dashboard</button>
         <div className={`mb-4 pb-3 border-b ${sidebarIsDark ? 'border-white/5' : 'border-black/5'}`}>
           <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
@@ -3043,6 +3067,11 @@ export default function VocabApp() {
           </div>
         ))}
       </div>
+      {/* Resize handle */}
+      <div
+        onMouseDown={handleSidebarResize}
+        className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-pink-500/50 transition-colors ${sidebarIsDark ? 'hover:bg-pink-500/50' : 'hover:bg-pink-500/30'}`}
+      />
     </div>
   );
 
