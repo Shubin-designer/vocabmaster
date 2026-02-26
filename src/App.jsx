@@ -279,6 +279,152 @@ const Toast = ({ message, onUndo, onClose }) => {
   return <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50"><span>{message}</span>{onUndo && <button onClick={onUndo} className="px-2 py-1 bg-white/20 rounded"><Undo2 size={14} /></button>}<button onClick={onClose}>×</button></div>;
 };
 
+// Collection Modal with visual icon/color selection
+const CollectionModal = ({ data, onSave, onClose, isDark }) => {
+  const [selectedIcon, setSelectedIcon] = useState(data?.icon || 'folder');
+  const [selectedColor, setSelectedColor] = useState(data?.iconColor || 'gray');
+  const [name, setName] = useState(data?.name || '');
+
+  return (
+    <Modal onClose={onClose} isDark={isDark}>
+      <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{data ? 'Edit Collection' : 'New Collection'}</h3>
+
+      <div className="mb-3">
+        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
+        <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+          {COLLECTION_ICONS.map(iconName => {
+            const Icon = ICON_MAP[iconName];
+            const isSelected = selectedIcon === iconName;
+            return (
+              <button
+                key={iconName}
+                type="button"
+                onClick={() => setSelectedIcon(iconName)}
+                className={`p-2 rounded-lg transition flex items-center justify-center ${
+                  isSelected
+                    ? 'bg-pink-500/20 text-pink-400 ring-2 ring-pink-500'
+                    : isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                <Icon size={20} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
+        <div className="flex gap-2 flex-wrap">
+          {ICON_COLORS.map(c => {
+            const isSelected = selectedColor === c.name;
+            return (
+              <button
+                key={c.name}
+                type="button"
+                onClick={() => setSelectedColor(c.name)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
+                  isSelected
+                    ? 'ring-2 ring-pink-500 ring-offset-2 ring-offset-[#232328]'
+                    : isDark ? 'hover:scale-110' : 'hover:scale-110'
+                }`}
+              >
+                <span className={`w-6 h-6 rounded-full ${c.class.replace('text-', 'bg-')}`}></span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <input
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Collection name *"
+        className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`}
+        autoFocus
+      />
+
+      <div className="flex gap-2">
+        <button onClick={onClose} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+        <button onClick={() => onSave(name, selectedIcon, selectedColor)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+      </div>
+    </Modal>
+  );
+};
+
+// Section Modal with visual icon/color selection
+const SectionModal = ({ data, onSave, onClose, isDark }) => {
+  const [selectedIcon, setSelectedIcon] = useState(data?.section?.icon || 'book');
+  const [selectedColor, setSelectedColor] = useState(data?.section?.iconColor || 'gray');
+  const [name, setName] = useState(data?.section?.name || '');
+
+  return (
+    <Modal onClose={onClose} isDark={isDark}>
+      <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{data?.section ? 'Edit Section' : 'New Section'}</h3>
+
+      <div className="mb-3">
+        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
+        <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+          {SECTION_ICONS.map(iconName => {
+            const Icon = ICON_MAP[iconName];
+            const isSelected = selectedIcon === iconName;
+            return (
+              <button
+                key={iconName}
+                type="button"
+                onClick={() => setSelectedIcon(iconName)}
+                className={`p-2 rounded-lg transition flex items-center justify-center ${
+                  isSelected
+                    ? 'bg-pink-500/20 text-pink-400 ring-2 ring-pink-500'
+                    : isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                <Icon size={20} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
+        <div className="flex gap-2 flex-wrap">
+          {ICON_COLORS.map(c => {
+            const isSelected = selectedColor === c.name;
+            return (
+              <button
+                key={c.name}
+                type="button"
+                onClick={() => setSelectedColor(c.name)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
+                  isSelected
+                    ? 'ring-2 ring-pink-500 ring-offset-2 ring-offset-[#232328]'
+                    : isDark ? 'hover:scale-110' : 'hover:scale-110'
+                }`}
+              >
+                <span className={`w-6 h-6 rounded-full ${c.class.replace('text-', 'bg-')}`}></span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <input
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Section name *"
+        className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`}
+        autoFocus
+      />
+
+      <div className="flex gap-2">
+        <button onClick={onClose} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+        <button onClick={() => onSave(name, selectedIcon, selectedColor)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+      </div>
+    </Modal>
+  );
+};
+
 const Alert = ({ message, onClose, isDark = true }) => {
   useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
   return (
@@ -3465,76 +3611,8 @@ export default function VocabApp() {
       }
       {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} isDark={isDark} />}
       {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}><h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button></div></Modal>}
-      {
-        modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}>
-          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
-          <div className="mb-3">
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
-            <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-              {COLLECTION_ICONS.map(iconName => {
-                const Icon = ICON_MAP[iconName];
-                return (
-                  <button key={iconName} type="button" onClick={() => document.getElementById('col-icon-input').value = iconName} className={`p-2 rounded-lg transition flex items-center justify-center ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
-                    <Icon size={20} />
-                  </button>
-                );
-              })}
-            </div>
-            <input type="hidden" id="col-icon-input" defaultValue={modal.data?.icon || 'folder'} />
-          </div>
-          <div className="mb-3">
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
-            <div className="flex gap-2 flex-wrap">
-              {ICON_COLORS.map(c => (
-                <button key={c.name} type="button" onClick={() => document.getElementById('col-color-input').value = c.name} className={`w-8 h-8 rounded-full flex items-center justify-center transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}>
-                  <span className={`w-5 h-5 rounded-full ${c.class.replace('text-', 'bg-')}`}></span>
-                </button>
-              ))}
-            </div>
-            <input type="hidden" id="col-color-input" defaultValue={modal.data?.iconColor || 'gray'} />
-          </div>
-          <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
-          <div className="flex gap-2">
-            <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveCollection(document.getElementById('col-name').value, document.getElementById('col-icon-input').value, document.getElementById('col-color-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
-          </div>
-        </Modal>
-      }
-      {
-        modal.type === 'section' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}>
-          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data?.section ? 'Edit Section' : 'New Section'}</h3>
-          <div className="mb-3">
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
-            <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-              {SECTION_ICONS.map(iconName => {
-                const Icon = ICON_MAP[iconName];
-                return (
-                  <button key={iconName} type="button" onClick={() => document.getElementById('sec-icon-input').value = iconName} className={`p-2 rounded-lg transition flex items-center justify-center ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
-                    <Icon size={20} />
-                  </button>
-                );
-              })}
-            </div>
-            <input type="hidden" id="sec-icon-input" defaultValue={modal.data?.section?.icon || 'book'} />
-          </div>
-          <div className="mb-3">
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Color</label>
-            <div className="flex gap-2 flex-wrap">
-              {ICON_COLORS.map(c => (
-                <button key={c.name} type="button" onClick={() => document.getElementById('sec-color-input').value = c.name} className={`w-8 h-8 rounded-full flex items-center justify-center transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}>
-                  <span className={`w-5 h-5 rounded-full ${c.class.replace('text-', 'bg-')}`}></span>
-                </button>
-              ))}
-            </div>
-            <input type="hidden" id="sec-color-input" defaultValue={modal.data?.section?.iconColor || 'gray'} />
-          </div>
-          <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
-          <div className="flex gap-2">
-            <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveSection(document.getElementById('sec-name').value, document.getElementById('sec-icon-input').value, document.getElementById('sec-color-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
-          </div>
-        </Modal>
-      }
+      {modal.type === 'collection' && <CollectionModal data={modal.data} onSave={saveCollection} onClose={() => setModal({ type: null, data: null })} isDark={isDark} />}
+      {modal.type === 'section' && <SectionModal data={modal.data} onSave={(name, icon, color) => saveSection(name, icon, color)} onClose={() => setModal({ type: null, data: null })} isDark={isDark} />}
       {
         modal.type === 'fillCards' && <FillCardsModal
           words={modal.data}
