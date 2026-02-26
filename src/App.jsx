@@ -2323,9 +2323,9 @@ export default function VocabApp() {
     setModal({ type: null, data: null });
   };
 
-  const saveCollection = async (name) => {
+  const saveCollection = async (name, iconParam) => {
     if (!name.trim()) return;
-    const icon = document.getElementById('col-icon')?.textContent || '📚';
+    const icon = iconParam || 'folder';
 
     if (modal.data?.id) {
       // Обновление
@@ -2355,11 +2355,11 @@ export default function VocabApp() {
     setModal({ type: null, data: null });
   };
 
-  const saveSection = async (name) => {
+  const saveSection = async (name, iconParam) => {
     console.log('Creating section:', name, modal.data?.colId);
 
     if (!name.trim() || !modal.data?.colId) return;
-    const icon = document.getElementById('sec-icon')?.textContent || '📖';
+    const icon = iconParam || 'book';
 
     if (modal.data.section?.id) {
       // Обновление
@@ -3448,19 +3448,22 @@ export default function VocabApp() {
           <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
           <div className="mb-3">
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
-            <div className={`grid grid-cols-10 gap-2 p-3 rounded-xl max-h-32 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-              {COLLECTION_ICONS.map(icon => (
-                <button key={icon} type="button" onClick={() => document.getElementById('col-icon').textContent = icon} className={`text-2xl rounded p-1 transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'}`}>{icon}</button>
-              ))}
+            <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+              {COLLECTION_ICONS.map(iconName => {
+                const Icon = ICON_MAP[iconName];
+                return (
+                  <button key={iconName} type="button" onClick={() => document.getElementById('col-icon-input').value = iconName} className={`p-2 rounded-lg transition flex items-center justify-center ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
+                    <Icon size={20} />
+                  </button>
+                );
+              })}
             </div>
-            <div className="mt-2 text-center">
-              <span className="text-3xl" id="col-icon">{modal.data?.icon || '📚'}</span>
-            </div>
+            <input type="hidden" id="col-icon-input" defaultValue={modal.data?.icon || 'folder'} />
           </div>
           <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
             <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveCollection(document.getElementById('col-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => saveCollection(document.getElementById('col-name').value, document.getElementById('col-icon-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
@@ -3469,19 +3472,22 @@ export default function VocabApp() {
           <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data?.section ? 'Edit Section' : 'New Section'}</h3>
           <div className="mb-3">
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Icon</label>
-            <div className={`grid grid-cols-10 gap-2 p-3 rounded-xl max-h-32 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-              {SECTION_ICONS.map(icon => (
-                <button key={icon} type="button" onClick={() => document.getElementById('sec-icon').textContent = icon} className={`text-2xl rounded p-1 transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'}`}>{icon}</button>
-              ))}
+            <div className={`grid grid-cols-8 gap-1.5 p-3 rounded-xl max-h-40 overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+              {SECTION_ICONS.map(iconName => {
+                const Icon = ICON_MAP[iconName];
+                return (
+                  <button key={iconName} type="button" onClick={() => document.getElementById('sec-icon-input').value = iconName} className={`p-2 rounded-lg transition flex items-center justify-center ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-800'}`}>
+                    <Icon size={20} />
+                  </button>
+                );
+              })}
             </div>
-            <div className="mt-2 text-center">
-              <span className="text-3xl" id="sec-icon">{modal.data?.section?.icon || '📖'}</span>
-            </div>
+            <input type="hidden" id="sec-icon-input" defaultValue={modal.data?.section?.icon || 'book'} />
           </div>
           <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
             <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveSection(document.getElementById('sec-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => saveSection(document.getElementById('sec-name').value, document.getElementById('sec-icon-input').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
           </div>
         </Modal>
       }
