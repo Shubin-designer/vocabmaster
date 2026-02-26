@@ -1796,6 +1796,13 @@ export default function VocabApp() {
   const [modal, setModal] = useState({ type: null, data: null });
   const [selectedIcon, setSelectedIcon] = useState('folder');
   const [selectedColor, setSelectedColor] = useState('gray');
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vocabmaster_sidebar_width');
+      return saved ? Math.min(400, Math.max(200, parseInt(saved))) : 256;
+    } catch (e) { return 256; }
+  });
+  const [isResizing, setIsResizing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
   const [deletedItem, setDeletedItem] = useState(null);
@@ -1866,6 +1873,33 @@ export default function VocabApp() {
 
     console.log('[THEME v2] isDark:', isDark, 'classes:', document.documentElement.className);
   }, [theme]);
+
+  // Sidebar resize handlers
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      const newWidth = Math.min(400, Math.max(200, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        localStorage.setItem('vocabmaster_sidebar_width', sidebarWidth.toString());
+      }
+    };
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, sidebarWidth]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -2803,8 +2837,8 @@ export default function VocabApp() {
   const sidebarIsDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const Sidebar = () => (
-    <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all flex-shrink-0 overflow-hidden ${sidebarIsDark ? 'bg-transparent border-r border-white/5' : 'bg-white border-r border-black/5'}`}>
-      <div className="w-64 p-3 h-full overflow-y-auto">
+    <div className={`relative flex-shrink-0 ${sidebarIsDark ? 'bg-transparent' : 'bg-white'}`} style={{ width: sidebarOpen ? sidebarWidth : 0, transition: isResizing ? 'none' : 'width 0.2s' }}>
+      <div className="p-3 h-full overflow-y-auto overflow-x-hidden" style={{ width: sidebarWidth }}>
         <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'dashboard' ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18} /> Dashboard</button>
         <div className={`mb-4 pb-3 border-b ${sidebarIsDark ? 'border-white/5' : 'border-black/5'}`}>
           <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
@@ -2870,6 +2904,11 @@ export default function VocabApp() {
           </div>
         ))}
       </div>
+      {/* Resize handle */}
+      <div
+        onMouseDown={() => setIsResizing(true)}
+        className={`absolute right-0 top-0 w-1 h-full cursor-col-resize hover:bg-pink-500/50 transition-colors ${isResizing ? 'bg-pink-500' : ''}`}
+      />
     </div>
   );
 
