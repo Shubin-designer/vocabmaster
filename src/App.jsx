@@ -274,7 +274,7 @@ const Alert = ({ message, onClose, isDark = true }) => {
   useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100]" onClick={onClose}>
-      <div className={`rounded-2xl shadow-2xl p-6 max-w-md w-full border-l-4 border-red-500 animate-scaleIn ${isDark ? 'bg-[#1a1a1e]' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
+      <div className={`rounded-2xl shadow-2xl p-6 max-w-md w-full animate-scaleIn ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-gray-200'}`} onClick={e => e.stopPropagation()}>
         <div className="flex items-start gap-3">
           <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${isDark ? 'bg-red-500/20' : 'bg-red-100'}`}>
             <span className="text-2xl">⚠️</span>
@@ -588,7 +588,7 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
       </button>
 
       {showConfirm && (
-        <div className={`absolute inset-0 flex flex-col items-center justify-center rounded-3xl z-10 ${isDark ? 'bg-[#232328]/98' : 'bg-white/98'}`}>
+        <div className={`absolute inset-0 flex flex-col items-center justify-center rounded-3xl z-10 backdrop-blur-md ${isDark ? 'bg-[#18181b]' : 'bg-white'}`}>
           <p className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Закрыть без сохранения?</p>
           <p className={`mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{successCount} слов уже загружено</p>
           <div className="flex gap-3 flex-wrap justify-center">
@@ -2838,6 +2838,16 @@ export default function VocabApp() {
         </div>
         <div className={`mb-2 leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
         {word.meaningRu && <p className="text-pink-vibrant font-medium text-sm mb-3">→ {word.meaningRu}</p>}
+        {word.example && (
+          <div className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 bg-transparent ${isDark ? 'text-white/40 border-pink-vibrant/40' : 'text-gray-500 border-pink-500/40'}`}>
+            {word.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), word.word)}"</div>)}
+          </div>
+        )}
+        {word.myExample && (
+          <p className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 transition-colors ${isDark ? 'text-amber-300/80 border-amber-500/30 bg-amber-900/10' : 'text-amber-700 border-amber-500/30 bg-amber-100/50'}`}>
+            ✏️ "{word.myExample}"
+          </p>
+        )}
         {(word.singleRootWords || word.synonyms) && (
           <div className="flex gap-3 mb-3 text-sm">
             {word.singleRootWords && (
@@ -2851,16 +2861,6 @@ export default function VocabApp() {
               </button>
             )}
           </div>
-        )}
-        {word.example && (
-          <div className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 bg-transparent ${isDark ? 'text-white/40 border-pink-vibrant/40' : 'text-gray-500 border-pink-500/40'}`}>
-            {word.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), word.word)}"</div>)}
-          </div>
-        )}
-        {word.myExample && (
-          <p className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 transition-colors ${isDark ? 'text-amber-300/80 border-amber-500/30 bg-amber-900/10' : 'text-amber-700 border-amber-500/30 bg-amber-100/50'}`}>
-            ✏️ "{word.myExample}"
-          </p>
         )}
         <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isDark ? 'border-white/5' : 'border-black/5'}`}>
           <div className="flex gap-1.5">
