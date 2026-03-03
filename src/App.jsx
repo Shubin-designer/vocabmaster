@@ -372,7 +372,7 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId, isDark = true }
   };
 
   return (
-    <Modal onClose={onCancel} wide isDark={isDark}>
+    <Modal onClose={onCancel} medium isDark={isDark}>
       <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Import</h3>
       <textarea
         value={text}
@@ -582,23 +582,23 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
   const failedCount = lookupResults.filter(r => !r.apiData && r.error).length;
 
   return (
-    <Modal onClose={handleClose} preventClose wide isDark={isDark}>
-      <button onClick={handleClose} className={`absolute top-3 right-3 p-1 rounded ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>
+    <Modal onClose={handleClose} preventClose medium isDark={isDark}>
+      <button onClick={handleClose} className={`absolute top-3 right-3 p-1.5 rounded-xl transition-colors ${isDark ? 'text-white/50 hover:text-white hover:bg-white/10' : 'text-gray-500 hover:text-gray-900 hover:bg-black/5'}`}>
         <X size={20} />
       </button>
 
       {showConfirm && (
-        <div className="absolute inset-0 bg-white/95 /95 flex flex-col items-center justify-center rounded-lg z-10">
-          <p className="text-lg font-medium mb-4">Закрыть без сохранения?</p>
-          <p className="text-gray-600  mb-6">{successCount} слов уже загружено</p>
+        <div className={`absolute inset-0 flex flex-col items-center justify-center rounded-3xl z-10 ${isDark ? 'bg-[#232328]/98' : 'bg-white/98'}`}>
+          <p className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Закрыть без сохранения?</p>
+          <p className={`mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{successCount} слов уже загружено</p>
           <div className="flex gap-3 flex-wrap justify-center">
-            <button onClick={() => setShowConfirm(false)} className="px-4 py-2 border  rounded-lg hover:bg-white/5">
+            <button onClick={() => setShowConfirm(false)} className={`h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
               Продолжить
             </button>
-            <button onClick={savePartial} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+            <button onClick={savePartial} className="h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">
               Сохранить {successCount}
             </button>
-            <button onClick={onCancel} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+            <button onClick={onCancel} className="h-10 px-4 bg-red-500 text-white rounded-full font-medium hover:brightness-110">
               Сбросить всё
             </button>
           </div>
@@ -621,8 +621,8 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={onCancel} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
-            <button onClick={startLookup} className="flex-1 h-10 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Start</button>
+            <button onClick={onCancel} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+            <button onClick={startLookup} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Start</button>
           </div>
         </>
       )}
@@ -648,7 +648,7 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={handleClose} className="flex-1 h-10 px-4 border  rounded-lg hover:bg-white/5 flex items-center justify-center gap-2">
+            <button onClick={handleClose} className={`flex-1 h-10 px-4 rounded-full font-medium flex items-center justify-center gap-2 ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
               <X size={16} /> Stop
             </button>
           </div>
@@ -703,13 +703,13 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={handleClose} className="h-10 px-4 border  rounded-lg hover:bg-white/5">Cancel</button>
+            <button onClick={handleClose} className={`h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
             {failedCount > 0 && (
-              <button onClick={() => { /* retry failed */ }} className="h-10 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+              <button onClick={() => { /* retry failed */ }} className="h-10 px-4 bg-amber-500 text-white rounded-full font-medium hover:brightness-110">
                 Retry {failedCount}
               </button>
             )}
-            <button onClick={fillCards} className="flex-1 h-10 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600">
+            <button onClick={fillCards} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">
               Fill {successCount} Cards
             </button>
           </div>
@@ -2838,6 +2838,20 @@ export default function VocabApp() {
         </div>
         <div className={`mb-2 leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
         {word.meaningRu && <p className="text-pink-vibrant font-medium text-sm mb-3">→ {word.meaningRu}</p>}
+        {(word.singleRootWords || word.synonyms) && (
+          <div className="flex gap-3 mb-3 text-sm">
+            {word.singleRootWords && (
+              <button onClick={() => setWordPopup({ type: 'roots', word })} className="text-purple-400 hover:text-purple-300 underline">
+                Single-root words
+              </button>
+            )}
+            {word.synonyms && (
+              <button onClick={() => setWordPopup({ type: 'synonyms', word })} className="text-blue-400 hover:text-blue-300 underline">
+                Synonyms
+              </button>
+            )}
+          </div>
+        )}
         {word.example && (
           <div className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 bg-transparent ${isDark ? 'text-white/40 border-pink-vibrant/40' : 'text-gray-500 border-pink-500/40'}`}>
             {word.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), word.word)}"</div>)}
@@ -3628,112 +3642,95 @@ export default function VocabApp() {
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
-      {
-        wordPopup && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setWordPopup(null)}>
-            <div className={`rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto ${isDark ? 'bg-[#232328] border border-white/10' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
-                </h3>
-                <button onClick={() => setWordPopup(null)} className={isDark ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}><X size={20} /></button>
-              </div>
-              {wordPopup.type === 'roots' ? (
-                <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
-                  <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
-                    <div className="w-32">Word</div>
-                    <div className="w-24">Part of Speech</div>
-                    <div className="w-36">IPA</div>
-                    <div className="flex-1">Translation</div>
-                  </div>
-                  {wordPopup.word.singleRootWords.split(',').map((item, idx) => {
-                    const trimmed = item.trim();
-                    const wordMatch = trimmed.match(/^(\S+)/);
-                    const word = wordMatch ? wordMatch[1] : '';
-                    const typeMatch = trimmed.match(/\(([^)]+)\)/);
-                    const type = typeMatch ? typeMatch[1] : '';
-                    const ipaMatch = trimmed.match(/\/([^/]+)\//);
-                    const ipa = ipaMatch ? ipaMatch[1] : '';
-                    const dashIndex = trimmed.lastIndexOf(' - ');
-                    const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
-
-                    return (
-                      <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${isDark ? (idx % 2 === 0 ? 'bg-white/5' : 'bg-transparent') : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50')}`}>
-                        <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
-                        <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
-                        <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
-                        <div className="flex-1 text-sm text-pink-500 font-medium">{translation || '—'}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {wordPopup.word.synonyms}
-                </div>
-              )}
-            </div>
+      {wordPopup && (
+        <Modal onClose={() => setWordPopup(null)} isDark={isDark}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
+            </h3>
+            <button onClick={() => setWordPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
-        )
-      }
-
-      {
-        cardPopup && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setCardPopup(null)}>
-            <div className={`rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] overflow-y-auto ${isDark ? 'bg-[#232328] border border-white/10' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
-                </h3>
-                <button onClick={() => setCardPopup(null)} className={isDark ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}><X size={20} /></button>
+          {wordPopup.type === 'roots' ? (
+            <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
+              <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                <div className="w-32">Word</div>
+                <div className="w-24">Part of Speech</div>
+                <div className="w-36">IPA</div>
+                <div className="flex-1">Translation</div>
               </div>
-              {cardPopup.type === 'roots' ? (
-                <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
-                  <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
-                    <div className="w-32">Word</div>
-                    <div className="w-24">Part of Speech</div>
-                    <div className="w-36">IPA</div>
-                    <div className="flex-1">Translation</div>
+              {wordPopup.word.singleRootWords.split(',').map((item, idx) => {
+                const trimmed = item.trim();
+                const wordMatch = trimmed.match(/^(\S+)/);
+                const word = wordMatch ? wordMatch[1] : '';
+                const typeMatch = trimmed.match(/\(([^)]+)\)/);
+                const type = typeMatch ? typeMatch[1] : '';
+                const ipaMatch = trimmed.match(/\/([^/]+)\//);
+                const ipa = ipaMatch ? ipaMatch[1] : '';
+                const dashIndex = trimmed.lastIndexOf(' - ');
+                const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
+
+                return (
+                  <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${isDark ? (idx % 2 === 0 ? 'bg-white/5' : 'bg-transparent') : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50')}`}>
+                    <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
+                    <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
+                    <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
+                    <div className="flex-1 text-sm text-pink-500 font-medium">{translation || '—'}</div>
                   </div>
-                  {cardPopup.word.singleRootWords.split(',').map((item, idx) => {
-                    const trimmed = item.trim();
-
-                    // Парсинг формата: word (part_of_speech) /ipa/ - translation
-                    // 1. Слово: все до первой открывающей скобки или пробела
-                    const wordMatch = trimmed.match(/^(\S+)/);
-                    const word = wordMatch ? wordMatch[1] : '';
-
-                    // 2. Часть речи: все между круглыми скобками
-                    const typeMatch = trimmed.match(/\(([^)]+)\)/);
-                    const type = typeMatch ? typeMatch[1] : '';
-
-                    // 3. IPA: все между слешами
-                    const ipaMatch = trimmed.match(/\/([^/]+)\//);
-                    const ipa = ipaMatch ? ipaMatch[1] : '';
-
-                    // 4. Перевод: все после тире до конца строки
-                    const dashIndex = trimmed.lastIndexOf(' - ');
-                    const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
-
-                    return (
-                      <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${isDark ? (idx % 2 === 0 ? 'bg-white/5' : 'bg-transparent') : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50')}`}>
-                        <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
-                        <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
-                        <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
-                        <div className="flex-1 text-sm text-pink-500 font-medium">{translation || '—'}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {cardPopup.word.synonyms}
-                </div>
-              )}
+                );
+              })}
             </div>
+          ) : (
+            <div className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              {wordPopup.word.synonyms}
+            </div>
+          )}
+        </Modal>
+      )}
+
+      {cardPopup && (
+        <Modal onClose={() => setCardPopup(null)} isDark={isDark}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
+            </h3>
+            <button onClick={() => setCardPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
-        )
-      }
+          {cardPopup.type === 'roots' ? (
+            <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
+              <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                <div className="w-32">Word</div>
+                <div className="w-24">Part of Speech</div>
+                <div className="w-36">IPA</div>
+                <div className="flex-1">Translation</div>
+              </div>
+              {cardPopup.word.singleRootWords.split(',').map((item, idx) => {
+                const trimmed = item.trim();
+                const wordMatch = trimmed.match(/^(\S+)/);
+                const word = wordMatch ? wordMatch[1] : '';
+                const typeMatch = trimmed.match(/\(([^)]+)\)/);
+                const type = typeMatch ? typeMatch[1] : '';
+                const ipaMatch = trimmed.match(/\/([^/]+)\//);
+                const ipa = ipaMatch ? ipaMatch[1] : '';
+                const dashIndex = trimmed.lastIndexOf(' - ');
+                const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
+
+                return (
+                  <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${isDark ? (idx % 2 === 0 ? 'bg-white/5' : 'bg-transparent') : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50')}`}>
+                    <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
+                    <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
+                    <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
+                    <div className="flex-1 text-sm text-pink-500 font-medium">{translation || '—'}</div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              {cardPopup.word.synonyms}
+            </div>
+          )}
+        </Modal>
+      )}
       {
         modal.type === 'changePassword' && (
           <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}>
