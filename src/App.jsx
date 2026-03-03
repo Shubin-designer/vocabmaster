@@ -1642,6 +1642,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
               const name = document.getElementById('new-sec-name').value;
               if (!name.trim()) return;
               const newId = await onCreateSection(colId, name);
+              if (!newId) { setAlert('Failed to create section'); return; }
               if (showNewSection.forChecked) { const u = {}; checkedWords.forEach(w => u[w] = newId); setWordSections({ ...wordSections, ...u }); }
               else if (showNewSection.forWord) setWordSections({ ...wordSections, [showNewSection.forWord]: newId });
               setShowNewSection(null);
@@ -1929,10 +1930,16 @@ export default function VocabApp() {
 
         console.log('Loaded collections:', collections);
         // Загружаем слова
-        const { data: wordsData } = await supabase
+        const { data: wordsData, error: wordsError } = await supabase
           .from('words')
           .select('*')
           .order('created_at');
+
+        if (wordsError) {
+          console.error('Error loading words:', wordsError);
+        } else {
+          console.log('Loaded words:', wordsData?.length || 0);
+        }
 
         // Конвертируем snake_case в camelCase
         const words = (wordsData || []).map(w => ({
@@ -2192,7 +2199,29 @@ export default function VocabApp() {
     else if (view === 'write' && !writeSession && filteredWords.length > 0) setWriteSession({ words: [...filteredWords], index: 0, correct: 0, wrong: 0, wrongWords: [], input: '', result: null, completed: false });
   }, [view, filteredWords.length]);
 
-  const createSectionFromSong = async (cid, name) => { const s = { id: 's' + Date.now(), name, icon: '📖' }; setData(d => ({ ...d, collections: d.collections.map(c => c.id === cid ? { ...c, sections: [...c.sections, s] } : c) })); return s.id; };
+  const createSectionFromSong = async (cid, name) => {
+    // Создаём секцию в базе данных
+    const { data: newSection, error } = await supabase
+      .from('sections')
+      .insert([{
+        collection_id: cid,
+        name,
+        icon: '📖',
+        icon_color: 'gray'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Failed to create section:', error);
+      return null;
+    }
+
+    // Обновляем локальный state с реальным UUID из базы
+    const s = { id: newSection.id, name: newSection.name, icon: newSection.icon, icon_color: newSection.icon_color };
+    setData(d => ({ ...d, collections: d.collections.map(c => c.id === cid ? { ...c, sections: [...c.sections, s] } : c) }));
+    return newSection.id;
+  };
 
   const saveSong = async (sd) => {
     console.log('Saving song:', sd);
@@ -3310,31 +3339,38 @@ export default function VocabApp() {
                 collections={data.collections}
                 existingWords={data.words}
                 onAddWords={async (ws) => {
+                  console.log('Adding words from song:', ws);
                   const savedWords = [];
+                  const errors = [];
                   for (const w of ws) {
+                    const insertData = {
+                      user_id: user.id,
+                      section_id: w.sectionId,
+                      word: w.word,
+                      type: w.type,
+                      level: w.level,
+                      forms: w.forms || '',
+                      meaning_en: w.meaningEn || '',
+                      meaning_ru: w.meaningRu || '',
+                      example: w.example || '',
+                      my_example: w.myExample || '',
+                      single_root_words: w.singleRootWords || '',
+                      synonyms: w.synonyms || '',
+                      tags: w.tags || [],
+                      status: STATUS.NEW,
+                      passed_modes: []
+                    };
+                    console.log('Inserting word data:', insertData);
                     const { data: newWord, error } = await supabase
                       .from('words')
-                      .insert([{
-                        user_id: user.id,
-                        section_id: w.sectionId,
-                        word: w.word,
-                        type: w.type,
-                        level: w.level,
-                        forms: w.forms || '',
-                        meaning_en: w.meaningEn || '',
-                        meaning_ru: w.meaningRu || '',
-                        example: w.example || '',
-                        my_example: w.myExample || '',
-                        single_root_words: w.singleRootWords || '',
-                        synonyms: w.synonyms || '',
-                        tags: w.tags || [],
-                        status: STATUS.NEW,
-                        passed_modes: []
-                      }])
+                      .insert([insertData])
                       .select()
                       .single();
 
-                    if (!error && newWord) {
+                    if (error) {
+                      console.error('Failed to save word:', w.word, error);
+                      errors.push({ word: w.word, error: error.message });
+                    } else if (newWord) {
                       savedWords.push({
                         id: newWord.id,
                         sectionId: newWord.section_id,
@@ -3355,7 +3391,12 @@ export default function VocabApp() {
                     }
                   }
                   setData(d => ({ ...d, words: [...d.words, ...savedWords] }));
-                  setToast({ message: `${savedWords.length} words added!`, canUndo: false });
+                  if (errors.length > 0) {
+                    console.error('Errors saving words:', errors);
+                    setToast({ message: `${savedWords.length} words added, ${errors.length} failed to save`, canUndo: false });
+                  } else {
+                    setToast({ message: `${savedWords.length} words added!`, canUndo: false });
+                  }
                 }}
 
                 onCreateSection={createSectionFromSong}
