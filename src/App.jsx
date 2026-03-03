@@ -3651,8 +3651,8 @@ export default function VocabApp() {
             <button onClick={() => setWordPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
           {wordPopup.type === 'roots' ? (
-            <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
-              <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+            <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
+              <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'border-white/10 text-gray-400' : 'border-black/10 text-gray-500'}`}>
                 <div className="w-32">Word</div>
                 <div className="w-24">Part of Speech</div>
                 <div className="w-36">IPA</div>
@@ -3670,11 +3670,11 @@ export default function VocabApp() {
                 const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
 
                 return (
-                  <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${isDark ? (idx % 2 === 0 ? 'bg-white/5' : 'bg-transparent') : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50')}`}>
+                  <div key={idx} className={`flex items-center gap-4 px-4 py-3 border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
                     <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
                     <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
                     <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
-                    <div className="flex-1 text-sm text-pink-500 font-medium">{translation || '—'}</div>
+                    <div className="flex-1 text-sm text-pink-vibrant font-medium">{translation || '—'}</div>
                   </div>
                 );
               })}
@@ -3696,8 +3696,8 @@ export default function VocabApp() {
             <button onClick={() => setCardPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
           {cardPopup.type === 'roots' ? (
-            <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
-              <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+            <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
+              <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'border-white/10 text-gray-400' : 'border-black/10 text-gray-500'}`}>
                 <div className="w-32">Word</div>
                 <div className="w-24">Part of Speech</div>
                 <div className="w-36">IPA</div>
@@ -3715,11 +3715,11 @@ export default function VocabApp() {
                 const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
 
                 return (
-                  <div key={idx} className={`flex items-center gap-4 px-4 py-3 ${isDark ? (idx % 2 === 0 ? 'bg-white/5' : 'bg-transparent') : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50')}`}>
+                  <div key={idx} className={`flex items-center gap-4 px-4 py-3 border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
                     <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
                     <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
                     <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
-                    <div className="flex-1 text-sm text-pink-500 font-medium">{translation || '—'}</div>
+                    <div className="flex-1 text-sm text-pink-vibrant font-medium">{translation || '—'}</div>
                   </div>
                 );
               })}
