@@ -2950,8 +2950,10 @@ export default function VocabApp() {
       {/* Resize handle */}
       <div
         onMouseDown={() => setIsResizing(true)}
-        className={`absolute right-0 top-0 w-1 h-full cursor-col-resize hover:bg-pink-500/50 transition-colors ${isResizing ? 'bg-pink-500' : ''}`}
-      />
+        className={`absolute right-0 top-0 w-2 h-full cursor-col-resize group flex items-center justify-center transition-colors ${isResizing ? 'bg-pink-500/30' : 'hover:bg-pink-500/20'}`}
+      >
+        <div className={`w-1 h-8 rounded-full transition-colors ${isResizing ? 'bg-pink-500' : sidebarIsDark ? 'bg-white/20 group-hover:bg-pink-500/60' : 'bg-black/10 group-hover:bg-pink-500/60'}`} />
+      </div>
     </div>
   );
 
@@ -3040,7 +3042,7 @@ export default function VocabApp() {
   const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   return (
-    <div className={`min-h-screen flex ${isDark ? 'bg-theme-main text-gray-100 dark' : 'bg-[#f5f5f7] text-gray-900'}`}>
+    <div className={`min-h-screen flex ${isDark ? 'bg-theme-main text-gray-100 dark' : 'bg-[#f5f5f7] text-gray-900'} ${isResizing ? 'select-none cursor-col-resize' : ''}`}>
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 h-screen">
         <header className={`${isDark ? 'bg-[#0d0d10]/80 border-white/5' : 'bg-white/90 border-black/5'} backdrop-blur-xl border-b px-8 py-3 h-auto flex items-center justify-between flex-shrink-0 relative z-40`}>
