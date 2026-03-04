@@ -2839,12 +2839,12 @@ export default function VocabApp() {
         <div className={`mb-2 leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{word.meaningEn.split('\n').map((m, i) => <div key={i}>{m}</div>)}</div>
         {word.meaningRu && <p className="text-pink-vibrant font-medium text-sm mb-3">→ {word.meaningRu}</p>}
         {word.example && (
-          <div className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 bg-transparent ${isDark ? 'text-white/40 border-pink-vibrant/40' : 'text-gray-500 border-pink-500/40'}`}>
+          <div className={`text-sm italic py-2 mb-3 border-t border-b ${isDark ? 'text-white/40 border-white/5' : 'text-gray-500 border-black/5'}`}>
             {word.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), word.word)}"</div>)}
           </div>
         )}
         {word.myExample && (
-          <p className={`text-sm italic rounded-xl border-l-2 pl-3 py-2 mb-3 transition-colors ${isDark ? 'text-amber-300/80 border-amber-500/30 bg-amber-900/10' : 'text-amber-700 border-amber-500/30 bg-amber-100/50'}`}>
+          <p className={`text-sm italic py-2 mb-3 border-t border-b ${isDark ? 'text-amber-300/80 border-white/5' : 'text-amber-700 border-black/5'}`}>
             ✏️ "{word.myExample}"
           </p>
         )}
