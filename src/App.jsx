@@ -2111,15 +2111,6 @@ export default function VocabApp() {
     setTimeout(() => setStateRestored(true), 50);
   }, [user, isLoading, data.collections, data.songs]);
 
-    view,
-    stateRestored,
-    currentCollection: currentCollection?.name,
-    currentSection: currentSection?.name,
-    isLoading,
-    user: !!user,
-    wordsCount: data.words.length
-  });
-
   // Fallback: калі view патрабуе дадзеныя якіх няма - вяртаемся на dashboard
   useEffect(() => {
     if (!stateRestored) return;
