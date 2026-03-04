@@ -752,9 +752,6 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         body: { word: form.word.trim() }
       });
 
-      console.log('=== Lookup result ===');
-      console.log('Full data:', data);
-      console.log('Error:', error);
 
       // Проверяем на ошибку (неправильное слово) - сначала data, потом error
       if (data?.error) {
@@ -773,7 +770,6 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
         if (error.context) {
           try {
             const errorBody = await error.context.json();
-            console.log('Error body:', errorBody);
             if (errorBody?.error) {
               setLookupError(errorBody.error);
               if (errorBody.suggestions && Array.isArray(errorBody.suggestions)) {
@@ -784,15 +780,11 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
               return;
             }
           } catch (parseErr) {
-            console.log('Could not parse error context:', parseErr);
           }
         }
         throw error;
       }
 
-      console.log('Type:', data?.type);
-      console.log('Level:', data?.level);
-      console.log('Meanings:', data?.meanings);
 
       if (data.meanings && Array.isArray(data.meanings)) {
         // Собираем все уникальные типы из API
@@ -857,7 +849,6 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
       }
       setHasLookedUp(true);
     } catch (e) {
-      console.error('Lookup error:', e);
       // Пробуем извлечь suggestions из ошибки если они есть
       if (e.context) {
         try {
@@ -1789,7 +1780,6 @@ export default function VocabApp() {
         return state.view || 'dashboard';
       }
     } catch (e) {
-      console.error('Failed to load view:', e);
     }
     return 'dashboard';
   });
@@ -1861,7 +1851,6 @@ export default function VocabApp() {
 
   // Применение темы - v2
   useEffect(() => {
-    console.log('[THEME v2] Applying:', theme);
     localStorage.setItem('vocabmaster_theme', theme);
 
     const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -1872,7 +1861,6 @@ export default function VocabApp() {
       document.documentElement.classList.add('dark');
     }
 
-    console.log('[THEME v2] isDark:', isDark, 'classes:', document.documentElement.className);
   }, [theme]);
 
   // Sidebar resize handlers
@@ -1928,7 +1916,6 @@ export default function VocabApp() {
           .select('*, sections(*)')
           .order('created_at');
 
-        console.log('Loaded collections:', collections);
         // Загружаем слова
         const { data: wordsData, error: wordsError } = await supabase
           .from('words')
@@ -1936,9 +1923,7 @@ export default function VocabApp() {
           .order('created_at');
 
         if (wordsError) {
-          console.error('Error loading words:', wordsError);
         } else {
-          console.log('Loaded words:', wordsData?.length || 0);
         }
 
         // Конвертируем snake_case в camelCase
@@ -2034,10 +2019,8 @@ export default function VocabApp() {
           songs: songs || []
         });
 
-        console.log('State updated!');
 
       } catch (e) {
-        console.error(e);
       }
       setIsLoading(false);
     })();
@@ -2046,24 +2029,19 @@ export default function VocabApp() {
   // Загрузка сохранённого состояния
   useEffect(() => {
     if (!user) return;
-    console.log('=== Loading saved state ===');
 
     try {
       const saved = localStorage.getItem('vocabmaster_state');
-      console.log('Saved state:', saved);
 
       if (saved) {
         const state = JSON.parse(saved);
 
-        console.log('Parsed state:', state);
         if (state.view) setView(state.view);
-        console.log('Setting view to:', state.view);
 
         if (state.expandedCollections) setExpandedCollections(state.expandedCollections);
         if (state.expandedSongFolders) setExpandedSongFolders(state.expandedSongFolders);
       }
     } catch (e) {
-      console.error('Failed to load state:', e);
     }
   }, [user]);
 
@@ -2079,7 +2057,6 @@ export default function VocabApp() {
       currentSectionId: currentSection?.id || null,
       currentSongId: currentSong?.id || null
     };
-    console.log('=== Saving state ===', state);
     localStorage.setItem('vocabmaster_state', JSON.stringify(state));
   }, [user, view, expandedCollections, expandedSongFolders, currentCollection, currentSection, currentSong]);
 
@@ -2089,21 +2066,17 @@ export default function VocabApp() {
   useEffect(() => {
     if (!user || isLoading) return;
 
-    console.log('=== Restoring current items ===');
-    console.log('Collections available:', data.collections.map(c => c.id));
 
     try {
       const saved = localStorage.getItem('vocabmaster_state');
       if (saved) {
         const state = JSON.parse(saved);
-        console.log('State to restore:', state);
 
         let restoredCollection = false;
         let restoredSection = false;
 
         if (state.currentCollectionId) {
           const col = data.collections.find(c => c.id === state.currentCollectionId);
-          console.log('Looking for collection:', state.currentCollectionId, 'Found:', col?.name);
           if (col) {
             setCurrentCollection(col);
             restoredCollection = true;
@@ -2111,9 +2084,7 @@ export default function VocabApp() {
         }
         if (state.currentSectionId) {
           const sections = data.collections.flatMap(c => c.sections);
-          console.log('Sections available:', sections.map(s => s.id));
           const sec = sections.find(s => s.id === state.currentSectionId);
-          console.log('Looking for section:', state.currentSectionId, 'Found:', sec?.name);
           if (sec) {
             setCurrentSection(sec);
             restoredSection = true;
@@ -2121,7 +2092,6 @@ export default function VocabApp() {
             if (!restoredCollection) {
               const parentCol = data.collections.find(c => c.sections.some(s => s.id === state.currentSectionId));
               if (parentCol) {
-                console.log('Restoring parent collection:', parentCol.name);
                 setCurrentCollection(parentCol);
               }
             }
@@ -2130,20 +2100,17 @@ export default function VocabApp() {
         if (state.currentSongId) {
           const song = data.songs.find(s => s.id === state.currentSongId);
           if (song) {
-            console.log('Restoring song:', song.title);
             setCurrentSong(song);
           }
         }
       }
     } catch (e) {
-      console.error('Failed to restore items:', e);
     }
 
     // Даём React время обработать state updates перед установкой stateRestored
     setTimeout(() => setStateRestored(true), 50);
   }, [user, isLoading, data.collections, data.songs]);
 
-  console.log('=== Rendering VocabApp ===', {
     view,
     stateRestored,
     currentCollection: currentCollection?.name,
@@ -2155,16 +2122,13 @@ export default function VocabApp() {
 
   // Fallback: калі view патрабуе дадзеныя якіх няма - вяртаемся на dashboard
   useEffect(() => {
-    console.log('=== Fallback check ===', { stateRestored, view, currentCollection: currentCollection?.name, currentSection: currentSection?.name });
     if (!stateRestored) return;
 
     if (view === 'song' && !currentSong) {
-      console.log('Song view but no song - redirecting to dashboard');
       setView('dashboard');
     }
 
     if (['list', 'cards', 'quiz', 'write'].includes(view) && !currentCollection && !currentSection) {
-      console.log('List/cards/quiz/write view but no collection/section - redirecting to dashboard');
       setView('dashboard');
     }
   }, [stateRestored, view, currentSong, currentCollection, currentSection]);
@@ -2213,7 +2177,6 @@ export default function VocabApp() {
       .single();
 
     if (error) {
-      console.error('Failed to create section:', error);
       return null;
     }
 
@@ -2224,7 +2187,6 @@ export default function VocabApp() {
   };
 
   const saveSong = async (sd) => {
-    console.log('Saving song:', sd);
 
     const { data: newSong, error } = await supabase
       .from('songs')
@@ -2237,7 +2199,6 @@ export default function VocabApp() {
       .select()
       .single();
 
-    console.log('Result:', newSong, 'Error:', error);
 
     if (!error && newSong) {
       const song = { ...newSong, folderId: newSong.folder_id };
@@ -2346,11 +2307,6 @@ export default function VocabApp() {
         }])
         .select()
         .single();
-      console.log('=== Save word result ===');
-      console.log('Word:', w.word);
-      console.log('isValidUUID:', isValidUUID);
-      console.log('currentSection:', currentSection);
-      console.log('Error:', error);
 
       if (!error && newWord) {
         const converted = {
@@ -2413,7 +2369,6 @@ export default function VocabApp() {
   };
 
   const saveSection = async (name, iconParam, colorParam) => {
-    console.log('Creating section:', name, modal.data?.colId);
 
     if (!name.trim() || !modal.data?.colId) return;
     const icon = iconParam || 'book';
@@ -2660,9 +2615,6 @@ export default function VocabApp() {
           return;
         }
 
-        console.log('=== Starting full import ===');
-        console.log('Collections:', imported.collections.length);
-        console.log('Words:', imported.words.length);
 
         // Маппінг старых ID → новыя UUID
         const collectionMap = new Map(); // oldId → newId
@@ -2682,7 +2634,6 @@ export default function VocabApp() {
 
           if (!error && newCol) {
             collectionMap.set(col.id, newCol.id);
-            console.log(`Collection "${col.name}": ${col.id} → ${newCol.id}`);
 
             // 2. Імпарт секцый гэтай калекцыі
             for (const sec of col.sections) {
@@ -2698,7 +2649,6 @@ export default function VocabApp() {
 
               if (!secError && newSec) {
                 sectionMap.set(sec.id, newSec.id);
-                console.log(`  Section "${sec.name}": ${sec.id} → ${newSec.id}`);
               }
             }
           }
@@ -2708,20 +2658,15 @@ export default function VocabApp() {
         let importedCount = 0;
         let skippedCount = 0;
 
-        console.log('=== Importing words ===');
-        console.log('Total words to import:', imported.words.length);
-        console.log('Section map size:', sectionMap.size);
 
 
         for (const word of imported.words) {
           const newSectionId = sectionMap.get(word.sectionId);
           if (!newSectionId) {
-            console.log(`Skipping word "${word.word}" - section ${word.sectionId} not found in map`);
             skippedCount++;
 
             continue;
           }
-          console.log(`Importing word #${importedCount + 1}: "${word.word}" to section ${newSectionId}`);
 
 
           const { error } = await supabase
@@ -2749,9 +2694,6 @@ export default function VocabApp() {
           }
         }
 
-        console.log(`=== Import complete ===`);
-        console.log(`Imported: ${importedCount}`);
-        console.log(`Skipped: ${skippedCount}`);
 
         // 4. Перачытваем усё з базы
         const { data: collections } = await supabase
@@ -2793,7 +2735,6 @@ export default function VocabApp() {
         setToast({ message: `Imported ${importedCount} words!`, canUndo: false });
 
       } catch (e) {
-        console.error('Import error:', e);
         setToast({ message: 'Import failed', canUndo: false });
       }
     };
@@ -3027,9 +2968,6 @@ export default function VocabApp() {
     );
   };
 
-  console.log('Current data:', data);
-  console.log('Collections:', data.collections);
-  console.log('Is loading:', isLoading);
 
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -3355,7 +3293,6 @@ export default function VocabApp() {
                 collections={data.collections}
                 existingWords={data.words}
                 onAddWords={async (ws) => {
-                  console.log('Adding words from song:', ws);
                   const savedWords = [];
                   const errors = [];
                   for (const w of ws) {
@@ -3376,7 +3313,6 @@ export default function VocabApp() {
                       status: STATUS.NEW,
                       passed_modes: []
                     };
-                    console.log('Inserting word data:', insertData);
                     const { data: newWord, error } = await supabase
                       .from('words')
                       .insert([insertData])
@@ -3384,7 +3320,6 @@ export default function VocabApp() {
                       .single();
 
                     if (error) {
-                      console.error('Failed to save word:', w.word, error);
                       errors.push({ word: w.word, error: error.message });
                     } else if (newWord) {
                       savedWords.push({
@@ -3408,7 +3343,6 @@ export default function VocabApp() {
                   }
                   setData(d => ({ ...d, words: [...d.words, ...savedWords] }));
                   if (errors.length > 0) {
-                    console.error('Errors saving words:', errors);
                     setToast({ message: `${savedWords.length} words added, ${errors.length} failed to save`, canUndo: false });
                   } else {
                     setToast({ message: `${savedWords.length} words added!`, canUndo: false });
@@ -3473,11 +3407,9 @@ export default function VocabApp() {
         modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id}
 
           onImport={async (words) => {
-            console.log('=== Starting import ===', words.length, 'words');
 
             const savedWords = [];
             for (const w of words) {
-              console.log('Importing word:', w.word);
 
               const { data: newWord, error } = await supabase
                 .from('words')
@@ -3500,11 +3432,9 @@ export default function VocabApp() {
                 }])
                 .select()
                 .single();
-              console.log('Result:', { newWord: newWord?.word, error });
 
 
               if (!error && newWord) {
-                console.error('Supabase error details:', error);
 
                 savedWords.push({
                   id: newWord.id,
