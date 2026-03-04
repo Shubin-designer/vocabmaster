@@ -49,7 +49,7 @@ const SECTION_ICONS = Object.keys(ICON_MAP);
 // Icon colors
 const ICON_COLORS = [
   { name: 'gray', text: 'text-gray-400', bg: 'bg-gray-400', ring: 'ring-gray-400' },
-  { name: 'pink', text: 'text-pink-400', bg: 'bg-pink-400', ring: 'ring-pink-400' },
+  { name: 'pink', text: 'text-indigo-400', bg: 'bg-indigo-400', ring: 'ring-indigo-400' },
   { name: 'red', text: 'text-red-400', bg: 'bg-red-400', ring: 'ring-red-400' },
   { name: 'orange', text: 'text-orange-400', bg: 'bg-orange-400', ring: 'ring-orange-400' },
   { name: 'yellow', text: 'text-yellow-400', bg: 'bg-yellow-400', ring: 'ring-yellow-400' },
@@ -127,11 +127,11 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
     };
 
     if (status === 'complete') {
-      return { ...base, backgroundColor: '#fc3b74', boxShadow: '0 0 8px rgba(252, 59, 116, 0.6)' };
+      return { ...base, backgroundColor: '#3D389C', boxShadow: '0 0 8px rgba(61, 56, 156, 0.6)' };
     } else if (status === 'partial') {
-      return { ...base, backgroundColor: '#ff7597', boxShadow: '0 0 5px rgba(255, 117, 151, 0.4)' };
+      return { ...base, backgroundColor: '#7B77CC', boxShadow: '0 0 5px rgba(123, 119, 204, 0.4)' };
     } else if (status === 'started') {
-      return { ...base, backgroundColor: isDark ? 'rgba(252, 59, 116, 0.35)' : 'rgba(252, 59, 116, 0.4)' };
+      return { ...base, backgroundColor: isDark ? 'rgba(61, 56, 156, 0.35)' : 'rgba(61, 56, 156, 0.4)' };
     }
     return { ...base, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)' };
   };
@@ -145,8 +145,8 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
         className="absolute inset-0 pointer-events-none opacity-40"
         style={{
           background: isDark
-            ? 'radial-gradient(ellipse at 80% 0%, rgba(252, 59, 116, 0.12) 0%, transparent 50%)'
-            : 'radial-gradient(ellipse at 80% 0%, rgba(252, 59, 116, 0.1) 0%, transparent 50%)'
+            ? 'radial-gradient(ellipse at 80% 0%, rgba(61, 56, 156, 0.12) 0%, transparent 50%)'
+            : 'radial-gradient(ellipse at 80% 0%, rgba(61, 56, 156, 0.1) 0%, transparent 50%)'
         }}
       />
 
@@ -157,7 +157,7 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
           <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>Last 7 weeks</p>
         </div>
         {streak > 0 && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/20">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">
             <Flame size={14} className="text-pink-vibrant" />
             <span className="text-pink-vibrant font-semibold text-sm">{streak}</span>
           </div>
@@ -180,8 +180,8 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
               className="h-full rounded-full"
               style={{
                 width: `${Math.min((todayNew / goalNew) * 100, 100)}%`,
-                background: 'linear-gradient(90deg, #fc3b74, #ff7597)',
-                boxShadow: todayNew > 0 ? '0 0 8px rgba(252, 59, 116, 0.5)' : 'none'
+                background: 'linear-gradient(90deg, #3D389C, #7B77CC)',
+                boxShadow: todayNew > 0 ? '0 0 8px rgba(61, 56, 156, 0.5)' : 'none'
               }}
             />
           </div>
@@ -229,15 +229,15 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
           <span className={isDark ? 'text-white/40' : 'text-gray-500'}>None</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgba(252, 59, 116, 0.35)' }} />
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgba(61, 56, 156, 0.35)' }} />
           <span className={isDark ? 'text-white/40' : 'text-gray-500'}>Started</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#ff7597' }} />
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#7B77CC' }} />
           <span className={isDark ? 'text-white/40' : 'text-gray-500'}>Partial</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full glow-pink" style={{ backgroundColor: '#fc3b74' }} />
+          <div className="w-2 h-2 rounded-full glow-pink" style={{ backgroundColor: '#3D389C' }} />
           <span className={isDark ? 'text-white/40' : 'text-gray-500'}>Complete</span>
         </div>
       </div>
@@ -1409,7 +1409,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
         if (cleanRemaining.startsWith(sel)) {
           const startOffset = remaining.length - cleanRemaining.length;
           result.push(<span key={i}>{text.slice(i, i + startOffset)}</span>);
-          result.push(<span key={i + startOffset} className={`px-1 py-0.5 rounded font-medium ${isDark ? 'bg-pink-vibrant/20 text-pink-vibrant' : 'bg-pink-500/15 text-pink-600'}`}>{text.slice(i + startOffset, i + startOffset + sel.length)}</span>);
+          result.push(<span key={i + startOffset} className={`px-1 py-0.5 rounded font-medium ${isDark ? 'bg-pink-vibrant/20 text-pink-vibrant' : 'bg-indigo-500/15 text-indigo-600'}`}>{text.slice(i + startOffset, i + startOffset + sel.length)}</span>);
           i += startOffset + sel.length;
           matched = true;
           break;
@@ -1459,7 +1459,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           const isComplexFromPhrase = complexWordsMap.has(cleaned) && matches.length === 0;
 
           if (isSelected) {
-            result.push(<span key={i} className={`px-1 py-0.5 rounded font-medium ${isDark ? 'bg-pink-vibrant/20 text-pink-vibrant' : 'bg-pink-500/15 text-pink-600'}`}>{word}</span>);
+            result.push(<span key={i} className={`px-1 py-0.5 rounded font-medium ${isDark ? 'bg-pink-vibrant/20 text-pink-vibrant' : 'bg-indigo-500/15 text-indigo-600'}`}>{word}</span>);
           } else if (matches.length > 0) {
             result.push(
               <span
@@ -1565,7 +1565,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             ) : selected.includes(popup.word) ? (
               <button onClick={() => removeFromList(popup.word)} className={`w-full px-3 py-2 mt-2 rounded-xl text-sm font-semibold transition-colors ${isDark ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}>✗ Remove from list</button>
             ) : (
-              <button onClick={() => addToList(popup.word)} className="w-full px-3 py-2 mt-2 bg-pink-vibrant text-white rounded-xl text-sm font-semibold hover:brightness-110 transition-colors shadow-md shadow-pink-500/20">+ Add to list</button>
+              <button onClick={() => addToList(popup.word)} className="w-full px-3 py-2 mt-2 bg-pink-vibrant text-white rounded-xl text-sm font-semibold hover:brightness-110 transition-colors shadow-md shadow-indigo-500/20">+ Add to list</button>
             )}
           </div>
         )}
@@ -1585,7 +1585,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className={`border-b ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/50' : 'bg-black/[0.02] border-black/[0.06] text-gray-500'}`}><tr><th className="p-2 text-left w-10"><input type="checkbox" checked={checkedWords.length === selected.length && selected.length > 0} onChange={toggleCheckAll} className="rounded accent-pink-500" /></th><th className="p-2 text-left">Word/Phrase</th><th className="p-2 text-left">Section</th></tr></thead>
+                <thead className={`border-b ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/50' : 'bg-black/[0.02] border-black/[0.06] text-gray-500'}`}><tr><th className="p-2 text-left w-10"><input type="checkbox" checked={checkedWords.length === selected.length && selected.length > 0} onChange={toggleCheckAll} className="rounded accent-indigo-500" /></th><th className="p-2 text-left">Word/Phrase</th><th className="p-2 text-left">Section</th></tr></thead>
                 <tbody>{selected.map(w => (
                   <tr key={w} className={`border-b ${isDark ? 'border-white/[0.04] hover:bg-white/[0.03] text-white/90' : 'border-black/[0.04] hover:bg-black/[0.02] text-gray-800'}`}>
                     <td className="p-2"><input type="checkbox" checked={checkedWords.includes(w)} onChange={() => toggleCheck(w)} /></td>
@@ -1663,7 +1663,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
             </div>
             {loadingExp ? (
               <div className="flex items-center justify-center py-24">
-                <Loader size={48} className={`animate-spin ${isDark ? 'text-pink-500' : 'text-pink-500'}`} />
+                <Loader size={48} className={`animate-spin ${isDark ? 'text-indigo-500' : 'text-indigo-500'}`} />
               </div>
             ) : (
               <div className={`whitespace-pre-wrap text-base leading-relaxed ${isDark ? 'text-white/80' : 'text-gray-800'}`}>{explanation}</div>
@@ -2882,7 +2882,7 @@ export default function VocabApp() {
   const Sidebar = () => (
     <div className={`relative flex-shrink-0 ${sidebarIsDark ? 'bg-transparent' : 'bg-white'}`} style={{ width: sidebarOpen ? sidebarWidth : 0, transition: isResizing ? 'none' : 'width 0.2s' }}>
       <div className="p-3 h-full overflow-y-auto overflow-x-hidden" style={{ width: sidebarWidth }}>
-        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'dashboard' ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18} /> Dashboard</button>
+        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'dashboard' ? 'bg-indigo-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18} /> Dashboard</button>
         <div className={`mb-4 pb-3 border-b ${sidebarIsDark ? 'border-white/5' : 'border-black/5'}`}>
           <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
           {data.songFolders.map((folder, folderIdx) => {
@@ -2901,7 +2901,7 @@ export default function VocabApp() {
                   </div>
                 </div>
                 {expandedSongFolders.includes(folder.id) && <div className="ml-6 space-y-1">{folderSongs.map((song, songIdx) => (
-                  <div key={song.id} onClick={() => handleNavigationWithCheck(() => { setCurrentSong(song); setCurrentCollection(null); setCurrentSection(null); setFilterStatus('all'); setView('song'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSong?.id === song.id ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
+                  <div key={song.id} onClick={() => handleNavigationWithCheck(() => { setCurrentSong(song); setCurrentCollection(null); setCurrentSection(null); setFilterStatus('all'); setView('song'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSong?.id === song.id ? 'bg-indigo-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
                     <span className="flex-1 truncate">{song.title}</span>
                     <div className="flex opacity-0 group-hover:opacity-100">
                       {songIdx > 0 && <button onClick={e => { e.stopPropagation(); moveSong(folder.id, song.id, 'up'); }} className={`p-1 rounded ${sidebarIsDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Move up"><ChevronUp size={12} /></button>}
@@ -2918,7 +2918,7 @@ export default function VocabApp() {
         <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>Collections</span><button onClick={() => { setSelectedIcon('folder'); setSelectedColor('gray'); setModal({ type: 'collection', data: null }); }} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
         {data.collections.map((col, colIdx) => (
           <div key={col.id} className="mb-1">
-            <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
+            <div className={`flex items-center gap-1 p-2 rounded-xl cursor-pointer group transition-colors ${currentCollection?.id === col.id && !currentSection ? 'bg-indigo-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}>
               <button onClick={() => setExpandedCollections(expandedCollections.includes(col.id) ? expandedCollections.filter(id => id !== col.id) : [...expandedCollections, col.id])} className={sidebarIsDark ? 'p-0.5 text-white/30' : 'p-0.5 text-gray-400'}>{expandedCollections.includes(col.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</button>
               {(() => { const Icon = ICON_MAP[col.icon] || Folder; const colorClass = ICON_COLORS.find(c => c.name === col.icon_color)?.text || 'text-gray-400'; return <Icon size={18} className={colorClass} />; })()}
               <span onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className="flex-1 truncate text-sm">{col.name}</span>
@@ -2931,7 +2931,7 @@ export default function VocabApp() {
             </div>
             {expandedCollections.includes(col.id) && <div className="ml-6 space-y-1">
               {col.sections.map((sec, secIdx) => (
-                <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSection?.id === sec.id ? 'bg-pink-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
+                <div key={sec.id} onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(col); setCurrentSection(sec); setCurrentSong(null); setFilterStatus('all'); setView('list'); })} className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer group text-sm transition-colors ${currentSection?.id === sec.id ? 'bg-indigo-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/50' : 'hover:bg-black/[0.04] text-gray-500'}`}>
                   {(() => { const Icon = ICON_MAP[sec.icon] || Book; const colorClass = ICON_COLORS.find(c => c.name === sec.icon_color)?.text || 'text-gray-400'; return <Icon size={16} className={colorClass} />; })()}
                   <span className="flex-1 truncate">{sec.name}</span>
                   <div className="flex opacity-0 group-hover:opacity-100">
@@ -2950,9 +2950,9 @@ export default function VocabApp() {
       {/* Resize handle */}
       <div
         onMouseDown={() => setIsResizing(true)}
-        className={`absolute right-0 top-0 w-2 h-full cursor-col-resize group flex items-center justify-center transition-colors ${isResizing ? 'bg-pink-500/30' : 'hover:bg-pink-500/20'}`}
+        className={`absolute right-0 top-0 w-2 h-full cursor-col-resize group flex items-center justify-center transition-colors ${isResizing ? 'bg-indigo-500/30' : 'hover:bg-indigo-500/20'}`}
       >
-        <div className={`w-1 h-8 rounded-full transition-colors ${isResizing ? 'bg-pink-500' : sidebarIsDark ? 'bg-white/20 group-hover:bg-pink-500/60' : 'bg-black/10 group-hover:bg-pink-500/60'}`} />
+        <div className={`w-1 h-8 rounded-full transition-colors ${isResizing ? 'bg-indigo-500' : sidebarIsDark ? 'bg-white/20 group-hover:bg-indigo-500/60' : 'bg-black/10 group-hover:bg-indigo-500/60'}`} />
       </div>
     </div>
   );
@@ -2968,11 +2968,11 @@ export default function VocabApp() {
         <ProgressBar current={cardSession.index} total={cardSession.words.length} correct={cardSession.correct} wrong={cardSession.wrong} isDark={isDark} />
         <div onClick={() => setCardSession({ ...cardSession, flipped: !cardSession.flipped })} className="cursor-pointer" style={{ perspective: 1000 }}>
           <div style={{ transformStyle: 'preserve-3d', transition: 'transform 0.5s', transform: cardSession.flipped ? 'rotateY(180deg)' : '' }} className="relative min-h-[400px]">
-            <div style={{ backfaceVisibility: 'hidden' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col items-center justify-center`}><h2 className={`text-3xl font-display font-bold text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.word}</h2><p className={isDark ? "text-gray-400" : "text-gray-500"}>{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-pink-500/10 hover:bg-pink-500/20 rounded-full transition-colors"><Volume2 className="text-pink-vibrant" /></button></div>
+            <div style={{ backfaceVisibility: 'hidden' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col items-center justify-center`}><h2 className={`text-3xl font-display font-bold text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{w.word}</h2><p className={isDark ? "text-gray-400" : "text-gray-500"}>{w.type}</p>{w.forms && <p className="text-gray-500 text-sm mt-1">{w.forms}</p>}<button onClick={e => { e.stopPropagation(); playPronunciation(w.word); }} className="mt-4 p-2 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-full transition-colors"><Volume2 className="text-pink-vibrant" /></button></div>
             <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className={`absolute inset-0 liquid-glass rounded-3xl p-6 flex flex-col justify-center border-2 border-pink-vibrant/30`}>
               <p className={`text-lg mb-2 font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{w.meaningEn}</p>
               {w.meaningRu && <p className="text-pink-vibrant font-medium mb-2">→ {w.meaningRu}</p>}
-              {w.example && <div className={`text-sm italic mt-2 mb-3 rounded-xl border-l-2 pl-3 py-2 ${isDark ? 'text-white/60 bg-[#1a1a1e] border-pink-vibrant/40' : 'text-gray-500 bg-gray-50 border-pink-500/30'}`}>{w.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), w.word)}"</div>)}</div>}
+              {w.example && <div className={`text-sm italic mt-2 mb-3 rounded-xl border-l-2 pl-3 py-2 ${isDark ? 'text-white/60 bg-[#1a1a1e] border-pink-vibrant/40' : 'text-gray-500 bg-gray-50 border-indigo-500/30'}`}>{w.example.split('\n').map((ex, i) => <div key={i}>"{highlightWord(ex.trim(), w.word)}"</div>)}</div>}
               {(w.singleRootWords || w.synonyms) && (
                 <div className={`mt-auto pt-3 border-t flex gap-4 text-xs font-medium ${isDark ? 'border-white/10' : 'border-black/5'}`}>
                   {w.singleRootWords && (
@@ -3059,7 +3059,7 @@ export default function VocabApp() {
             {currentSection && (
               <>
                 <button onClick={() => setModal({ type: 'importText', data: null })} className="h-10 px-4 rounded-full flex items-center gap-1.5 text-sm font-semibold bg-purple-vibrant/20 text-purple-vibrant hover:bg-purple-vibrant/30 transition-colors"><Upload size={16} /> Import</button>
-                <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className="h-10 px-4 rounded-full flex items-center gap-1.5 text-sm font-semibold bg-pink-vibrant text-white hover:brightness-110 shadow-lg shadow-pink-500/20 transition-all"><Plus size={16} /> Add</button>
+                <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className="h-10 px-4 rounded-full flex items-center gap-1.5 text-sm font-semibold bg-pink-vibrant text-white hover:brightness-110 shadow-lg shadow-indigo-500/20 transition-all"><Plus size={16} /> Add</button>
               </>
             )}
             <div className="relative ml-2">
@@ -3140,15 +3140,15 @@ export default function VocabApp() {
                   </button>
                   <button
                     onClick={() => { setFilterStatus('new'); setViewTitle('New Words'); handleNavigationWithCheck(() => setView('all-words')); }}
-                    className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-pink-500/[0.08] hover:bg-pink-500/[0.12] border border-pink-500/10' : 'bg-pink-50 hover:bg-pink-100 border border-pink-100'}`}
+                    className={`rounded-2xl p-4 text-left transition-colors ${isDark ? 'bg-indigo-500/[0.08] hover:bg-indigo-500/[0.12] border border-indigo-500/10' : 'bg-indigo-50 hover:bg-indigo-100 border border-indigo-100'}`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className={`text-2xl font-semibold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{newWords}</div>
-                        <div className={`text-xs ${isDark ? 'text-pink-400/50' : 'text-pink-600/60'}`}>New</div>
+                        <div className={`text-2xl font-semibold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{newWords}</div>
+                        <div className={`text-xs ${isDark ? 'text-indigo-400/50' : 'text-indigo-600/60'}`}>New</div>
                       </div>
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-pink-500/10' : 'bg-pink-100'}`}>
-                        <Target size={18} className={isDark ? 'text-pink-400/60' : 'text-pink-500'} />
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-indigo-500/10' : 'bg-indigo-100'}`}>
+                        <Target size={18} className={isDark ? 'text-indigo-400/60' : 'text-indigo-500'} />
                       </div>
                     </div>
                   </button>
@@ -3459,7 +3459,7 @@ export default function VocabApp() {
                 </div>
               </div>
               {!currentSection && currentCollection && <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-800">Select a section to add words.</div>}
-              <div className="grid grid-cols-4 gap-3 mb-6">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-5 py-3 rounded-full font-medium transition-all ${view === m.id ? 'bg-pink-vibrant text-white shadow-lg shadow-pink-500/20' : isDark ? 'bg-white/[0.04] border border-white/[0.06] text-white/70 hover:text-white hover:bg-white/[0.08]' : 'bg-white border border-black/[0.06] text-gray-600 hover:text-gray-900 shadow-sm'}`}><m.icon size={18} /> {m.label}</button>)}</div>
+              <div className="grid grid-cols-4 gap-3 mb-6">{[{ id: 'list', icon: BookOpen, label: 'List' }, { id: 'cards', icon: RotateCcw, label: 'Cards' }, { id: 'quiz', icon: HelpCircle, label: 'Quiz' }, { id: 'write', icon: PenTool, label: 'Write' }].map(m => <button key={m.id} onClick={() => { resetSessions(); setView(m.id); }} className={`flex items-center justify-center gap-2 px-5 py-3 rounded-full font-medium transition-all ${view === m.id ? 'bg-pink-vibrant text-white shadow-lg shadow-indigo-500/20' : isDark ? 'bg-white/[0.04] border border-white/[0.06] text-white/70 hover:text-white hover:bg-white/[0.08]' : 'bg-white border border-black/[0.06] text-gray-600 hover:text-gray-900 shadow-sm'}`}><m.icon size={18} /> {m.label}</button>)}</div>
               {view === 'list' && <div className="space-y-3">{filteredWords.length ? filteredWords.map(w => <WordCard key={w.id} word={w} />) : <div className="text-center py-12 text-gray-400">No words</div>}</div>}
               {view === 'cards' && renderFlashcards()}
               {view === 'quiz' && renderQuiz()}
