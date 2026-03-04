@@ -3566,7 +3566,7 @@ export default function VocabApp() {
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
       {wordPopup && (
-        <Modal onClose={() => setWordPopup(null)} isDark={isDark} medium>
+        <Modal onClose={() => setWordPopup(null)} isDark={isDark}>
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
@@ -3574,34 +3574,38 @@ export default function VocabApp() {
             <button onClick={() => setWordPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
           {wordPopup.type === 'roots' ? (
-            <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
-              <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'border-white/10 text-gray-400' : 'border-black/10 text-gray-500'}`}>
-                <div className="w-32">Word</div>
-                <div className="w-24">Part of Speech</div>
-                <div className="w-36">IPA</div>
-                <div className="flex-1">Translation</div>
-              </div>
-              {wordPopup.word.singleRootWords.split(',').map((item, idx) => {
-                const trimmed = item.trim();
-                const wordMatch = trimmed.match(/^(\S+)/);
-                const word = wordMatch ? wordMatch[1] : '';
-                const typeMatch = trimmed.match(/\(([^)]+)\)/);
-                const type = typeMatch ? typeMatch[1] : '';
-                const ipaMatch = trimmed.match(/\/([^/]+)\//);
-                const ipa = ipaMatch ? ipaMatch[1] : '';
-                const dashIndex = trimmed.lastIndexOf(' - ');
-                const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
+            <table className={`w-full rounded-xl overflow-hidden ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
+              <thead className={`text-xs uppercase ${isDark ? 'bg-white/[0.02] text-gray-400' : 'bg-black/[0.02] text-gray-500'}`}>
+                <tr>
+                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Word</th>
+                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Type</th>
+                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>IPA</th>
+                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Translation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wordPopup.word.singleRootWords.split(',').map((item, idx) => {
+                  const trimmed = item.trim();
+                  const wordMatch = trimmed.match(/^(\S+)/);
+                  const word = wordMatch ? wordMatch[1] : '';
+                  const typeMatch = trimmed.match(/\(([^)]+)\)/);
+                  const type = typeMatch ? typeMatch[1] : '';
+                  const ipaMatch = trimmed.match(/\/([^/]+)\//);
+                  const ipa = ipaMatch ? ipaMatch[1] : '';
+                  const dashIndex = trimmed.lastIndexOf(' - ');
+                  const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
 
-                return (
-                  <div key={idx} className={`flex items-center gap-4 px-4 py-3 border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
-                    <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
-                    <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
-                    <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
-                    <div className="flex-1 text-sm text-pink-vibrant font-medium">{translation || '—'}</div>
-                  </div>
-                );
-              })}
-            </div>
+                  return (
+                    <tr key={idx} className={`border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
+                      <td className={`px-4 py-3 font-medium whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</td>
+                      <td className={`px-4 py-3 text-sm whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</td>
+                      <td className={`px-4 py-3 text-sm font-mono whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</td>
+                      <td className="px-4 py-3 text-sm text-pink-vibrant font-medium">{translation || '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           ) : (
             <div className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               {wordPopup.word.synonyms}
@@ -3611,7 +3615,7 @@ export default function VocabApp() {
       )}
 
       {cardPopup && (
-        <Modal onClose={() => setCardPopup(null)} isDark={isDark} medium>
+        <Modal onClose={() => setCardPopup(null)} isDark={isDark}>
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
@@ -3619,34 +3623,38 @@ export default function VocabApp() {
             <button onClick={() => setCardPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
           {cardPopup.type === 'roots' ? (
-            <div className={`overflow-hidden rounded-xl ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
-              <div className={`flex items-center gap-4 px-4 py-2 border-b font-medium text-xs uppercase ${isDark ? 'border-white/10 text-gray-400' : 'border-black/10 text-gray-500'}`}>
-                <div className="w-32">Word</div>
-                <div className="w-24">Part of Speech</div>
-                <div className="w-36">IPA</div>
-                <div className="flex-1">Translation</div>
-              </div>
-              {cardPopup.word.singleRootWords.split(',').map((item, idx) => {
-                const trimmed = item.trim();
-                const wordMatch = trimmed.match(/^(\S+)/);
-                const word = wordMatch ? wordMatch[1] : '';
-                const typeMatch = trimmed.match(/\(([^)]+)\)/);
-                const type = typeMatch ? typeMatch[1] : '';
-                const ipaMatch = trimmed.match(/\/([^/]+)\//);
-                const ipa = ipaMatch ? ipaMatch[1] : '';
-                const dashIndex = trimmed.lastIndexOf(' - ');
-                const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
+            <table className={`w-full rounded-xl overflow-hidden ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
+              <thead className={`text-xs uppercase ${isDark ? 'bg-white/[0.02] text-gray-400' : 'bg-black/[0.02] text-gray-500'}`}>
+                <tr>
+                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Word</th>
+                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Type</th>
+                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>IPA</th>
+                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Translation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cardPopup.word.singleRootWords.split(',').map((item, idx) => {
+                  const trimmed = item.trim();
+                  const wordMatch = trimmed.match(/^(\S+)/);
+                  const word = wordMatch ? wordMatch[1] : '';
+                  const typeMatch = trimmed.match(/\(([^)]+)\)/);
+                  const type = typeMatch ? typeMatch[1] : '';
+                  const ipaMatch = trimmed.match(/\/([^/]+)\//);
+                  const ipa = ipaMatch ? ipaMatch[1] : '';
+                  const dashIndex = trimmed.lastIndexOf(' - ');
+                  const translation = dashIndex > -1 ? trimmed.substring(dashIndex + 3).trim() : '';
 
-                return (
-                  <div key={idx} className={`flex items-center gap-4 px-4 py-3 border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
-                    <div className={`w-32 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</div>
-                    <div className={`w-24 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</div>
-                    <div className={`w-36 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</div>
-                    <div className="flex-1 text-sm text-pink-vibrant font-medium">{translation || '—'}</div>
-                  </div>
-                );
-              })}
-            </div>
+                  return (
+                    <tr key={idx} className={`border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
+                      <td className={`px-4 py-3 font-medium whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</td>
+                      <td className={`px-4 py-3 text-sm whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</td>
+                      <td className={`px-4 py-3 text-sm font-mono whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</td>
+                      <td className="px-4 py-3 text-sm text-pink-vibrant font-medium">{translation || '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           ) : (
             <div className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               {cardPopup.word.synonyms}
