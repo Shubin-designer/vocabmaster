@@ -3566,7 +3566,7 @@ export default function VocabApp() {
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
       {wordPopup && (
-        <Modal onClose={() => setWordPopup(null)} isDark={isDark}>
+        <Modal onClose={() => setWordPopup(null)} isDark={isDark} medium>
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
@@ -3611,7 +3611,7 @@ export default function VocabApp() {
       )}
 
       {cardPopup && (
-        <Modal onClose={() => setCardPopup(null)} isDark={isDark}>
+        <Modal onClose={() => setCardPopup(null)} isDark={isDark} medium>
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
