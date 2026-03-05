@@ -1835,6 +1835,8 @@ export default function VocabApp() {
   const [viewTitle, setViewTitle] = useState('All Words');
   const [wordPopup, setWordPopup] = useState(null);
   const [cardPopup, setCardPopup] = useState(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -2596,6 +2598,7 @@ export default function VocabApp() {
   const importData = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    e.target.value = ''; // Clear immediately to prevent double upload
 
     const r = new FileReader();
     r.onload = async (ev) => {
@@ -2606,6 +2609,8 @@ export default function VocabApp() {
           return;
         }
 
+        setIsImporting(true);
+        setImportProgress('Importing collections...');
 
         // Маппінг старых ID → новыя UUID
         const collectionMap = new Map(); // oldId → newId
@@ -2648,8 +2653,9 @@ export default function VocabApp() {
         // 3. Імпарт слоў
         let importedCount = 0;
         let skippedCount = 0;
+        const totalWords = imported.words.length;
 
-
+        setImportProgress(`Importing words (0/${totalWords})...`);
 
         for (const word of imported.words) {
           const newSectionId = sectionMap.get(word.sectionId);
@@ -2682,9 +2688,13 @@ export default function VocabApp() {
 
           if (!error) {
             importedCount++;
+            if (importedCount % 10 === 0 || importedCount === totalWords) {
+              setImportProgress(`Importing words (${importedCount}/${totalWords})...`);
+            }
           }
         }
 
+        setImportProgress('Finishing...');
 
         // 4. Перачытваем усё з базы
         const { data: collections } = await supabase
@@ -2723,14 +2733,17 @@ export default function VocabApp() {
           songs: imported.songs || []
         });
 
+        setIsImporting(false);
+        setImportProgress('');
         setToast({ message: `Imported ${importedCount} words!`, canUndo: false });
 
       } catch (e) {
+        setIsImporting(false);
+        setImportProgress('');
         setToast({ message: 'Import failed', canUndo: false });
       }
     };
     r.readAsText(f);
-    e.target.value = '';
   };
   const handleNavigationWithCheck = (navFunc) => {
     if (hasUnsavedWords && view === 'song') {
@@ -3564,6 +3577,16 @@ export default function VocabApp() {
       {confirmDelete && <Modal onClose={() => setConfirmDelete(null)} isDark={isDark}><h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Delete?</h3><p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-full font-medium hover:brightness-110">Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
+
+      {isImporting && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+          <div className={`liquid-glass rounded-2xl p-8 flex flex-col items-center gap-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <Loader size={40} className="animate-spin text-pink-vibrant" />
+            <div className="text-lg font-medium">Importing backup...</div>
+            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{importProgress}</div>
+          </div>
+        </div>
+      )}
 
       {wordPopup && (
         <Modal onClose={() => setWordPopup(null)} isDark={isDark} medium>
