@@ -3566,7 +3566,7 @@ export default function VocabApp() {
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
       {wordPopup && (
-        <Modal onClose={() => setWordPopup(null)} isDark={isDark}>
+        <Modal onClose={() => setWordPopup(null)} isDark={isDark} medium>
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {wordPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
@@ -3574,7 +3574,7 @@ export default function VocabApp() {
             <button onClick={() => setWordPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
           {wordPopup.type === 'roots' ? (
-            <table className={`w-full rounded-xl overflow-hidden ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
+            <table className={`rounded-xl overflow-hidden border-collapse ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
               <thead className={`text-xs uppercase ${isDark ? 'bg-white/[0.02] text-gray-400' : 'bg-black/[0.02] text-gray-500'}`}>
                 <tr>
                   <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Word</th>
@@ -3600,7 +3600,7 @@ export default function VocabApp() {
                       <td className={`px-4 py-3 font-medium whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</td>
                       <td className={`px-4 py-3 text-sm whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</td>
                       <td className={`px-4 py-3 text-sm font-mono whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</td>
-                      <td className="px-4 py-3 text-sm text-pink-vibrant font-medium">{translation || '—'}</td>
+                      <td className={`px-4 py-3 text-sm text-pink-vibrant font-medium whitespace-nowrap ${isDark ? '' : ''}`}>{translation || '—'}</td>
                     </tr>
                   );
                 })}
@@ -3615,7 +3615,7 @@ export default function VocabApp() {
       )}
 
       {cardPopup && (
-        <Modal onClose={() => setCardPopup(null)} isDark={isDark}>
+        <Modal onClose={() => setCardPopup(null)} isDark={isDark} medium>
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {cardPopup.type === 'roots' ? 'Single-root words' : 'Synonyms'}
@@ -3623,7 +3623,7 @@ export default function VocabApp() {
             <button onClick={() => setCardPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
           {cardPopup.type === 'roots' ? (
-            <table className={`w-full rounded-xl overflow-hidden ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
+            <table className={`rounded-xl overflow-hidden border-collapse ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
               <thead className={`text-xs uppercase ${isDark ? 'bg-white/[0.02] text-gray-400' : 'bg-black/[0.02] text-gray-500'}`}>
                 <tr>
                   <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Word</th>
@@ -3649,7 +3649,7 @@ export default function VocabApp() {
                       <td className={`px-4 py-3 font-medium whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</td>
                       <td className={`px-4 py-3 text-sm whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</td>
                       <td className={`px-4 py-3 text-sm font-mono whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</td>
-                      <td className="px-4 py-3 text-sm text-pink-vibrant font-medium">{translation || '—'}</td>
+                      <td className={`px-4 py-3 text-sm text-pink-vibrant font-medium whitespace-nowrap ${isDark ? '' : ''}`}>{translation || '—'}</td>
                     </tr>
                   );
                 })}
