@@ -609,14 +609,14 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
 
       {stage === 'initial' && (
         <>
-          <p className="text-gray-600  mb-4">
+          <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Загрузит данные для {words.length} слов. Вы сможете выбрать нужные переводы.
           </p>
-          <div className="max-h-48 overflow-y-auto border  rounded-lg p-3 mb-4 bg-gray-50 ">
+          <div className={`max-h-48 overflow-y-auto rounded-xl p-3 mb-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
             {words.map((w, i) => (
-              <div key={i} className="text-sm flex justify-between">
-                <span>{w.word}</span>
-                {w.meaningRu && <span className="text-blue-400 text-xs">({w.meaningRu})</span>}
+              <div key={i} className={`text-sm py-1 flex justify-between gap-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <span className="font-medium">{w.word}</span>
+                {w.meaningRu && <span className={`text-xs ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>({w.meaningRu})</span>}
               </div>
             ))}
           </div>
@@ -630,19 +630,19 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
       {stage === 'loading' && (
         <>
           <div className="mb-4">
-            <div className="flex justify-between text-sm text-gray-600  mb-2">
+            <div className={`flex justify-between text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               <span>Загрузка данных...</span>
               <span>{progress.current}/{progress.total}</span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
+            <div className={`w-full rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
               <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${(progress.current / progress.total) * 100}%` }}></div>
             </div>
           </div>
-          <div className="max-h-64 overflow-y-auto border  rounded-lg mb-4">
+          <div className={`max-h-64 overflow-y-auto rounded-xl mb-4 ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
             {lookupResults.map((r, i) => (
-              <div key={i} className={`p-2 border-b  ${r.apiData ? '' : r.error ? 'bg-red-50 ' : ''}`}>
-                <div className="font-medium">{r.word}</div>
-                {r.apiData && <div className="text-xs text-green-400">✓ {(r.apiData.meanings || []).length} meanings</div>}
+              <div key={i} className={`p-3 border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-gray-100'} ${r.error ? (isDark ? 'bg-red-500/10' : 'bg-red-50') : ''}`}>
+                <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{r.word}</div>
+                {r.apiData && <div className={`text-xs ${isDark ? 'text-green-400' : 'text-green-600'}`}>✓ {(r.apiData.meanings || []).length} meanings</div>}
                 {r.error && <div className="text-xs text-red-500">✗ {r.error}</div>}
               </div>
             ))}
@@ -657,16 +657,16 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
 
       {stage === 'selecting' && (
         <>
-          <p className="text-sm text-gray-600  mb-3">
+          <p className={`text-sm mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Выберите переводы для каждого слова. Ваши переводы сохранятся.
           </p>
-          <div className="max-h-96 overflow-y-auto border  rounded-lg mb-4">
+          <div className={`max-h-96 overflow-y-auto rounded-xl mb-4 ${isDark ? 'border border-white/10' : 'border border-gray-200'}`}>
             {lookupResults.map((r, i) => (
-              <div key={i} className={`p-3 border-b  ${r.apiData ? '' : 'bg-red-50 '}`}>
+              <div key={i} className={`p-3 border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-gray-100'} ${r.error ? (isDark ? 'bg-red-500/10' : 'bg-red-50') : ''}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="font-medium">{r.word}</span>
-                    {r.apiData && <span className="ml-2 text-xs text-gray-500">{r.apiData.level} · {r.apiData.phonetic}</span>}
+                    <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{r.word}</span>
+                    {r.apiData && <span className={`ml-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{r.apiData.level} · {r.apiData.phonetic}</span>}
                   </div>
                   {r.apiData && r.apiData.meanings?.length > 3 && (
                     <button onClick={() => toggleExpand(i)} className="text-xs text-blue-500 hover:underline">
@@ -675,24 +675,24 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
                   )}
                 </div>
                 {r.originalData.meaningRu && (
-                  <div className="text-xs text-purple-400 mb-2">
+                  <div className={`text-xs mb-2 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
                     Ваш перевод: {r.originalData.meaningRu}
                   </div>
                 )}
                 {r.apiData ? (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {(r.expanded ? r.apiData.meanings : r.apiData.meanings?.slice(0, 3))?.map((m, mi) => (
                       <button
                         key={mi}
                         onClick={() => toggleTranslation(i, m.ru)}
                         title={m.meaningEn}
-                        className={`text-xs px-2 py-1 rounded-full border ${r.selectedTranslations.has(m.ru?.toLowerCase())
-                          ? 'bg-green-100  text-green-700  border-green-300 '
-                          : 'bg-gray-800 text-gray-700  border-gray-300  hover:border-gray-400'
+                        className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${r.selectedTranslations.has(m.ru?.toLowerCase())
+                          ? (isDark ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-green-100 text-green-700 border-green-300')
+                          : (isDark ? 'bg-white/5 text-gray-300 border-white/10 hover:border-white/20' : 'bg-gray-100 text-gray-700 border-gray-200 hover:border-gray-300')
                           }`}
                       >
                         {r.selectedTranslations.has(m.ru?.toLowerCase()) ? '✓ ' : ''}{m.ru}
-                        <span className="ml-1 text-gray-400">({m.type})</span>
+                        <span className={`ml-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>({m.type})</span>
                       </button>
                     ))}
                   </div>
