@@ -3574,12 +3574,12 @@ export default function VocabApp() {
             <button onClick={() => setWordPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
           {wordPopup.type === 'roots' ? (
-            <table className={`rounded-xl overflow-hidden border-collapse ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
+            <table className={`w-full table-fixed rounded-xl overflow-hidden ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
               <thead className={`text-xs uppercase ${isDark ? 'bg-white/[0.02] text-gray-400' : 'bg-black/[0.02] text-gray-500'}`}>
                 <tr>
-                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Word</th>
-                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Type</th>
-                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>IPA</th>
+                  <th className={`w-[25%] px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Word</th>
+                  <th className={`w-[15%] px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Type</th>
+                  <th className={`w-[25%] px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>IPA</th>
                   <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Translation</th>
                 </tr>
               </thead>
@@ -3597,10 +3597,10 @@ export default function VocabApp() {
 
                   return (
                     <tr key={idx} className={`border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
-                      <td className={`px-4 py-3 font-medium whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</td>
-                      <td className={`px-4 py-3 text-sm whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</td>
-                      <td className={`px-4 py-3 text-sm font-mono whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</td>
-                      <td className={`px-4 py-3 text-sm text-pink-vibrant font-medium whitespace-nowrap ${isDark ? '' : ''}`}>{translation || '—'}</td>
+                      <td className={`px-4 py-3 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</td>
+                      <td className={`px-4 py-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</td>
+                      <td className={`px-4 py-3 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</td>
+                      <td className="px-4 py-3 text-sm text-pink-vibrant font-medium">{translation || '—'}</td>
                     </tr>
                   );
                 })}
@@ -3623,12 +3623,12 @@ export default function VocabApp() {
             <button onClick={() => setCardPopup(null)} className={`p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'}`}><X size={20} /></button>
           </div>
           {cardPopup.type === 'roots' ? (
-            <table className={`rounded-xl overflow-hidden border-collapse ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
+            <table className={`w-full table-fixed rounded-xl overflow-hidden ${isDark ? 'border border-white/10' : 'border border-black/10'}`}>
               <thead className={`text-xs uppercase ${isDark ? 'bg-white/[0.02] text-gray-400' : 'bg-black/[0.02] text-gray-500'}`}>
                 <tr>
-                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Word</th>
-                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Type</th>
-                  <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>IPA</th>
+                  <th className={`w-[25%] px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Word</th>
+                  <th className={`w-[15%] px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Type</th>
+                  <th className={`w-[25%] px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>IPA</th>
                   <th className={`px-4 py-2 text-left font-medium border-b ${isDark ? 'border-white/10' : 'border-black/10'}`}>Translation</th>
                 </tr>
               </thead>
@@ -3646,10 +3646,10 @@ export default function VocabApp() {
 
                   return (
                     <tr key={idx} className={`border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
-                      <td className={`px-4 py-3 font-medium whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</td>
-                      <td className={`px-4 py-3 text-sm whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</td>
-                      <td className={`px-4 py-3 text-sm font-mono whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</td>
-                      <td className={`px-4 py-3 text-sm text-pink-vibrant font-medium whitespace-nowrap ${isDark ? '' : ''}`}>{translation || '—'}</td>
+                      <td className={`px-4 py-3 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{word || '—'}</td>
+                      <td className={`px-4 py-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{type || '—'}</td>
+                      <td className={`px-4 py-3 text-sm font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{ipa ? `/${ipa}/` : '—'}</td>
+                      <td className="px-4 py-3 text-sm text-pink-vibrant font-medium">{translation || '—'}</td>
                     </tr>
                   );
                 })}
