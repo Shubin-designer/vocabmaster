@@ -62,6 +62,9 @@ const ICON_COLORS = [
   { name: 'purple', text: 'text-purple-400', bg: 'bg-purple-400', ring: 'ring-purple-400' },
 ];
 
+// Normalize text for comparison (ё→е, lowercase)
+const normalizeText = (text) => text?.toLowerCase().replace(/ё/g, 'е') || '';
+
 // Подсветка слова в примере
 const highlightWord = (text, word) => {
   if (!text || !word) return text;
@@ -733,9 +736,9 @@ const WordForm = ({ word, existingWords, sections, onSave, onCancel, onDuplicate
     if (!form.word.trim() || loading) return;
     if (auto && hasLookedUp) return;
 
-    // Проверка дубликата
-    const cleaned = form.word.trim().toLowerCase();
-    const existingWord = existingWords.find(w => w.word.toLowerCase() === cleaned);
+    // Проверка дубликата (ё/е нормализация)
+    const cleaned = normalizeText(form.word.trim());
+    const existingWord = existingWords.find(w => normalizeText(w.word) === cleaned);
 
     if (existingWord && existingWord.id !== form.id) {
       const sec = sections.find(s => s.id === existingWord.sectionId);
@@ -1171,7 +1174,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
     }
   }, [selected.length, onUnsavedChange]);
 
-  const existingSet = useMemo(() => new Set(existingWords.map(w => w.word.toLowerCase())), [existingWords]);
+  const existingSet = useMemo(() => new Set(existingWords.map(w => normalizeText(w.word))), [existingWords]);
 
   const complexWordsMap = useMemo(() => {
     const map = new Map();
@@ -1224,10 +1227,10 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
     const range = sel.getRangeAt(0);
     const rect = range.getBoundingClientRect();
 
-    const wordExists = existingSet.has(cleaned);
+    const wordExists = existingSet.has(normalizeText(cleaned));
 
     if (wordExists) {
-      const existingWord = existingWords.find(w => w.word.toLowerCase() === cleaned);
+      const existingWord = existingWords.find(w => normalizeText(w.word) === normalizeText(cleaned));
       const translation = existingWord?.meaningRu || 'No translation';
       setPopup({
         word: cleaned,
@@ -1280,8 +1283,8 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   };
 
   const addToList = w => {
-    if (existingSet.has(w)) {
-      const existingWord = existingWords.find(word => word.word.toLowerCase() === w);
+    if (existingSet.has(normalizeText(w))) {
+      const existingWord = existingWords.find(word => normalizeText(word.word) === normalizeText(w));
       if (existingWord) {
         const sec = sections.find(s => s.id === existingWord.sectionId);
         const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown section';
@@ -1315,12 +1318,12 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   };
 
   const addSelectedWords = () => {
-    const toAdd = selected.filter(w => wordSections[w] && !existingSet.has(w));
+    const toAdd = selected.filter(w => wordSections[w] && !existingSet.has(normalizeText(w)));
 
-    const duplicates = selected.filter(w => existingSet.has(w));
+    const duplicates = selected.filter(w => existingSet.has(normalizeText(w)));
     if (duplicates.length > 0) {
       const dupInfo = duplicates.map(w => {
-        const existingWord = existingWords.find(word => word.word.toLowerCase() === w);
+        const existingWord = existingWords.find(word => normalizeText(word.word) === normalizeText(w));
         if (existingWord) {
           const sec = sections.find(s => s.id === existingWord.sectionId);
           const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown';
@@ -1335,8 +1338,8 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
       if (duplicates.length === 0) {
         setAlert('Select sections for words');
       }
-      setSelected(selected.filter(w => !existingSet.has(w)));
-      setCheckedWords(checkedWords.filter(w => !existingSet.has(w)));
+      setSelected(selected.filter(w => !existingSet.has(normalizeText(w))));
+      setCheckedWords(checkedWords.filter(w => !existingSet.has(normalizeText(w))));
       return;
     }
 
@@ -1540,10 +1543,10 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           <div className={`song-popup fixed rounded-2xl shadow-2xl p-4 z-[200] min-w-48 animate-scaleIn border ${isDark ? 'bg-[#1a1a1e]/95 backdrop-blur-xl text-white border-white/10' : 'bg-white/95 backdrop-blur-xl text-gray-900 border-black/10 shadow-lg'}`} style={{ left: popup.pos.x, top: Math.max(popup.pos.y - 10, 80), transform: 'translate(-50%, -100%)' }}>
             <div className="font-bold">{popup.original}</div>
             <div className={`text-sm mb-2 font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>→ {translating ? <Loader size={14} className="inline animate-spin" /> : popup.translation}</div>
-            {existingSet.has(popup.word) ? (
+            {existingSet.has(normalizeText(popup.word)) ? (
               <>
                 {(() => {
-                  const existingWord = existingWords.find(w => w.word.toLowerCase() === popup.word);
+                  const existingWord = existingWords.find(w => normalizeText(w.word) === normalizeText(popup.word));
                   if (existingWord) {
                     const sec = sections.find(s => s.id === existingWord.sectionId);
                     const location = sec ? `${sec.collectionName} › ${sec.name}` : 'Unknown';
