@@ -80,10 +80,11 @@ serve(async (req: Request): Promise<Response> => {
 
 CRITICAL REQUIREMENTS:
 1. MEANINGS - provide 4-8 meanings covering:
-   - ALL common Russian translations (e.g. for "choke": подавиться, задыхаться, душить, давиться, захлебнуться)
+   - ALL common Russian translations (e.g. for "spear": копьё, пронзить, пронзить копьём)
+   - Include BOTH single-word AND phrase translations where appropriate
    - ALL parts of speech the word can be (verb, noun, adjective, etc.)
    - Each meaning = separate object with its own type, ru, meaningEn, example
-   - "ru" field = ONE Russian word only (no commas, no multiple words)
+   - "ru" field = ONE translation (can be a word OR short phrase, but no commas)
    - Start with most common/basic translations first!
 
 2. TYPE field is REQUIRED for each meaning (noun/verb/adjective/adverb/phrasal verb/idiom/phrase/preposition/conjunction/interjection)

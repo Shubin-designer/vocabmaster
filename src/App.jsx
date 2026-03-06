@@ -1092,11 +1092,11 @@ const WordForm = ({ word, existingWords, sections, onSave, onCancel, onDuplicate
                   });
 
                   const typeLabels = {
-                    noun: { label: 'noun', emoji: '🔵', cls: 'bg-blue-900/50 text-blue-400' },
-                    verb: { label: 'verb', emoji: '🔴', cls: 'bg-red-900/50 text-red-400' },
-                    adjective: { label: 'adj', emoji: '🟡', cls: 'bg-yellow-900/50 text-yellow-400' },
-                    adverb: { label: 'adv', emoji: '🟣', cls: 'bg-purple-900/50 text-purple-400' },
-                    other: { label: 'other', emoji: '⚪', cls: 'bg-gray-800 text-gray-400' }
+                    noun: { label: 'noun', cls: isDark ? 'text-blue-400' : 'text-blue-600' },
+                    verb: { label: 'verb', cls: isDark ? 'text-red-400' : 'text-red-600' },
+                    adjective: { label: 'adj', cls: isDark ? 'text-yellow-400' : 'text-yellow-600' },
+                    adverb: { label: 'adv', cls: isDark ? 'text-purple-400' : 'text-purple-600' },
+                    other: { label: 'other', cls: isDark ? 'text-gray-400' : 'text-gray-500' }
                   };
 
                   return (
@@ -1106,8 +1106,8 @@ const WordForm = ({ word, existingWords, sections, onSave, onCancel, onDuplicate
                         const info = typeLabels[type] || typeLabels.other;
                         return (
                           <div key={type} className="flex flex-wrap items-center gap-1">
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${info.cls}`}>
-                              {info.emoji} {info.label}
+                            <span className={`text-xs font-medium ${info.cls}`}>
+                              {info.label}
                             </span>
                             {meanings.map((m, idx) => (
                               <button
@@ -1350,7 +1350,11 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   const isWordMatch = (textWord, dictWord) => {
     const tl = textWord.toLowerCase();
     const dl = dictWord.toLowerCase();
+    // Exact match
     if (tl === dl) return true;
+    // Don't match single words with phrases
+    if (dl.includes(' ') || tl.includes(' ')) return false;
+    // Match word forms (e.g., "walk" matches "walking", "walked")
     if (tl.length >= 4 && dl.length >= 4) {
       if (tl.startsWith(dl) || dl.startsWith(tl)) return true;
     }
