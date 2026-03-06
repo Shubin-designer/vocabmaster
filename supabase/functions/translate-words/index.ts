@@ -1,26 +1,40 @@
+// @ts-nocheck - Deno runtime types
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': '*', // TODO: restrict to vocabmaster.vercel.app in production
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+serve(async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { word } = await req.json();
+    const body = await req.json();
+    const word = typeof body?.word === 'string' ? body.word.trim() : '';
+
+    if (!word || word.length > 100) {
+      return new Response(JSON.stringify({ error: 'Invalid word parameter' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     console.log('Translating word:', word);
 
-    // Используем AI для перевода
+    const apiKey = Deno.env.get('OPENROUTER_API_KEY');
+    if (!apiKey) {
+      throw new Error('API key not configured');
+    }
+
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('OPENROUTER_API_KEY')}`,
+        'Authorization': `Bearer ${apiKey}`,
         'HTTP-Referer': 'https://vocabmaster.vercel.app',
         'X-Title': 'VocabMaster'
       },
@@ -46,7 +60,7 @@ CRITICAL: meaningRu = ONE Russian word only, no commas!`
     });
 
     const data = await res.json();
-    let text = data.choices?.[0]?.message?.content || '';
+    let text: string = data.choices?.[0]?.message?.content || '';
     console.log('AI response:', text);
 
     text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
@@ -61,9 +75,10 @@ CRITICAL: meaningRu = ONE Russian word only, no commas!`
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
-  } catch (error) {
-    console.error('Translation error:', error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Translation error:', message);
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

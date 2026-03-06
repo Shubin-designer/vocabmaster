@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award, Folder, FolderOpen, Book, Bookmark, Music, Film, Briefcase, Plane, Coffee, Gamepad2, Palette, GraduationCap, Heart, Star, Zap, Globe, Camera, Mic, Code, Headphones, ShoppingBag, Utensils, Car, Building2, TreePine, Dumbbell, Sparkles, MessageCircle, FileText, Lightbulb, Rocket, Crown, Gift, Clock, Map as MapIcon, Compass, Layers, Hash } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { btn, input } from './components/ui';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const WORD_TYPES = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'idiom', 'phrase', 'preposition', 'conjunction', 'interjection'];
@@ -118,7 +119,7 @@ const ActivityTracker = ({ activityData, streak, userGoals, isDark = true, class
   const todayReview = todayActivity?.words_reviewed || 0;
 
   // Dot colors
-  const getDotStyle = (status, isToday) => {
+  const getDotStyle = (status, _isToday) => {
     const base = {
       width: '100%',
       paddingTop: '100%',
@@ -292,7 +293,7 @@ const Alert = ({ message, onClose, isDark = true }) => {
   );
 };
 
-const ProgressBar = ({ current, total, correct, wrong, isDark = true }) => (
+const ProgressBar = ({ current, total, correct, isDark = true }) => (
   <div className="mb-4">
     <div className={`flex justify-between text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}><span>{current + 1}/{total}</span><span className="text-emerald-500">{correct}✓</span></div>
     <div className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}><div className="h-2 rounded-full bg-pink-vibrant transition-all" style={{ width: `${((current + 1) / total) * 100}%` }}></div></div>
@@ -311,7 +312,7 @@ const CompletionScreen = ({ title, stats, onRestart, onBack, wrongWords, isDark 
           <div><div className="text-3xl font-bold text-red-400">{stats.total - stats.correct}</div><div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Don't know</div></div>
         </div>
         {wrongWords.length > 0 && <div className={`text-left mb-4 p-3 rounded-xl ${isDark ? 'bg-red-500/10' : 'bg-red-50'}`}><div className={`text-sm mb-2 ${isDark ? 'text-red-400' : 'text-red-700'}`}>To review:</div><div className="flex flex-wrap gap-1">{wrongWords.map(w => <span key={w.id} className={`text-xs px-2 py-1 rounded-lg ${isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700'}`}>{w.word}</span>)}</div></div>}
-        <div className="flex gap-3"><button onClick={onBack} className={`flex-1 p-3 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Back</button><button onClick={onRestart} className="flex-1 p-3 bg-pink-vibrant text-white rounded-full font-medium flex items-center justify-center gap-2 hover:brightness-110"><RefreshCw size={18} />Again</button></div>
+        <div className="flex gap-3"><button onClick={onBack} className={btn({ variant: 'secondary', size: 'lg', theme: isDark ? 'dark' : 'light' })}>Back</button><button onClick={onRestart} className={btn({ variant: 'primary', size: 'lg' })}><RefreshCw size={18} />Again</button></div>
       </div>
     </div>
   );
@@ -327,7 +328,7 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId, isDark = true }
     const lines = text.split('\n').filter(line => line.trim());
     const parsed = [];
 
-    lines.forEach((line, idx) => {
+    lines.forEach((line) => {
       const parts = line.split(/\t|=/).map(p => p.trim());
 
       if (parts.length >= 2) {
@@ -382,8 +383,8 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId, isDark = true }
       />
       {preview.length === 0 && (
         <div className="flex gap-2">
-          <button onClick={onCancel} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-          <button onClick={parseText} disabled={!text.trim()} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium disabled:opacity-50 hover:brightness-110">Parse</button>
+          <button onClick={onCancel} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
+          <button onClick={parseText} disabled={!text.trim()} className={btn({ variant: 'primary' })}>Parse</button>
         </div>
       )}
       {preview.length > 0 && (
@@ -399,8 +400,8 @@ const ImportTextModal = ({ onImport, onCancel, currentSectionId, isDark = true }
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setPreview([])} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>← Back</button>
-            <button onClick={async () => { await onImport(preview); onCancel(); }} className="flex-1 h-10 px-4 bg-emerald-500 text-white rounded-full font-medium hover:brightness-110">Import {preview.length} words</button>
+            <button onClick={() => setPreview([])} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>← Back</button>
+            <button onClick={async () => { await onImport(preview); onCancel(); }} className={btn({ variant: 'success' })}>Import {preview.length} words</button>
           </div>
         </>
       )}
@@ -414,7 +415,6 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
   const [lookupResults, setLookupResults] = useState([]); // {word, originalData, apiData, selectedTranslations}
   const [abortController, setAbortController] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const BATCH_SIZE = 10;
 
   // Stage 1: Lookup words and get translation suggestions
   const startLookup = async () => {
@@ -592,13 +592,13 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
           <p className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Закрыть без сохранения?</p>
           <p className={`mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{successCount} слов уже загружено</p>
           <div className="flex gap-3 flex-wrap justify-center">
-            <button onClick={() => setShowConfirm(false)} className={`h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+            <button onClick={() => setShowConfirm(false)} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>
               Продолжить
             </button>
-            <button onClick={savePartial} className="h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">
+            <button onClick={savePartial} className={btn({ variant: 'primary' })}>
               Сохранить {successCount}
             </button>
-            <button onClick={onCancel} className="h-10 px-4 bg-red-500 text-white rounded-full font-medium hover:brightness-110">
+            <button onClick={onCancel} className={btn({ variant: 'danger' })}>
               Сбросить всё
             </button>
           </div>
@@ -621,8 +621,8 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={onCancel} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={startLookup} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Start</button>
+            <button onClick={onCancel} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
+            <button onClick={startLookup} className={btn({ variant: 'primary' })}>Start</button>
           </div>
         </>
       )}
@@ -648,7 +648,7 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={handleClose} className={`flex-1 h-10 px-4 rounded-full font-medium flex items-center justify-center gap-2 ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+            <button onClick={handleClose} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>
               <X size={16} /> Stop
             </button>
           </div>
@@ -703,13 +703,13 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={handleClose} className={`h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+            <button onClick={handleClose} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
             {failedCount > 0 && (
               <button onClick={() => { /* retry failed */ }} className="h-10 px-4 bg-amber-500 text-white rounded-full font-medium hover:brightness-110">
                 Retry {failedCount}
               </button>
             )}
-            <button onClick={fillCards} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">
+            <button onClick={fillCards} className={btn({ variant: 'primary' }, 'flex-1')}>
               Fill {successCount} Cards
             </button>
           </div>
@@ -719,7 +719,7 @@ const FillCardsModal = ({ words, onSave, onCancel, isDark = true }) => {
   );
 };
 
-const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, onAddTag, onDuplicateFound, isDark = true }) => {
+const WordForm = ({ word, existingWords, sections, onSave, onCancel, onDuplicateFound, isDark = true }) => {
   const [form, setForm] = useState({ ...word, tags: word.tags || [] });
   const [loading, setLoading] = useState(false);
   const [translationsWithExamples, setTranslationsWithExamples] = useState([]);
@@ -1137,8 +1137,8 @@ const WordForm = ({ word, allTags, existingWords, sections, onSave, onCancel, on
           <input className={`w-full h-10 px-3 rounded-xl focus:outline-none ${isDark ? 'bg-blue-900/20 border border-blue-500/20 text-white placeholder-gray-500' : 'bg-blue-50 border border-blue-200 text-gray-900 placeholder-gray-400'}`} placeholder="Synonyms (e.g., big, large, huge)" value={form.synonyms || ''} onChange={e => setForm({ ...form, synonyms: e.target.value })} />
         </div>
         <div className="flex gap-2 mt-4">
-          <button onClick={onCancel} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-          <button onClick={() => form.word && form.meaningEn && onSave(form)} disabled={!form.word || !form.meaningEn} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium disabled:opacity-50 hover:brightness-110">Save</button>
+          <button onClick={onCancel} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
+          <button onClick={() => form.word && form.meaningEn && onSave(form)} disabled={!form.word || !form.meaningEn} className={btn({ variant: 'primary' })}>Save</button>
         </div>
       </div>
     </Modal>
@@ -1308,11 +1308,6 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
   const removeFromList = w => { setSelected(selected.filter(x => x !== w)); setCheckedWords(checkedWords.filter(x => x !== w)); const ns = { ...wordSections }; delete ns[w]; setWordSections(ns); };
   const toggleCheck = w => setCheckedWords(checkedWords.includes(w) ? checkedWords.filter(x => x !== w) : [...checkedWords, w]);
   const toggleCheckAll = () => setCheckedWords(checkedWords.length === selected.length ? [] : [...selected]);
-
-  const handleSectionChange = (word, value) => {
-    if (value === 'new') setShowNewSection({ forWord: word });
-    else setWordSections({ ...wordSections, [word]: value });
-  };
 
   const handleBulkSectionChange = value => {
     if (value === 'new') setShowNewSection({ forChecked: true });
@@ -1627,7 +1622,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
           </div>
           <input id="new-sec-name" placeholder="Section name" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} />
           <div className="flex gap-2">
-            <button onClick={() => setShowNewSection(null)} className={`flex-1 h-10 px-4 border rounded-full ${isDark ? 'border-white/10 text-white hover:bg-white/5' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+            <button onClick={() => setShowNewSection(null)} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
             <button onClick={async () => {
               const colId = document.getElementById('new-sec-col').value;
               const name = document.getElementById('new-sec-name').value;
@@ -1637,7 +1632,7 @@ const SongAnalyzer = ({ song, sections, collections, existingWords, onAddWords, 
               if (showNewSection.forChecked) { const u = {}; checkedWords.forEach(w => u[w] = newId); setWordSections({ ...wordSections, ...u }); }
               else if (showNewSection.forWord) setWordSections({ ...wordSections, [showNewSection.forWord]: newId });
               setShowNewSection(null);
-            }} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Create</button>
+            }} className={btn({ variant: 'primary' })}>Create</button>
           </div>
         </Modal>
       )}
@@ -1687,7 +1682,7 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel, isDark = tr
       <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{song?.id ? 'Edit Song' : 'Add Song'}</h3>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Song title *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-3 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} />
       <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste lyrics..." className={`w-full px-3 py-2 rounded-xl focus:outline-none h-64 mb-3 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} />
-      <div className="flex gap-2"><button onClick={onCancel} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={handleSave} disabled={!title.trim() || !text.trim()} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium disabled:opacity-50 hover:brightness-110">Save</button></div>
+      <div className="flex gap-2"><button onClick={onCancel} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button><button onClick={handleSave} disabled={!title.trim() || !text.trim()} className={btn({ variant: 'primary' })}>Save</button></div>
     </Modal>
   );
 };
@@ -2075,8 +2070,6 @@ export default function VocabApp() {
         const state = JSON.parse(saved);
 
         let restoredCollection = false;
-        let restoredSection = false;
-
         if (state.currentCollectionId) {
           const col = data.collections.find(c => c.id === state.currentCollectionId);
           if (col) {
@@ -2089,7 +2082,6 @@ export default function VocabApp() {
           const sec = sections.find(s => s.id === state.currentSectionId);
           if (sec) {
             setCurrentSection(sec);
-            restoredSection = true;
             // Также восстанавливаем родительскую коллекцию
             if (!restoredCollection) {
               const parentCol = data.collections.find(c => c.sections.some(s => s.id === state.currentSectionId));
@@ -2594,7 +2586,7 @@ export default function VocabApp() {
     trackActivity(0, 1);
   };
 
-  const exportData = () => { const j = JSON.stringify({ ...data, exportedAt: new Date().toISOString(), version: 'v7' }, null, 2); const a = document.createElement('a'); a.href = 'data:application/json;base64,' + btoa(unescape(encodeURIComponent(j))); a.download = `vocabmaster-backup-${new Date().toISOString().split('T')[0]}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); setToast({ message: 'Backup downloaded!', canUndo: false }); };
+  const exportData = () => { const j = JSON.stringify({ ...data, exportedAt: new Date().toISOString(), version: 'v7' }, null, 2); const blob = new Blob([j], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `vocabmaster-backup-${new Date().toISOString().split('T')[0]}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href); setToast({ message: 'Backup downloaded!', canUndo: false }); };
   const importData = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -3048,7 +3040,6 @@ export default function VocabApp() {
             const newWords = data.words.filter(w => w.status === STATUS.NEW).length;
             const learningWords = data.words.filter(w => w.status === STATUS.LEARNING).length;
             const learnedWords = data.words.filter(w => w.status === STATUS.LEARNED).length;
-            const progressPercent = totalWords > 0 ? Math.round((learnedWords / totalWords) * 100) : 0;
 
             // Статистика по уровням
             const levelStats = LEVELS.map(level => ({
@@ -3406,7 +3397,7 @@ export default function VocabApp() {
           )}
         </div>
       </div>
-      {modal.type === 'word' && <WordForm word={modal.data} allTags={data.allTags} existingWords={data.words} sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} onSave={saveWord} onCancel={() => setModal({ type: null, data: null })} onAddTag={t => { if (!data.allTags.includes(t)) setData(d => ({ ...d, allTags: [...d.allTags, t] })); }} onDuplicateFound={msg => setAlert(msg)} isDark={isDark} />}
+      {modal.type === 'word' && <WordForm word={modal.data} existingWords={data.words} sections={data.collections.flatMap(c => c.sections.map(s => ({ ...s, collectionName: c.name })))} onSave={saveWord} onCancel={() => setModal({ type: null, data: null })} onDuplicateFound={msg => setAlert(msg)} isDark={isDark} />}
       {
         modal.type === 'importText' && <ImportTextModal currentSectionId={currentSection?.id}
 
@@ -3467,7 +3458,7 @@ export default function VocabApp() {
           onCancel={() => setModal({ type: null, data: null })} isDark={isDark} />
       }
       {modal.type === 'song' && <SongModal song={modal.data?.id ? modal.data : null} folderId={modal.data?.folderId} onSave={saveSong} onUpdateSong={updateSong} onCancel={() => setModal({ type: null, data: null })} isDark={isDark} />}
-      {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}><h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button></div></Modal>}
+      {modal.type === 'songFolder' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}><h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Folder' : 'New Folder'}</h3><input defaultValue={modal.data?.name || ''} id="folder-name" className={input({ theme: isDark ? 'dark' : 'light' }, 'mb-4')} autoFocus /><div className="flex gap-2"><button onClick={() => setModal({ type: null, data: null })} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button><button onClick={() => saveSongFolder(document.getElementById('folder-name').value)} className={btn({ variant: 'primary' })}>Save</button></div></Modal>}
       {
         modal.type === 'collection' && <Modal onClose={() => setModal({ type: null, data: null })} isDark={isDark}>
           <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{modal.data ? 'Edit Collection' : 'New Collection'}</h3>
@@ -3498,8 +3489,8 @@ export default function VocabApp() {
           </div>
           <input defaultValue={modal.data?.name || ''} id="col-name" placeholder="Collection name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
-            <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveCollection(document.getElementById('col-name').value, selectedIcon, selectedColor)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => setModal({ type: null, data: null })} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
+            <button onClick={() => saveCollection(document.getElementById('col-name').value, selectedIcon, selectedColor)} className={btn({ variant: 'primary' })}>Save</button>
           </div>
         </Modal>
       }
@@ -3533,8 +3524,8 @@ export default function VocabApp() {
           </div>
           <input defaultValue={modal.data?.section?.name || ''} id="sec-name" placeholder="Section name *" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} autoFocus />
           <div className="flex gap-2">
-            <button onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-            <button onClick={() => saveSection(document.getElementById('sec-name').value, selectedIcon, selectedColor)} className="flex-1 h-10 px-4 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+            <button onClick={() => setModal({ type: null, data: null })} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
+            <button onClick={() => saveSection(document.getElementById('sec-name').value, selectedIcon, selectedColor)} className={btn({ variant: 'primary' })}>Save</button>
           </div>
         </Modal>
       }
@@ -3574,7 +3565,7 @@ export default function VocabApp() {
           isDark={isDark}
         />
       }
-      {confirmDelete && <Modal onClose={() => setConfirmDelete(null)} isDark={isDark}><h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Delete?</h3><p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className={`flex-1 h-10 px-4 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button><button onClick={executeDelete} className="flex-1 h-10 px-4 bg-red-500 text-white rounded-full font-medium hover:brightness-110">Delete</button></div></Modal>}
+      {confirmDelete && <Modal onClose={() => setConfirmDelete(null)} isDark={isDark}><h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Delete?</h3><p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button><button onClick={executeDelete} className={btn({ variant: 'danger' })}>Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
@@ -3706,8 +3697,8 @@ export default function VocabApp() {
               <input name="newPassword" type="password" placeholder="New password" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-3 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} required minLength={6} />
               <input name="confirmPassword" type="password" placeholder="Confirm password" className={`w-full h-10 px-3 rounded-xl focus:outline-none mb-4 ${isDark ? 'bg-[#1a1a1e] border border-white/10 text-white placeholder-gray-500' : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'}`} required minLength={6} />
               <div className="flex gap-2">
-                <button type="button" onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-                <button type="submit" className="flex-1 h-10 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Change</button>
+                <button type="button" onClick={() => setModal({ type: null, data: null })} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
+                <button type="submit" className={btn({ variant: 'primary' })}>Change</button>
               </div>
             </form>
           </Modal>
@@ -3764,8 +3755,8 @@ export default function VocabApp() {
                 </div>
               </div>
               <div className="flex gap-2 mt-6">
-                <button type="button" onClick={() => setModal({ type: null, data: null })} className={`flex-1 h-10 rounded-full font-medium ${isDark ? 'border border-white/10 text-white hover:bg-white/5' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-                <button type="submit" className="flex-1 h-10 bg-pink-vibrant text-white rounded-full font-medium hover:brightness-110">Save</button>
+                <button type="button" onClick={() => setModal({ type: null, data: null })} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button>
+                <button type="submit" className={btn({ variant: 'primary' })}>Save</button>
               </div>
             </form>
           </Modal>
