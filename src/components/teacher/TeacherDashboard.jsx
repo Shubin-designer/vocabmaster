@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import StudentList from './StudentList';
 import InviteStudent from './InviteStudent';
+import ContentManager from '../content/ContentManager';
+import StudentProgress from './StudentProgress';
+import Analytics from './Analytics';
+import CalendarView from '../common/CalendarView';
+import NotificationBell from '../common/NotificationBell';
 import {
   Users, BookOpen, Settings, LogOut, Moon, Sun, Monitor,
-  ChevronDown, GraduationCap, Sparkles, ToggleLeft, ToggleRight
+  ChevronDown, GraduationCap, Sparkles, Layers, TrendingUp, BarChart3, Calendar
 } from 'lucide-react';
 
 /**
@@ -21,6 +26,10 @@ export default function TeacherDashboard({ StudentAppComponent, theme, onThemeCh
 
   const tabs = [
     { key: 'students', label: 'Students', icon: Users },
+    { key: 'content', label: 'Content', icon: Layers },
+    { key: 'calendar', label: 'Calendar', icon: Calendar },
+    { key: 'progress', label: 'Progress', icon: TrendingUp },
+    { key: 'analytics', label: 'Analytics', icon: BarChart3 },
     { key: 'learning', label: 'My Learning', icon: BookOpen },
     { key: 'settings', label: 'Settings', icon: Settings }
   ];
@@ -69,10 +78,14 @@ export default function TeacherDashboard({ StudentAppComponent, theme, onThemeCh
               ))}
             </nav>
 
-            {/* User menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
+            {/* Notifications & User menu */}
+            <div className="flex items-center gap-2">
+              <NotificationBell userId={user?.id} isDark={isDark} />
+
+              {/* User menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors ${
                   isDark ? 'hover:bg-white/[0.05]' : 'hover:bg-gray-100'
                 }`}
@@ -169,6 +182,7 @@ export default function TeacherDashboard({ StudentAppComponent, theme, onThemeCh
                   </div>
                 </>
               )}
+              </div>
             </div>
           </div>
         </div>
@@ -203,6 +217,39 @@ export default function TeacherDashboard({ StudentAppComponent, theme, onThemeCh
           <StudentList
             teacherId={user?.id}
             onInvite={() => setShowInviteModal(true)}
+            isDark={isDark}
+          />
+        )}
+
+        {/* Content tab */}
+        {activeTab === 'content' && (
+          <ContentManager
+            teacherId={user?.id}
+            isDark={isDark}
+          />
+        )}
+
+        {/* Calendar tab */}
+        {activeTab === 'calendar' && (
+          <CalendarView
+            userId={user?.id}
+            role="teacher"
+            isDark={isDark}
+          />
+        )}
+
+        {/* Progress tab */}
+        {activeTab === 'progress' && (
+          <StudentProgress
+            teacherId={user?.id}
+            isDark={isDark}
+          />
+        )}
+
+        {/* Analytics tab */}
+        {activeTab === 'analytics' && (
+          <Analytics
+            teacherId={user?.id}
             isDark={isDark}
           />
         )}

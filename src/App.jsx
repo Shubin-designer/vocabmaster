@@ -6,6 +6,12 @@ import { useUser } from './contexts/UserContext';
 import { VIEWS } from './utils/constants';
 import TeacherDashboard from './components/teacher/TeacherDashboard';
 import AuthForm from './components/auth/AuthForm';
+import StudentLearning from './components/student/StudentLearning';
+import MaterialViewer from './components/student/MaterialViewer';
+import TestTaker from './components/student/TestTaker';
+import InteractiveReader from './components/student/InteractiveReader';
+import VocabSetViewer from './components/student/VocabSetViewer';
+import NotificationBell from './components/common/NotificationBell';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const WORD_TYPES = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'idiom', 'phrase', 'preposition', 'conjunction', 'interjection'];
@@ -1775,6 +1781,11 @@ function StudentApp({ user: contextUser }) {
   const [cardPopup, setCardPopup] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState('');
+  const [viewingMaterial, setViewingMaterial] = useState(null);
+  const [takingTest, setTakingTest] = useState(null);
+  const [testAssignment, setTestAssignment] = useState(null);
+  const [readingText, setReadingText] = useState(null);
+  const [studyingVocab, setStudyingVocab] = useState(null);
 
   // Only manage auth locally if no context user provided
   useEffect(() => {
@@ -2765,7 +2776,8 @@ function StudentApp({ user: contextUser }) {
   const Sidebar = () => (
     <div className={`relative flex-shrink-0 ${sidebarIsDark ? 'bg-transparent' : 'bg-white'}`} style={{ width: sidebarOpen ? sidebarWidth : 0, transition: isResizing ? 'none' : 'width 0.2s' }}>
       <div className="p-3 h-full overflow-y-auto overflow-x-hidden" style={{ width: sidebarWidth }}>
-        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'dashboard' ? 'bg-indigo-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18} /> Dashboard</button>
+        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setFilterStatus('all'); setView('dashboard'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-1 transition-colors ${view === 'dashboard' ? 'bg-indigo-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><Home size={18} /> Dashboard</button>
+        <button onClick={() => handleNavigationWithCheck(() => { setCurrentCollection(null); setCurrentSection(null); setCurrentSong(null); setView('learning'); })} className={`w-full flex items-center gap-2 p-2.5 rounded-xl mb-2 transition-colors ${view === 'learning' ? 'bg-indigo-500/10 text-pink-vibrant' : sidebarIsDark ? 'hover:bg-white/[0.04] text-white/70' : 'hover:bg-black/[0.04] text-gray-600'}`}><GraduationCap size={18} /> Learning</button>
         <div className={`mb-4 pb-3 border-b ${sidebarIsDark ? 'border-white/5' : 'border-black/5'}`}>
           <div className="flex items-center justify-between mb-2"><span className={`text-sm font-medium ${sidebarIsDark ? 'text-white/40' : 'text-gray-400'}`}>🎵 Songs</span><button onClick={() => setModal({ type: 'songFolder', data: null })} className={`p-1 rounded transition-colors ${sidebarIsDark ? 'hover:bg-white/[0.04] text-white/40' : 'hover:bg-black/[0.04] text-gray-400'}`}><Plus size={16} /></button></div>
           {data.songFolders.map((folder, folderIdx) => {
@@ -2942,6 +2954,7 @@ function StudentApp({ user: contextUser }) {
                 <button onClick={() => setModal({ type: 'word', data: { word: '', type: 'phrase', level: 'B1', forms: '', meaningEn: '', meaningRu: '', example: '', myExample: '', singleRootWords: '', synonyms: '', tags: [] } })} className="h-10 px-4 rounded-full flex items-center gap-1.5 text-sm font-semibold bg-pink-vibrant text-white hover:brightness-110 shadow-lg shadow-indigo-500/20 transition-all"><Plus size={16} /> Add</button>
               </>
             )}
+            <NotificationBell userId={user?.id} isDark={isDark} />
             <div className="relative ml-2">
               <button onClick={() => setShowUserMenu(!showUserMenu)} className="w-10 h-10 rounded-full flex items-center justify-center liquid-glass text-pink-vibrant hover:brightness-110 transition-colors shadow-sm">
                 <User size={18} />
@@ -3211,6 +3224,24 @@ function StudentApp({ user: contextUser }) {
               </div>
             );
           })()}
+          {view === 'learning' && (
+            <div className="animate-fadeIn">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Learning</h2>
+                  <p className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>Materials and tests from your teacher</p>
+                </div>
+              </div>
+              <StudentLearning
+                studentId={user?.id}
+                onViewMaterial={material => setViewingMaterial(material)}
+                onTakeTest={(test, assignment) => { setTakingTest(test); setTestAssignment(assignment); }}
+                onReadText={text => setReadingText(text)}
+                onStudyVocab={assignment => setStudyingVocab(assignment)}
+                isDark={isDark}
+              />
+            </div>
+          )}
           {view === 'all-words' && (
             <>
               <div className="flex items-center justify-between mb-4">
@@ -3525,6 +3556,59 @@ function StudentApp({ user: contextUser }) {
       {confirmDelete && <Modal onClose={() => setConfirmDelete(null)} isDark={isDark}><h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Delete?</h3><p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button><button onClick={executeDelete} className={btn({ variant: 'danger' })}>Delete</button></div></Modal>}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
+
+      {viewingMaterial && (
+        <MaterialViewer
+          material={viewingMaterial}
+          onClose={() => setViewingMaterial(null)}
+          isDark={isDark}
+        />
+      )}
+
+      {takingTest && (
+        <TestTaker
+          test={takingTest}
+          assignment={testAssignment}
+          studentId={user?.id}
+          onClose={() => { setTakingTest(null); setTestAssignment(null); }}
+          onComplete={() => { setTakingTest(null); setTestAssignment(null); }}
+          isDark={isDark}
+        />
+      )}
+
+      {readingText && (
+        <InteractiveReader
+          text={readingText}
+          studentId={user?.id}
+          onClose={() => setReadingText(null)}
+          onAddWord={async (wordData) => {
+            // Add word to user's vocabulary
+            const { error } = await supabase.from('words').insert({
+              user_id: user?.id,
+              word: wordData.word,
+              translation: wordData.translation,
+              status: 'new',
+              level: readingText.level || 'A1',
+            });
+            if (!error) {
+              // Reload data to show new word
+              window.dispatchEvent(new CustomEvent('vocab-updated'));
+            }
+          }}
+          isDark={isDark}
+        />
+      )}
+
+      {studyingVocab && (
+        <VocabSetViewer
+          assignment={studyingVocab}
+          onClose={() => setStudyingVocab(null)}
+          onProgress={() => {
+            // Refresh will happen when modal closes
+          }}
+          isDark={isDark}
+        />
+      )}
 
       {isImporting && (
         <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
