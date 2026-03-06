@@ -2,6 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { Plus, Volume2, RotateCcw, Check, X, BookOpen, PenTool, HelpCircle, ChevronRight, Download, Trash2, Edit2, ChevronDown, ChevronUp, Home, Menu, Search, Loader, Upload, Undo2, RefreshCw, User, Settings, LogOut, Moon, Sun, Monitor, TrendingUp, Target, Flame, Calendar, Award, Folder, FolderOpen, Book, Bookmark, Music, Film, Briefcase, Plane, Coffee, Gamepad2, Palette, GraduationCap, Heart, Star, Zap, Globe, Camera, Mic, Code, Headphones, ShoppingBag, Utensils, Car, Building2, TreePine, Dumbbell, Sparkles, MessageCircle, FileText, Lightbulb, Rocket, Crown, Gift, Clock, Map as MapIcon, Compass, Layers, Hash } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { btn, input } from './components/ui';
+import { useUser } from './contexts/UserContext';
+import { VIEWS } from './utils/constants';
+import TeacherDashboard from './components/teacher/TeacherDashboard';
+import AuthForm from './components/auth/AuthForm';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const WORD_TYPES = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'idiom', 'phrase', 'preposition', 'conjunction', 'interjection'];
@@ -1693,83 +1697,12 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel, isDark = tr
     </Modal>
   );
 };
-
-
-
-
-function AuthForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [mode, setMode] = useState('signin');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleAuth = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    setLoading(true);
-
-    if (mode === 'signup') {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) setMessage(error.message);
-      else setMessage('✅ Check your email to confirm!');
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMessage(error.message);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="bg-[#1a1a1a] rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-800">
-        <h1 className="text-3xl font-bold text-orange-400 mb-6 text-center">VocabMaster</h1>
-        <form onSubmit={handleAuth} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-700 rounded-xl bg-[#0f0f0f] text-gray-100 placeholder-gray-500 focus:border-orange-500 focus:outline-none"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password (min 6 characters)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-700 rounded-xl bg-[#0f0f0f] text-gray-100 placeholder-gray-500 focus:border-orange-500 focus:outline-none"
-            required
-            minLength={6}
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-orange-500 text-white py-3 rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium transition-colors"
-          >
-            {loading ? 'Loading...' : mode === 'signin' ? 'Sign In' : 'Sign Up'}
-          </button>
-        </form>
-        <button
-          onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-          className="w-full mt-4 text-sm text-gray-500 hover:text-gray-300 transition-colors"
-        >
-          {mode === 'signin' ? 'Need an account? Sign up' : 'Have an account? Sign in'}
-        </button>
-        {message && (
-          <p className={`mt-4 text-sm text-center ${message.includes('✅') ? 'text-green-400' : 'text-red-400'}`}>
-            {message}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function VocabApp() {
-
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+// StudentApp - the main vocabulary learning app (for students and teachers learning)
+function StudentApp({ user: contextUser }) {
+  // Use context user if provided, otherwise manage own auth state
+  const [localUser, setLocalUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(!contextUser);
+  const user = contextUser || localUser;
   const [data, setData] = useState(initialData);
   const [currentCollection, setCurrentCollection] = useState(null);
   const [currentSection, setCurrentSection] = useState(null);
@@ -1840,18 +1773,21 @@ export default function VocabApp() {
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState('');
 
+  // Only manage auth locally if no context user provided
   useEffect(() => {
+    if (contextUser) return; // Skip if using context
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      setLocalUser(session?.user ?? null);
       setAuthLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      setLocalUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [contextUser]);
 
   // Применение темы - v2
   useEffect(() => {
@@ -2974,7 +2910,7 @@ export default function VocabApp() {
 
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!user) return <AuthForm />;
+  if (!user) return null; // Auth handled by App wrapper
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading data...</div>;
 
 
@@ -3771,4 +3707,68 @@ export default function VocabApp() {
       }
     </div>
   );
+}
+
+// App - Main app component with role-based routing
+export default function App() {
+  const { user, userProfile, authLoading, profileLoading, effectiveView } = useUser();
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('vocabmaster_theme') || 'dark';
+    }
+    return 'dark';
+  });
+
+  // Apply theme
+  useEffect(() => {
+    localStorage.setItem('vocabmaster_theme', theme);
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.classList.remove('dark');
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    }
+  }, [theme]);
+
+  // Loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-pink-vibrant border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/60">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated - show auth form
+  if (!user) {
+    return <AuthForm />;
+  }
+
+  // Profile still loading
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-pink-vibrant border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/60">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Route based on role
+  if (effectiveView === VIEWS.TEACHER) {
+    return (
+      <TeacherDashboard
+        StudentAppComponent={() => <StudentApp user={user} />}
+        theme={theme}
+        onThemeChange={setTheme}
+      />
+    );
+  }
+
+  // Default: Student view
+  return <StudentApp user={user} />;
 }
