@@ -17,18 +17,10 @@ export default function StudentList({ teacherId, onInvite, isDark = true }) {
     setError(null);
 
     try {
+      // First fetch teacher_students relationships
       let query = supabase
         .from('teacher_students')
-        .select(`
-          id,
-          status,
-          invited_at,
-          accepted_at,
-          student:student_id (
-            id,
-            email
-          )
-        `)
+        .select('id, student_id, status, invited_at, accepted_at')
         .eq('teacher_id', teacherId)
         .order('invited_at', { ascending: false });
 
@@ -41,31 +33,41 @@ export default function StudentList({ teacherId, onInvite, isDark = true }) {
       if (fetchError) {
         setError(fetchError.message);
         setStudents([]);
-      } else {
-        // Fetch profiles separately to avoid complex join issues
-        const studentIds = data.map(s => s.student?.id).filter(Boolean);
-
-        if (studentIds.length > 0) {
-          const { data: profiles } = await supabase
-            .from('user_profiles')
-            .select('id, display_name, level, xp')
-            .in('id', studentIds);
-
-          const profileMap = {};
-          profiles?.forEach(p => {
-            profileMap[p.id] = p;
-          });
-
-          const enrichedData = data.map(s => ({
-            ...s,
-            student_profile: s.student?.id ? profileMap[s.student.id] : null
-          }));
-
-          setStudents(enrichedData);
-        } else {
-          setStudents(data);
-        }
+        setLoading(false);
+        return;
       }
+
+      if (!data || data.length === 0) {
+        setStudents([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch profiles for all students
+      const studentIds = data.map(s => s.student_id).filter(Boolean);
+
+      const { data: profiles, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id, display_name, level, xp')
+        .in('id', studentIds);
+
+      if (profileError) {
+        console.error('Error fetching profiles:', profileError);
+      }
+
+      const profileMap = {};
+      profiles?.forEach(p => {
+        profileMap[p.id] = p;
+      });
+
+      // Combine data
+      const enrichedData = data.map(s => ({
+        ...s,
+        student: { id: s.student_id },
+        student_profile: profileMap[s.student_id] || null
+      }));
+
+      setStudents(enrichedData);
     } catch (err) {
       setError(err.message);
       setStudents([]);

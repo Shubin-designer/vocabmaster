@@ -67,12 +67,18 @@ export function UserProvider({ children }) {
   }, []);
 
   // Computed role flags
-  const roleFlags = useMemo(() => ({
-    isTeacher: isTeacher(userProfile),
-    isStudent: isStudent(userProfile),
-    isAdmin: isAdmin(userProfile),
-    canToggleRole: canToggleRole(userProfile)
-  }), [userProfile]);
+  const roleFlags = useMemo(() => {
+    const flags = {
+      isTeacher: isTeacher(userProfile),
+      isStudent: isStudent(userProfile),
+      isAdmin: isAdmin(userProfile),
+      canToggleRole: canToggleRole(userProfile)
+    };
+    // Debug logging
+    console.log('[UserContext] Profile:', userProfile);
+    console.log('[UserContext] Role flags:', flags);
+    return flags;
+  }, [userProfile]);
 
   // Determine effective view (for admin role switching)
   const effectiveView = useMemo(() => {

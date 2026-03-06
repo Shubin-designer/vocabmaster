@@ -1,4 +1,4 @@
-import { User, Mail, Calendar, TrendingUp, MoreVertical, Archive, Eye } from 'lucide-react';
+import { TrendingUp, Archive } from 'lucide-react';
 
 /**
  * Get color classes for CEFR level
@@ -40,8 +40,7 @@ const getStatusColor = (status, isDark = true) => {
  */
 export default function StudentCard({ student, onArchive, onViewProgress, isDark = true }) {
   const profile = student.student_profile || {};
-  const email = student.student?.email || 'Unknown';
-  const displayName = profile.display_name || email.split('@')[0];
+  const displayName = profile.display_name || 'Student';
   const level = profile.level || 'A1';
   const xp = profile.xp || 0;
   const status = student.status || 'invited';
@@ -63,14 +62,13 @@ export default function StudentCard({ student, onArchive, onViewProgress, isDark
             {displayName.charAt(0).toUpperCase()}
           </div>
 
-          {/* Name and email */}
+          {/* Name */}
           <div>
             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {displayName}
             </h3>
-            <div className={`text-sm flex items-center gap-1 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-              <Mail size={12} />
-              {email}
+            <div className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+              Level {level}
             </div>
           </div>
         </div>

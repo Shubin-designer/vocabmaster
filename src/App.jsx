@@ -1699,6 +1699,9 @@ const SongModal = ({ song, folderId, onSave, onUpdateSong, onCancel, isDark = tr
 };
 // StudentApp - the main vocabulary learning app (for students and teachers learning)
 function StudentApp({ user: contextUser }) {
+  // Get admin controls from context
+  const { isAdmin, toggleAdminView } = useUser();
+
   // Use context user if provided, otherwise manage own auth state
   const [localUser, setLocalUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(!contextUser);
@@ -2966,6 +2969,17 @@ function StudentApp({ user: contextUser }) {
                         <Target size={16} /> Daily Goals
                       </button>
                     </div>
+                    {/* Admin role toggle */}
+                    {isAdmin && (
+                      <div className={`border-t pt-1 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
+                        <button
+                          onClick={() => { toggleAdminView(); setShowUserMenu(false); }}
+                          className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'hover:bg-white/5 text-yellow-400' : 'hover:bg-black/5 text-yellow-600'}`}
+                        >
+                          <Crown size={16} /> Switch to Teacher View
+                        </button>
+                      </div>
+                    )}
                     <div className={`border-t pt-1 ${isDark ? 'border-white/5' : 'border-black/5'}`}>
                       <button onClick={handleLogout} className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 rounded-lg mx-1 w-[calc(100%-8px)] ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}>
                         <LogOut size={16} /> Sign Out
@@ -3757,6 +3771,9 @@ export default function App() {
       </div>
     );
   }
+
+  // Debug
+  console.log('[App] effectiveView:', effectiveView, 'userProfile:', userProfile);
 
   // Route based on role
   if (effectiveView === VIEWS.TEACHER) {
