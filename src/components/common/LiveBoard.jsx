@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Excalidraw, exportToBlob } from '@excalidraw/excalidraw';
+import { Excalidraw } from '@excalidraw/excalidraw';
 import { supabase } from '../../supabaseClient';
 import {
   Users, Radio, Square, Save, ArrowLeft, Copy, Check
@@ -17,11 +17,36 @@ export default function LiveBoard({
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   const excalidrawRef = useRef(null);
+  const containerRef = useRef(null);
   const channelRef = useRef(null);
   const isRemoteUpdateRef = useRef(false);
   const lastBroadcastRef = useRef(0);
+
+  // Measure container and set ready state
+  useEffect(() => {
+    const measureContainer = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          setDimensions({ width: rect.width, height: rect.height });
+          setCanvasReady(true);
+        }
+      }
+    };
+
+    // Delay measurement to ensure layout is complete
+    const timer = setTimeout(measureContainer, 100);
+    window.addEventListener('resize', measureContainer);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', measureContainer);
+    };
+  }, []);
 
   // Load board data
   useEffect(() => {
@@ -48,10 +73,13 @@ export default function LiveBoard({
     channel.on('broadcast', { event: 'scene' }, ({ payload }) => {
       if (excalidrawRef.current && payload.senderId !== userId) {
         isRemoteUpdateRef.current = true;
-        excalidrawRef.current.updateScene({
-          elements: payload.elements,
-          appState: { collaborators: new Map() }
-        });
+        try {
+          excalidrawRef.current.updateScene({
+            elements: payload.elements
+          });
+        } catch (e) {
+          console.warn('Failed to update scene:', e);
+        }
         setTimeout(() => {
           isRemoteUpdateRef.current = false;
         }, 100);
@@ -94,12 +122,12 @@ export default function LiveBoard({
     }
   };
 
-  // Broadcast scene changes
+  // Broadcast scene changes (throttled)
   const broadcastScene = useCallback((elements) => {
     if (!channelRef.current || isRemoteUpdateRef.current) return;
 
     const now = Date.now();
-    if (now - lastBroadcastRef.current < 50) return;
+    if (now - lastBroadcastRef.current < 100) return; // Throttle to 100ms
     lastBroadcastRef.current = now;
 
     channelRef.current.send({
@@ -107,7 +135,7 @@ export default function LiveBoard({
       event: 'scene',
       payload: {
         senderId: userId,
-        elements,
+        elements: elements.map(el => ({ ...el })), // Clone to avoid issues
         timestamp: now
       }
     });
@@ -115,7 +143,7 @@ export default function LiveBoard({
 
   // Handle Excalidraw changes
   const handleChange = useCallback((elements, appState) => {
-    if (!isRemoteUpdateRef.current) {
+    if (!isRemoteUpdateRef.current && elements.length > 0) {
       broadcastScene(elements);
     }
   }, [broadcastScene]);
@@ -132,7 +160,10 @@ export default function LiveBoard({
       await supabase
         .from('lesson_boards')
         .update({
-          document: { elements, appState: { viewBackgroundColor: appState.viewBackgroundColor } },
+          document: {
+            elements: elements.map(el => ({ ...el })),
+            appState: { viewBackgroundColor: appState.viewBackgroundColor }
+          },
           updated_at: new Date().toISOString()
         })
         .eq('id', boardId);
@@ -165,25 +196,24 @@ export default function LiveBoard({
   };
 
   // Initial data for Excalidraw
-  const getInitialData = () => {
-    if (board?.document?.elements) {
-      return {
-        elements: board.document.elements,
-        appState: {
-          viewBackgroundColor: board.document.appState?.viewBackgroundColor || '#ffffff',
-          collaborators: new Map()
-        }
-      };
+  const initialData = board?.document?.elements ? {
+    elements: board.document.elements,
+    appState: {
+      viewBackgroundColor: board.document.appState?.viewBackgroundColor || '#ffffff'
     }
-    return { elements: [], appState: { collaborators: new Map() } };
-  };
+  } : undefined;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white" style={{ width: '100vw', height: '100vh' }}>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#fff' }}>
       {/* Header */}
-      <div className={`flex items-center justify-between px-4 py-2 border-b ${
-        isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'
-      }`}>
+      <div
+        className="flex items-center justify-between px-4 py-2 border-b shrink-0"
+        style={{
+          height: '56px',
+          background: isDark ? '#111' : '#fff',
+          borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#e5e7eb'
+        }}
+      >
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
@@ -206,7 +236,6 @@ export default function LiveBoard({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Online users */}
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${
             isDark ? 'bg-white/5 text-white/70' : 'bg-gray-100 text-gray-600'
           }`}>
@@ -214,7 +243,6 @@ export default function LiveBoard({
             <span className="text-sm">{onlineUsers}</span>
           </div>
 
-          {/* Copy link */}
           <button
             onClick={copyLink}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
@@ -225,7 +253,6 @@ export default function LiveBoard({
             <span className="text-sm">{copied ? 'Copied!' : 'Link'}</span>
           </button>
 
-          {/* Teacher controls */}
           {isTeacher && (
             <>
               <button
@@ -253,25 +280,27 @@ export default function LiveBoard({
         </div>
       </div>
 
-      {/* Excalidraw canvas */}
-      <div className="flex-1 relative" style={{ height: 'calc(100vh - 56px)' }}>
-        {board && (
-          <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
-            <Excalidraw
-              ref={excalidrawRef}
-              initialData={getInitialData()}
-              onChange={handleChange}
-              theme={isDark ? 'dark' : 'light'}
-              UIOptions={{
-                canvasActions: {
-                  saveAsImage: true,
-                  loadScene: false,
-                  export: false,
-                  saveFileToDisk: false
-                }
-              }}
-            />
-          </div>
+      {/* Canvas container */}
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-hidden"
+        style={{ height: 'calc(100vh - 56px)' }}
+      >
+        {board && canvasReady && dimensions.width > 0 && (
+          <Excalidraw
+            excalidrawAPI={(api) => { excalidrawRef.current = api; }}
+            initialData={initialData}
+            onChange={handleChange}
+            theme={isDark ? 'dark' : 'light'}
+            UIOptions={{
+              canvasActions: {
+                saveAsImage: true,
+                loadScene: false,
+                export: false,
+                saveFileToDisk: false
+              }
+            }}
+          />
         )}
       </div>
     </div>
