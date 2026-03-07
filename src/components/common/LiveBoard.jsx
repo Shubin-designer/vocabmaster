@@ -179,7 +179,7 @@ export default function LiveBoard({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white" style={{ width: '100vw', height: '100vh' }}>
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-2 border-b ${
         isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'
@@ -254,22 +254,24 @@ export default function LiveBoard({
       </div>
 
       {/* Excalidraw canvas */}
-      <div className="flex-1">
+      <div className="flex-1 relative" style={{ height: 'calc(100vh - 56px)' }}>
         {board && (
-          <Excalidraw
-            ref={excalidrawRef}
-            initialData={getInitialData()}
-            onChange={handleChange}
-            theme={isDark ? 'dark' : 'light'}
-            UIOptions={{
-              canvasActions: {
-                saveAsImage: true,
-                loadScene: false,
-                export: false,
-                saveFileToDisk: false
-              }
-            }}
-          />
+          <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+            <Excalidraw
+              ref={excalidrawRef}
+              initialData={getInitialData()}
+              onChange={handleChange}
+              theme={isDark ? 'dark' : 'light'}
+              UIOptions={{
+                canvasActions: {
+                  saveAsImage: true,
+                  loadScene: false,
+                  export: false,
+                  saveFileToDisk: false
+                }
+              }}
+            />
+          </div>
         )}
       </div>
     </div>
