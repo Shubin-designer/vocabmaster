@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import StudentList from './StudentList';
 import InviteStudent from './InviteStudent';
 import ContentManager from '../content/ContentManager';
 import StudentProgress from './StudentProgress';
 import Analytics from './Analytics';
+import BoardManager from './BoardManager';
 import CalendarView from '../common/CalendarView';
 import NotificationBell from '../common/NotificationBell';
 import {
   Users, BookOpen, Settings, LogOut, Moon, Sun, Monitor,
-  ChevronDown, GraduationCap, Sparkles, Layers, TrendingUp, BarChart3, Calendar
+  ChevronDown, GraduationCap, Sparkles, Layers, TrendingUp, BarChart3, Calendar, Presentation
 } from 'lucide-react';
 
 /**
@@ -21,12 +23,42 @@ export default function TeacherDashboard({ StudentAppComponent, theme, onThemeCh
   const [activeTab, setActiveTab] = useState('students');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [students, setStudents] = useState([]);
 
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  // Load students for BoardManager
+  useEffect(() => {
+    if (user?.id) {
+      loadStudents();
+    }
+  }, [user?.id]);
+
+  const loadStudents = async () => {
+    const { data: studentsData } = await supabase
+      .from('teacher_students')
+      .select('student_id')
+      .eq('teacher_id', user.id)
+      .eq('status', 'active');
+
+    const studentIds = studentsData?.map(s => s.student_id) || [];
+    if (studentIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name')
+        .in('user_id', studentIds);
+
+      setStudents(studentIds.map(id => ({
+        id,
+        name: profiles?.find(p => p.user_id === id)?.display_name || 'Student'
+      })));
+    }
+  };
 
   const tabs = [
     { key: 'students', label: 'Students', icon: Users },
     { key: 'content', label: 'Content', icon: Layers },
+    { key: 'boards', label: 'Boards', icon: Presentation },
     { key: 'calendar', label: 'Calendar', icon: Calendar },
     { key: 'progress', label: 'Progress', icon: TrendingUp },
     { key: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -225,6 +257,15 @@ export default function TeacherDashboard({ StudentAppComponent, theme, onThemeCh
         {activeTab === 'content' && (
           <ContentManager
             teacherId={user?.id}
+            isDark={isDark}
+          />
+        )}
+
+        {/* Boards tab */}
+        {activeTab === 'boards' && (
+          <BoardManager
+            teacherId={user?.id}
+            students={students}
             isDark={isDark}
           />
         )}
