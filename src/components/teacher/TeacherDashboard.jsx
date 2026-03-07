@@ -77,7 +77,7 @@ export default function TeacherDashboard({ StudentAppComponent, theme, onThemeCh
       <header className={`sticky top-0 z-40 border-b ${
         isDark ? 'bg-[#0a0a0b]/80 border-white/[0.06]' : 'bg-white/80 border-gray-200'
       } backdrop-blur-xl`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-3">
@@ -243,7 +243,7 @@ export default function TeacherDashboard({ StudentAppComponent, theme, onThemeCh
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Students tab */}
         {activeTab === 'students' && (
           <StudentList

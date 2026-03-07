@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import {
   Plus, Presentation, Trash2, Play, Users, Clock,
-  MoreVertical, Radio, Copy, Check, ExternalLink
+  MoreVertical, Radio, Copy, Check, ExternalLink, Pencil
 } from 'lucide-react';
 import LiveBoard from '../common/LiveBoard';
 
@@ -13,6 +13,8 @@ export default function BoardManager({ teacherId, students = [], isDark = true }
   const [newTitle, setNewTitle] = useState('');
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [activeBoard, setActiveBoard] = useState(null);
+  const [editingBoardId, setEditingBoardId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
   const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
@@ -84,6 +86,19 @@ export default function BoardManager({ teacherId, students = [], isDark = true }
 
     await supabase.from('lesson_boards').delete().eq('id', boardId);
     loadBoards();
+  };
+
+  const updateBoardTitle = async (boardId, newTitle) => {
+    if (!newTitle.trim()) {
+      setEditingBoardId(null);
+      return;
+    }
+    await supabase
+      .from('lesson_boards')
+      .update({ title: newTitle.trim(), updated_at: new Date().toISOString() })
+      .eq('id', boardId);
+    setBoards(prev => prev.map(b => b.id === boardId ? { ...b, title: newTitle.trim() } : b));
+    setEditingBoardId(null);
   };
 
   const copyLink = (boardId) => {
@@ -259,10 +274,43 @@ export default function BoardManager({ teacherId, students = [], isDark = true }
                   <Presentation size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {board.title}
-                  </h4>
-                  <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
+                  {editingBoardId === board.id ? (
+                    <input
+                      type="text"
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onBlur={() => updateBoardTitle(board.id, editingTitle)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') updateBoardTitle(board.id, editingTitle);
+                        if (e.key === 'Escape') setEditingBoardId(null);
+                      }}
+                      autoFocus
+                      className={`w-full font-medium px-2 py-1 rounded-lg border-2 outline-none transition-colors ${
+                        isDark
+                          ? 'bg-white/5 border-purple-500/50 text-white focus:border-purple-400'
+                          : 'bg-gray-50 border-purple-300 text-gray-900 focus:border-purple-500'
+                      }`}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 group">
+                      <h4 className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {board.title}
+                      </h4>
+                      <button
+                        onClick={() => {
+                          setEditingBoardId(board.id);
+                          setEditingTitle(board.title);
+                        }}
+                        className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${
+                          isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-200 text-gray-400'
+                        }`}
+                        title="Rename"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    </div>
+                  )}
+                  <div className={`flex items-center gap-3 text-sm mt-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
                     <span className="flex items-center gap-1">
                       <Users size={14} />
                       {board.board_participants?.length || 0}
