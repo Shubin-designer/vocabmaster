@@ -1,16 +1,88 @@
-# React + Vite
+# VocabMaster
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Платформа для преподавателей иностранных языков и их учеников. Создание учебных материалов, тестов, домашних заданий и интерактивных досок.
 
-Currently, two official plugins are available:
+## Возможности
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Для преподавателей
+- **Управление контентом** — создание тем, материалов, тестов и домашних заданий
+- **Rich Text редактор** — форматирование текста, таблицы, цвета
+- **OCR** — распознавание текста с изображений (сканы учебников)
+- **Интерактивная доска** — рисование, фигуры, текст для онлайн-уроков
+- **Назначение заданий** — отправка материалов и тестов ученикам
 
-## React Compiler
+### Для учеников
+- **Изучение материалов** — просмотр теории по темам
+- **Прохождение тестов** — multiple choice, fill-in-the-blank, true/false
+- **Домашние задания** — выполнение и отправка на проверку
+- **Отслеживание прогресса** — история выполненных заданий
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Технологии
 
-## Expanding the ESLint configuration
+| Категория | Технология |
+|-----------|------------|
+| Frontend | React 19, Vite 7 |
+| Стили | Tailwind CSS |
+| Backend | Supabase (PostgreSQL, Auth, RLS) |
+| Редактор | TipTap |
+| Доска | Fabric.js, Konva |
+| Иконки | Lucide React |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Установка
+
+```bash
+# Клонировать репозиторий
+git clone https://github.com/Shubin-designer/vocabmaster.git
+cd vocabmaster
+
+# Установить зависимости
+npm install
+
+# Создать .env файл
+cp .env.example .env
+# Заполнить VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY
+
+# Запустить dev-сервер
+npm run dev
+```
+
+## Скрипты
+
+| Команда | Описание |
+|---------|----------|
+| `npm run dev` | Запуск dev-сервера |
+| `npm run build` | Сборка для продакшена |
+| `npm run build:prod` | Сборка + обфускация кода |
+| `npm run preview` | Превью билда |
+| `npm run lint` | Проверка кода ESLint |
+
+## Структура проекта
+
+```
+src/
+├── components/
+│   ├── auth/        # Авторизация
+│   ├── common/      # Общие компоненты (RichTextEditor, OCR)
+│   ├── content/     # Контент (Topics, Materials, Tests, Homework)
+│   ├── student/     # Интерфейс ученика
+│   ├── teacher/     # Интерфейс преподавателя
+│   └── ui/          # UI компоненты
+├── utils/           # Утилиты
+└── supabaseClient.js
+```
+
+## Переменные окружения
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_GEMINI_API_KEY=your-gemini-key  # для OCR
+```
+
+## Лицензия
+
+Проприетарное ПО. Все права защищены. См. [LICENSE](LICENSE).
+
+---
+
+© 2024-2026 VocabMaster
