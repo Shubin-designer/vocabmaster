@@ -6,6 +6,8 @@ import {
   ChevronDown, BookOpen, Layers, GraduationCap, Send
 } from 'lucide-react';
 
+import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
+
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 const LANGUAGES = [
@@ -35,6 +37,7 @@ export default function MaterialsList({ teacherId, isDark = true }) {
   const [editingMaterial, setEditingMaterial] = useState(null);
   const [saving, setSaving] = useState(false);
   const [assigningMaterial, setAssigningMaterial] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -47,6 +50,7 @@ export default function MaterialsList({ teacherId, isDark = true }) {
     level: 'A1',
     language: 'en',
   });
+  const [initialFormData, setInitialFormData] = useState(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -87,9 +91,10 @@ export default function MaterialsList({ teacherId, isDark = true }) {
   }, [teacherId]);
 
   const openModal = (material = null) => {
+    let newFormData;
     if (material) {
       setEditingMaterial(material);
-      setFormData({
+      newFormData = {
         title: material.title || '',
         content: material.content || '',
         examples: material.examples?.length ? material.examples : [''],
@@ -98,10 +103,10 @@ export default function MaterialsList({ teacherId, isDark = true }) {
         source_id: material.source_id || '',
         level: material.level || 'A1',
         language: material.language || 'en',
-      });
+      };
     } else {
       setEditingMaterial(null);
-      setFormData({
+      newFormData = {
         title: '',
         content: '',
         examples: [''],
@@ -110,14 +115,41 @@ export default function MaterialsList({ teacherId, isDark = true }) {
         source_id: '',
         level: 'A1',
         language: 'en',
-      });
+      };
     }
+    setFormData(newFormData);
+    setInitialFormData(newFormData);
     setShowModal(true);
+  };
+
+  const hasUnsavedChanges = () => {
+    if (!initialFormData) return false;
+    return (
+      formData.title !== initialFormData.title ||
+      formData.content !== initialFormData.content ||
+      formData.notes !== initialFormData.notes ||
+      formData.topic_id !== initialFormData.topic_id ||
+      formData.source_id !== initialFormData.source_id ||
+      formData.level !== initialFormData.level ||
+      formData.language !== initialFormData.language ||
+      JSON.stringify(formData.examples) !== JSON.stringify(initialFormData.examples)
+    );
   };
 
   const closeModal = () => {
     setShowModal(false);
     setEditingMaterial(null);
+    setInitialFormData(null);
+  };
+
+  const handleBackdropClick = () => {
+    if (hasUnsavedChanges()) {
+      if (window.confirm('У вас есть несохранённые изменения. Закрыть без сохранения?')) {
+        closeModal();
+      }
+    } else {
+      closeModal();
+    }
   };
 
   const addExample = () => {
@@ -176,17 +208,16 @@ export default function MaterialsList({ teacherId, isDark = true }) {
     setSaving(false);
   };
 
-  const handleDelete = async (material) => {
-    if (!confirm(`Delete material "${material.title}"?`)) return;
+  const handleDelete = (material) => setDeleteTarget(material);
 
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
     const { error } = await supabase
       .from('materials')
       .delete()
-      .eq('id', material.id);
-
-    if (!error) {
-      await loadData();
-    }
+      .eq('id', deleteTarget.id);
+    if (!error) await loadData();
+    setDeleteTarget(null);
   };
 
   const getLanguageInfo = (lang) => LANGUAGES.find(l => l.value === lang) || LANGUAGES[0];
@@ -346,7 +377,7 @@ export default function MaterialsList({ teacherId, isDark = true }) {
         <div
           className="fixed inset-0 flex items-center justify-center p-4 z-50"
           style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}
-          onClick={closeModal}
+          onClick={handleBackdropClick}
         >
           <div
             className={`relative rounded-3xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto ${
@@ -359,7 +390,7 @@ export default function MaterialsList({ teacherId, isDark = true }) {
                 {editingMaterial ? 'Edit Material' : 'New Material'}
               </h3>
               <button
-                onClick={closeModal}
+                onClick={handleBackdropClick}
                 className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}
               >
                 <X size={20} />
@@ -572,7 +603,7 @@ export default function MaterialsList({ teacherId, isDark = true }) {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={closeModal}
+                  onClick={handleBackdropClick}
                   className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors ${
                     isDark
                       ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]'
@@ -604,6 +635,15 @@ export default function MaterialsList({ teacherId, isDark = true }) {
           contentTitle={assigningMaterial.title}
           onClose={() => setAssigningMaterial(null)}
           onSuccess={() => setAssigningMaterial(null)}
+          isDark={isDark}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.title}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
           isDark={isDark}
         />
       )}
