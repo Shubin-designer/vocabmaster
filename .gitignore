@@ -4,20 +4,87 @@ node_modules/
 # Build
 dist/
 build/
+*.tsbuildinfo
 
-# Environment
+# Environment - CRITICAL: never commit secrets
 .env
 .env.local
-.env.*.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+*.env
+.env.*
+
+# API Keys and Secrets
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+credentials/
+**/secrets.*
+**/credentials.*
+*.secret
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.tscache
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Local development
+.local/
+*.local
+
+# Supabase local
+.supabase/
+
+# Debug
+debug/
+*.debug
+
+# Private/sensitive directories
+private/
+sensitive/
+backup/
+backups/
