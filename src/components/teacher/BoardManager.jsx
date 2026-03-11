@@ -5,6 +5,7 @@ import {
   MoreVertical, Radio, Copy, Check, ExternalLink, Pencil
 } from 'lucide-react';
 import LiveBoard from '../common/LiveBoard';
+import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 
 export default function BoardManager({ teacherId, students = [], isDark = true }) {
   const [boards, setBoards] = useState([]);
@@ -16,6 +17,7 @@ export default function BoardManager({ teacherId, students = [], isDark = true }
   const [editingBoardId, setEditingBoardId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [copiedId, setCopiedId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     if (teacherId) {
@@ -81,11 +83,13 @@ export default function BoardManager({ teacherId, students = [], isDark = true }
     loadBoards();
   };
 
-  const deleteBoard = async (boardId) => {
-    if (!confirm('Delete this board? This cannot be undone.')) return;
+  const deleteBoard = (board) => setDeleteTarget(board);
 
-    await supabase.from('lesson_boards').delete().eq('id', boardId);
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+    await supabase.from('lesson_boards').delete().eq('id', deleteTarget.id);
     loadBoards();
+    setDeleteTarget(null);
   };
 
   const updateBoardTitle = async (boardId, newTitle) => {
@@ -348,7 +352,7 @@ export default function BoardManager({ teacherId, students = [], isDark = true }
                 </button>
 
                 <button
-                  onClick={() => deleteBoard(board.id)}
+                  onClick={() => deleteBoard(board)}
                   className={`p-2 rounded-xl transition-colors ${
                     isDark ? 'bg-white/5 hover:bg-red-500/20 text-white/60 hover:text-red-400' : 'bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600'
                   }`}
@@ -360,6 +364,15 @@ export default function BoardManager({ teacherId, students = [], isDark = true }
             </div>
           ))}
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.title}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
+          isDark={isDark}
+        />
       )}
     </div>
   );

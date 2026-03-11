@@ -6,6 +6,8 @@ import {
   ChevronDown, ChevronUp, BookOpen, Layers, HelpCircle, Send
 } from 'lucide-react';
 
+import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
+
 const QUESTION_TYPES = [
   { value: 'multiple_choice', label: 'Multiple Choice' },
   { value: 'fill_blank', label: 'Fill in the Blank' },
@@ -22,6 +24,7 @@ export default function TestsList({ teacherId, isDark = true }) {
   const [saving, setSaving] = useState(false);
   const [expandedTest, setExpandedTest] = useState(null);
   const [assigningTest, setAssigningTest] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -38,7 +41,7 @@ export default function TestsList({ teacherId, isDark = true }) {
     const [testsRes, topicsRes, materialsRes] = await Promise.all([
       supabase
         .from('tests')
-        .select('*, topics(name), materials(title), test_questions(*)')
+        .select('*, topics(name), materials(title)')
         .eq('teacher_id', teacherId)
         .order('created_at', { ascending: false }),
       supabase
@@ -54,6 +57,19 @@ export default function TestsList({ teacherId, isDark = true }) {
     ]);
 
     if (!testsRes.error && testsRes.data) {
+      // Fetch questions separately
+      if (testsRes.data.length) {
+        const { data: qData } = await supabase
+          .from('test_questions')
+          .select('*')
+          .in('test_id', testsRes.data.map(t => t.id));
+        const qMap = {};
+        qData?.forEach(q => {
+          if (!qMap[q.test_id]) qMap[q.test_id] = [];
+          qMap[q.test_id].push(q);
+        });
+        testsRes.data.forEach(t => { t.test_questions = qMap[t.id] || []; });
+      }
       setTests(testsRes.data);
     }
     if (!topicsRes.error && topicsRes.data) {
@@ -97,8 +113,8 @@ export default function TestsList({ teacherId, isDark = true }) {
         material_id: test.material_id || '',
         questions: questions?.length ? questions.map(q => ({
           id: q.id,
-          question_text: q.question_text || '',
-          question_type: q.question_type || 'multiple_choice',
+          question_text: q.question || q.question_text || '',
+          question_type: q.type || q.question_type || 'multiple_choice',
           options: q.options || ['', '', '', ''],
           correct_answer: q.correct_answer || '',
           explanation_correct: q.explanation_correct || '',
@@ -200,8 +216,8 @@ export default function TestsList({ teacherId, isDark = true }) {
       .filter(q => q.question_text.trim())
       .map((q, index) => ({
         test_id: testId,
-        question_text: q.question_text,
-        question_type: q.question_type,
+        question: q.question_text,
+        type: q.question_type,
         options: q.question_type === 'multiple_choice' ? q.options.filter(o => o.trim()) : null,
         correct_answer: q.correct_answer,
         explanation_correct: q.explanation_correct || null,
@@ -219,18 +235,16 @@ export default function TestsList({ teacherId, isDark = true }) {
     setSaving(false);
   };
 
-  const handleDelete = async (test) => {
-    if (!confirm(`Delete test "${test.title}"?`)) return;
+  const handleDelete = (test) => setDeleteTarget(test);
 
-    // Questions will be deleted via cascade
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
     const { error } = await supabase
       .from('tests')
       .delete()
-      .eq('id', test.id);
-
-    if (!error) {
-      await loadData();
-    }
+      .eq('id', deleteTarget.id);
+    if (!error) await loadData();
+    setDeleteTarget(null);
   };
 
   if (loading) {
@@ -400,7 +414,7 @@ export default function TestsList({ teacherId, isDark = true }) {
                             </span>
                             <div className="flex-1">
                               <p className={`text-sm ${isDark ? 'text-white/80' : 'text-gray-800'}`}>
-                                {q.question_text}
+                                {q.question || q.question_text}
                               </p>
                               <p className={`text-xs mt-1 ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                                 Answer: {q.correct_answer}
@@ -724,6 +738,15 @@ export default function TestsList({ teacherId, isDark = true }) {
           contentTitle={assigningTest.title}
           onClose={() => setAssigningTest(null)}
           onSuccess={() => setAssigningTest(null)}
+          isDark={isDark}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.title}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
           isDark={isDark}
         />
       )}

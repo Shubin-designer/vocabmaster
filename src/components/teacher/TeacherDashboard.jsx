@@ -20,7 +20,8 @@ import {
  */
 export default function TeacherDashboard({ StudentAppComponent, theme, onThemeChange }) {
   const { user, userProfile, isAdmin, toggleAdminView, signOut } = useUser();
-  const [activeTab, setActiveTab] = useState('students');
+  const [activeTab, _setActiveTab] = useState(() => localStorage.getItem('vm_teacher_tab') || 'students');
+  const setActiveTab = (tab) => { _setActiveTab(tab); localStorage.setItem('vm_teacher_tab', tab); };
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [students, setStudents] = useState([]);

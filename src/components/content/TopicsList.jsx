@@ -3,8 +3,10 @@ import { supabase } from '../../supabaseClient';
 import {
   Plus, Edit2, Trash2, Loader, BookOpen, Hash,
   GraduationCap, Globe, Clock, Zap, Target, Layers,
-  ChevronDown, X, Check
+  ChevronDown, X, Check, ChevronRight
 } from 'lucide-react';
+import TopicDetail from './TopicDetail';
+import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 
 const ICONS = [
   { name: 'book', icon: BookOpen },
@@ -53,6 +55,8 @@ export default function TopicsList({ teacherId, isDark = true }) {
   const [showModal, setShowModal] = useState(false);
   const [editingTopic, setEditingTopic] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -80,6 +84,17 @@ export default function TopicsList({ teacherId, isDark = true }) {
   useEffect(() => {
     loadTopics();
   }, [teacherId]);
+
+  if (selectedTopic) {
+    return (
+      <TopicDetail
+        topic={selectedTopic}
+        teacherId={teacherId}
+        isDark={isDark}
+        onBack={() => setSelectedTopic(null)}
+      />
+    );
+  }
 
   const openModal = (topic = null) => {
     if (topic) {
@@ -140,16 +155,20 @@ export default function TopicsList({ teacherId, isDark = true }) {
   };
 
   const handleDelete = async (topic) => {
-    if (!confirm(`Delete topic "${topic.name}"?`)) return;
+    setDeleteTarget(topic);
+  };
 
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
     const { error } = await supabase
       .from('topics')
       .delete()
-      .eq('id', topic.id);
+      .eq('id', deleteTarget.id);
 
     if (!error) {
       await loadTopics();
     }
+    setDeleteTarget(null);
   };
 
   if (loading) {
@@ -208,17 +227,18 @@ export default function TopicsList({ teacherId, isDark = true }) {
             return (
               <div
                 key={topic.id}
-                className={`rounded-2xl p-5 transition-all hover:scale-[1.01] ${
+                className={`group rounded-2xl p-5 transition-all cursor-pointer ${
                   isDark
-                    ? 'bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05]'
-                    : 'bg-white border border-gray-200 hover:shadow-md'
+                    ? 'bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/20'
+                    : 'bg-white border border-gray-200 hover:shadow-md hover:border-gray-300'
                 }`}
+                onClick={() => setSelectedTopic(topic)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getColorClass(topic.icon_color, isDark)}`}>
                     <IconComponent size={24} />
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                     <button
                       onClick={() => openModal(topic)}
                       className={`p-2 rounded-lg transition-colors ${
@@ -246,10 +266,15 @@ export default function TopicsList({ teacherId, isDark = true }) {
                   </p>
                 )}
                 {topic.description && (
-                  <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
+                  <p className={`text-sm mb-3 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
                     {topic.description}
                   </p>
                 )}
+                <div className={`flex items-center gap-1 text-xs font-medium transition-colors ${
+                  isDark ? 'text-white/30 group-hover:text-pink-vibrant' : 'text-gray-300 group-hover:text-pink-vibrant'
+                }`}>
+                  Open <ChevronRight size={14} />
+                </div>
               </div>
             );
           })}
@@ -409,6 +434,14 @@ export default function TopicsList({ teacherId, isDark = true }) {
             </form>
           </div>
         </div>
+      )}
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.name}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
+          isDark={isDark}
+        />
       )}
     </div>
   );

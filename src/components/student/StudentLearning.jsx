@@ -78,8 +78,22 @@ export default function StudentLearning({ studentId, onTakeTest, onViewMaterial,
     if (testIds.length > 0) {
       const { data: testsData } = await supabase
         .from('tests')
-        .select('*, topics(name), test_questions(id)')
+        .select('*, topics(name)')
         .in('id', testIds);
+
+      // Fetch question counts separately
+      if (testsData?.length) {
+        const { data: qData } = await supabase
+          .from('test_questions')
+          .select('id, test_id')
+          .in('test_id', testsData.map(t => t.id));
+        const qMap = {};
+        qData?.forEach(q => {
+          if (!qMap[q.test_id]) qMap[q.test_id] = [];
+          qMap[q.test_id].push({ id: q.id });
+        });
+        testsData.forEach(t => { t.test_questions = qMap[t.id] || []; });
+      }
 
       const testsMap = {};
       testsData?.forEach(t => { testsMap[t.id] = t; });

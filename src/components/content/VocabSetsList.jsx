@@ -5,6 +5,7 @@ import {
   Plus, Edit2, Trash2, Send, Book, Search, X,
   ChevronDown, ChevronUp, Check, BookOpen
 } from 'lucide-react';
+import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 
 export default function VocabSetsList({ teacherId, isDark = true }) {
   const [sets, setSets] = useState([]);
@@ -16,6 +17,7 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
   const [selectedSet, setSelectedSet] = useState(null);
   const [expandedSet, setExpandedSet] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [vocabularyWords, setVocabularyWords] = useState([]);
   const [selectedWords, setSelectedWords] = useState([]);
   const [wordSearch, setWordSearch] = useState('');
@@ -44,7 +46,7 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
       .select(`
         *,
         topics(id, name),
-        sources(id, name)
+        sources(id, title)
       `)
       .eq('teacher_id', teacherId)
       .order('created_at', { ascending: false });
@@ -58,7 +60,7 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
   const fetchTopicsAndSources = async () => {
     const [topicsRes, sourcesRes] = await Promise.all([
       supabase.from('topics').select('id, name').eq('teacher_id', teacherId),
-      supabase.from('sources').select('id, name').eq('teacher_id', teacherId)
+      supabase.from('sources').select('id, title').eq('teacher_id', teacherId)
     ]);
 
     if (topicsRes.data) setTopics(topicsRes.data);
@@ -110,17 +112,16 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this vocabulary set?')) return;
+  const handleDelete = (set) => setDeleteTarget(set);
 
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
     const { error } = await supabase
       .from('vocabulary_sets')
       .delete()
-      .eq('id', id);
-
-    if (!error) {
-      fetchSets();
-    }
+      .eq('id', deleteTarget.id);
+    if (!error) fetchSets();
+    setDeleteTarget(null);
   };
 
   const openEdit = (set) => {
@@ -289,7 +290,7 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
                     <Edit2 size={18} />
                   </button>
                   <button
-                    onClick={() => handleDelete(set.id)}
+                    onClick={() => handleDelete(set)}
                     className={`p-2 rounded-lg transition-colors ${
                       isDark ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-500'
                     }`}
@@ -442,7 +443,7 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
                   >
                     <option value="">None</option>
                     {sources.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
+                      <option key={s.id} value={s.id}>{s.title}</option>
                     ))}
                   </select>
                 </div>
@@ -584,6 +585,15 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
           teacherId={teacherId}
           onClose={() => { setShowAssignModal(false); setSelectedSet(null); }}
           onSuccess={() => { setShowAssignModal(false); setSelectedSet(null); }}
+          isDark={isDark}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.title}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
           isDark={isDark}
         />
       )}

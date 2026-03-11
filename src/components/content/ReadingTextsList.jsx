@@ -6,6 +6,8 @@ import {
   BookOpen, Layers, Send, Eye, ChevronDown, ChevronUp
 } from 'lucide-react';
 
+import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
+
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 const LANGUAGES = [
@@ -35,6 +37,7 @@ export default function ReadingTextsList({ teacherId, isDark = true }) {
   const [saving, setSaving] = useState(false);
   const [assigningText, setAssigningText] = useState(null);
   const [expandedText, setExpandedText] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -182,17 +185,16 @@ export default function ReadingTextsList({ teacherId, isDark = true }) {
     setSaving(false);
   };
 
-  const handleDelete = async (text) => {
-    if (!confirm(`Delete reading text "${text.title}"?`)) return;
+  const handleDelete = (text) => setDeleteTarget(text);
 
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
     const { error } = await supabase
       .from('reading_texts')
       .delete()
-      .eq('id', text.id);
-
-    if (!error) {
-      await loadData();
-    }
+      .eq('id', deleteTarget.id);
+    if (!error) await loadData();
+    setDeleteTarget(null);
   };
 
   const getLanguageInfo = (lang) => LANGUAGES.find(l => l.value === lang) || LANGUAGES[0];
@@ -662,6 +664,15 @@ export default function ReadingTextsList({ teacherId, isDark = true }) {
           contentTitle={assigningText.title}
           onClose={() => setAssigningText(null)}
           onSuccess={() => setAssigningText(null)}
+          isDark={isDark}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.title}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
           isDark={isDark}
         />
       )}

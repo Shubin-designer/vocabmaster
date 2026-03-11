@@ -231,7 +231,7 @@ export default function TestTaker({
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium mb-1 ${isDark ? 'text-white/80' : 'text-gray-800'}`}>
-                          {idx + 1}. {q.question_text}
+                          {idx + 1}. {q.question || q.question_text}
                         </p>
                         <div className="flex flex-wrap gap-2 text-xs">
                           <span className={answerInfo?.is_correct ? 'text-green-400' : 'text-red-400'}>
@@ -347,11 +347,11 @@ export default function TestTaker({
             <div className="space-y-6">
               {/* Question text */}
               <div className={`text-xl font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {currentQuestion.question_text}
+                {currentQuestion.question || currentQuestion.question_text}
               </div>
 
               {/* Answer options */}
-              {currentQuestion.question_type === 'multiple_choice' && currentQuestion.options?.length > 0 ? (
+              {(currentQuestion.type || currentQuestion.question_type) === 'multiple_choice' && currentQuestion.options?.length > 0 ? (
                 <div className="space-y-3">
                   {currentQuestion.options.map((option, idx) => (
                     <button
@@ -378,7 +378,7 @@ export default function TestTaker({
                     </button>
                   ))}
                 </div>
-              ) : currentQuestion.question_type === 'true_false' ? (
+              ) : (currentQuestion.type || currentQuestion.question_type) === 'true_false' ? (
                 <div className="flex gap-4">
                   {['True', 'False'].map(option => (
                     <button

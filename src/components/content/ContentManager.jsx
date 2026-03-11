@@ -1,25 +1,20 @@
 import { useState } from 'react';
 import TopicsList from './TopicsList';
-import SourcesList from './SourcesList';
-import MaterialsList from './MaterialsList';
-import TestsList from './TestsList';
 import ReadingTextsList from './ReadingTextsList';
 import VocabSetsList from './VocabSetsList';
 import HomeworkList from './HomeworkList';
-import { Layers, Book, FileText, ClipboardList, BookOpen, Languages, PenLine } from 'lucide-react';
+import { Layers, BookOpen, Languages, PenLine } from 'lucide-react';
 
 const TABS = [
   { key: 'topics', label: 'Topics', icon: Layers },
-  { key: 'sources', label: 'Sources', icon: Book },
-  { key: 'materials', label: 'Materials', icon: FileText },
   { key: 'reading', label: 'Reading', icon: BookOpen },
   { key: 'vocabulary', label: 'Vocabulary', icon: Languages },
-  { key: 'tests', label: 'Tests', icon: ClipboardList },
   { key: 'homework', label: 'Homework', icon: PenLine },
 ];
 
 export default function ContentManager({ teacherId, isDark = true }) {
-  const [activeTab, setActiveTab] = useState('topics');
+  const [activeTab, _setActiveTab] = useState(() => localStorage.getItem('vm_content_tab') || 'topics');
+  const setActiveTab = (tab) => { _setActiveTab(tab); localStorage.setItem('vm_content_tab', tab); };
 
   return (
     <div className="space-y-6">
@@ -48,24 +43,12 @@ export default function ContentManager({ teacherId, isDark = true }) {
         <TopicsList teacherId={teacherId} isDark={isDark} />
       )}
 
-      {activeTab === 'sources' && (
-        <SourcesList teacherId={teacherId} isDark={isDark} />
-      )}
-
-      {activeTab === 'materials' && (
-        <MaterialsList teacherId={teacherId} isDark={isDark} />
-      )}
-
       {activeTab === 'reading' && (
         <ReadingTextsList teacherId={teacherId} isDark={isDark} />
       )}
 
       {activeTab === 'vocabulary' && (
         <VocabSetsList teacherId={teacherId} isDark={isDark} />
-      )}
-
-      {activeTab === 'tests' && (
-        <TestsList teacherId={teacherId} isDark={isDark} />
       )}
 
       {activeTab === 'homework' && (

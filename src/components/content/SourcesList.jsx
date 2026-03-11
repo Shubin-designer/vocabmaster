@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { Plus, Edit2, Trash2, Loader, Book, X, Check, Globe } from 'lucide-react';
+import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 
 const LANGUAGES = [
   { value: 'en', label: 'English', flag: '🇬🇧' },
@@ -14,6 +15,7 @@ export default function SourcesList({ teacherId, isDark = true }) {
   const [showModal, setShowModal] = useState(false);
   const [editingSource, setEditingSource] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -96,17 +98,16 @@ export default function SourcesList({ teacherId, isDark = true }) {
     setSaving(false);
   };
 
-  const handleDelete = async (source) => {
-    if (!confirm(`Delete source "${source.title}"?`)) return;
+  const handleDelete = (source) => setDeleteTarget(source);
 
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
     const { error } = await supabase
       .from('sources')
       .delete()
-      .eq('id', source.id);
-
-    if (!error) {
-      await loadSources();
-    }
+      .eq('id', deleteTarget.id);
+    if (!error) await loadSources();
+    setDeleteTarget(null);
   };
 
   const getLanguageInfo = (lang) => LANGUAGES.find(l => l.value === lang) || LANGUAGES[0];
@@ -357,6 +358,15 @@ export default function SourcesList({ teacherId, isDark = true }) {
             </form>
           </div>
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.title}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
+          isDark={isDark}
+        />
       )}
     </div>
   );

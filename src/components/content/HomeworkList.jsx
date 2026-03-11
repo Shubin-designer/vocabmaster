@@ -3,8 +3,11 @@ import { supabase } from '../../supabaseClient';
 import {
   Plus, Edit2, Trash2, Search, Calendar, Clock,
   Users, ChevronDown, ChevronUp, X, Check, FileText,
-  AlertCircle, CheckCircle, Eye
+  AlertCircle, CheckCircle, Eye, BookOpen, ClipboardList,
+  BookText, Paperclip
 } from 'lucide-react';
+import RichTextEditor from '../common/RichTextEditor';
+import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 
 export default function HomeworkList({ teacherId, isDark = true }) {
   const [homework, setHomework] = useState([]);
@@ -16,6 +19,15 @@ export default function HomeworkList({ teacherId, isDark = true }) {
   const [selectedHomework, setSelectedHomework] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Available content for attachment
+  const [availableMaterials, setAvailableMaterials] = useState([]);
+  const [availableTests, setAvailableTests] = useState([]);
+  const [availableReadingTexts, setAvailableReadingTexts] = useState([]);
+  const [showContentPicker, setShowContentPicker] = useState(false);
+  const [contentPickerType, setContentPickerType] = useState('material');
+  const [contentPickerSearch, setContentPickerSearch] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -26,7 +38,8 @@ export default function HomeworkList({ teacherId, isDark = true }) {
     topic_id: '',
     allow_late_submission: false,
     assign_to_all: true,
-    selected_students: []
+    selected_students: [],
+    attached_content: [] // {content_type, content_id, title}
   });
 
   useEffect(() => {
@@ -34,6 +47,7 @@ export default function HomeworkList({ teacherId, isDark = true }) {
       fetchHomework();
       fetchTopics();
       fetchStudents();
+      fetchAvailableContent();
     }
   }, [teacherId]);
 
@@ -45,7 +59,8 @@ export default function HomeworkList({ teacherId, isDark = true }) {
         *,
         topics(name),
         homework_assignments(student_id),
-        homework_submissions(id, student_id, status)
+        homework_submissions(id, student_id, status),
+        homework_content(id, content_type, content_id, sort_order)
       `)
       .eq('teacher_id', teacherId)
       .order('due_date', { ascending: false });
@@ -81,6 +96,17 @@ export default function HomeworkList({ teacherId, isDark = true }) {
     }
   };
 
+  const fetchAvailableContent = async () => {
+    const [mats, tests, texts] = await Promise.all([
+      supabase.from('materials').select('id, title, level').eq('teacher_id', teacherId).order('title'),
+      supabase.from('tests').select('id, title').eq('teacher_id', teacherId).order('title'),
+      supabase.from('reading_texts').select('id, title, level').eq('teacher_id', teacherId).order('title')
+    ]);
+    if (mats.data) setAvailableMaterials(mats.data);
+    if (tests.data) setAvailableTests(tests.data);
+    if (texts.data) setAvailableReadingTexts(texts.data);
+  };
+
   const fetchSubmissions = async (homeworkId) => {
     const { data } = await supabase
       .from('homework_submissions')
@@ -91,7 +117,6 @@ export default function HomeworkList({ teacherId, isDark = true }) {
       .eq('homework_id', homeworkId);
 
     if (data) {
-      // Add student names
       const enriched = data.map(s => ({
         ...s,
         student_name: students.find(st => st.user_id === s.student_id)?.display_name || 'Student'
@@ -122,6 +147,9 @@ export default function HomeworkList({ teacherId, isDark = true }) {
         .eq('id', selectedHomework.id);
       if (error) return;
       homeworkId = selectedHomework.id;
+
+      // Update content attachments: delete old, insert new
+      await supabase.from('homework_content').delete().eq('homework_id', homeworkId);
     } else {
       const { data, error } = await supabase
         .from('homework')
@@ -147,19 +175,50 @@ export default function HomeworkList({ teacherId, isDark = true }) {
       }
     }
 
+    // Insert content attachments
+    if (formData.attached_content.length > 0) {
+      const contentRows = formData.attached_content.map((item, idx) => ({
+        homework_id: homeworkId,
+        content_type: item.content_type,
+        content_id: item.content_id,
+        sort_order: idx
+      }));
+      await supabase.from('homework_content').insert(contentRows);
+    }
+
     setShowModal(false);
     resetForm();
     fetchHomework();
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this homework?')) return;
-    await supabase.from('homework').delete().eq('id', id);
+  const handleDelete = (hw) => setDeleteTarget(hw);
+
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+    await supabase.from('homework').delete().eq('id', deleteTarget.id);
     fetchHomework();
+    setDeleteTarget(null);
   };
 
-  const openEdit = (hw) => {
+  const openEdit = async (hw) => {
     setSelectedHomework(hw);
+
+    // Load attached content with titles
+    const attached = [];
+    if (hw.homework_content && hw.homework_content.length > 0) {
+      for (const hc of hw.homework_content) {
+        let title = '';
+        if (hc.content_type === 'material') {
+          title = availableMaterials.find(m => m.id === hc.content_id)?.title || 'Material';
+        } else if (hc.content_type === 'test') {
+          title = availableTests.find(t => t.id === hc.content_id)?.title || 'Test';
+        } else if (hc.content_type === 'reading_text') {
+          title = availableReadingTexts.find(r => r.id === hc.content_id)?.title || 'Reading';
+        }
+        attached.push({ content_type: hc.content_type, content_id: hc.content_id, title });
+      }
+    }
+
     setFormData({
       title: hw.title,
       description: hw.description || '',
@@ -169,7 +228,8 @@ export default function HomeworkList({ teacherId, isDark = true }) {
       topic_id: hw.topic_id || '',
       allow_late_submission: hw.allow_late_submission || false,
       assign_to_all: true,
-      selected_students: []
+      selected_students: [],
+      attached_content: attached
     });
     setShowModal(true);
   };
@@ -191,7 +251,26 @@ export default function HomeworkList({ teacherId, isDark = true }) {
       topic_id: '',
       allow_late_submission: false,
       assign_to_all: true,
-      selected_students: []
+      selected_students: [],
+      attached_content: []
+    });
+  };
+
+  const addContent = (content_type, content_id, title) => {
+    const already = formData.attached_content.some(
+      c => c.content_type === content_type && c.content_id === content_id
+    );
+    if (already) return;
+    setFormData({
+      ...formData,
+      attached_content: [...formData.attached_content, { content_type, content_id, title }]
+    });
+  };
+
+  const removeContent = (idx) => {
+    setFormData({
+      ...formData,
+      attached_content: formData.attached_content.filter((_, i) => i !== idx)
     });
   };
 
@@ -207,6 +286,30 @@ export default function HomeworkList({ teacherId, isDark = true }) {
   };
 
   const isPastDue = (date) => new Date(date) < new Date();
+
+  const contentTypeIcon = (type) => {
+    if (type === 'material') return <BookOpen size={14} className="text-blue-400" />;
+    if (type === 'test') return <ClipboardList size={14} className="text-orange-400" />;
+    return <BookText size={14} className="text-green-400" />;
+  };
+
+  const contentTypeLabel = (type) => {
+    if (type === 'material') return 'Material';
+    if (type === 'test') return 'Test';
+    return 'Reading';
+  };
+
+  // Content picker items filtered by search
+  const getPickerItems = () => {
+    const q = contentPickerSearch.toLowerCase();
+    if (contentPickerType === 'material') {
+      return availableMaterials.filter(m => m.title.toLowerCase().includes(q));
+    }
+    if (contentPickerType === 'test') {
+      return availableTests.filter(t => t.title.toLowerCase().includes(q));
+    }
+    return availableReadingTexts.filter(r => r.title.toLowerCase().includes(q));
+  };
 
   return (
     <div className="space-y-6">
@@ -262,6 +365,7 @@ export default function HomeworkList({ teacherId, isDark = true }) {
           {filteredHomework.map(hw => {
             const status = getStatusCounts(hw);
             const pastDue = isPastDue(hw.due_date);
+            const contentCount = hw.homework_content?.length || 0;
 
             return (
               <div
@@ -313,6 +417,12 @@ export default function HomeworkList({ teacherId, isDark = true }) {
                         <CheckCircle size={14} />
                         {status.graded} graded
                       </span>
+                      {contentCount > 0 && (
+                        <span className={`flex items-center gap-1 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                          <Paperclip size={14} />
+                          {contentCount} attached
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -335,7 +445,7 @@ export default function HomeworkList({ teacherId, isDark = true }) {
                       <Edit2 size={18} />
                     </button>
                     <button
-                      onClick={() => handleDelete(hw.id)}
+                      onClick={() => handleDelete(hw)}
                       className={`p-2 rounded-lg ${isDark ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-500'}`}
                     >
                       <Trash2 size={18} />
@@ -351,10 +461,10 @@ export default function HomeworkList({ teacherId, isDark = true }) {
       {/* Create/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className={`w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl ${
+          <div className={`w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl ${
             isDark ? 'bg-[#1a1a1e]' : 'bg-white'
           }`}>
-            <div className={`sticky top-0 flex items-center justify-between p-4 border-b ${
+            <div className={`sticky top-0 z-10 flex items-center justify-between p-4 border-b ${
               isDark ? 'bg-[#1a1a1e] border-white/10' : 'bg-white border-gray-200'
             }`}>
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -406,17 +516,63 @@ export default function HomeworkList({ teacherId, isDark = true }) {
                 <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
                   Instructions
                 </label>
-                <textarea
-                  value={formData.instructions}
-                  onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-                  rows={3}
-                  placeholder="Detailed instructions for students..."
-                  className={`w-full px-4 py-2.5 rounded-xl border ${
-                    isDark
-                      ? 'bg-white/[0.03] border-white/10 text-white placeholder-white/30'
-                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                  } focus:outline-none focus:ring-2 focus:ring-pink-vibrant/50`}
+                <RichTextEditor
+                  content={formData.instructions}
+                  onChange={(html) => setFormData({ ...formData, instructions: html })}
+                  isDark={isDark}
                 />
+              </div>
+
+              {/* Attached Content */}
+              <div>
+                <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
+                  Attached Content
+                </label>
+
+                {formData.attached_content.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    {formData.attached_content.map((item, idx) => (
+                      <div
+                        key={`${item.content_type}-${item.content_id}`}
+                        className={`flex items-center justify-between px-3 py-2 rounded-xl ${
+                          isDark ? 'bg-white/[0.04]' : 'bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {contentTypeIcon(item.content_type)}
+                          <span className={`text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
+                            {item.title}
+                          </span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${
+                            isDark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'
+                          }`}>
+                            {contentTypeLabel(item.content_type)}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeContent(idx)}
+                          className={`p-1 rounded-lg ${isDark ? 'hover:bg-white/[0.05] text-white/40' : 'hover:bg-gray-200 text-gray-400'}`}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => { setShowContentPicker(true); setContentPickerSearch(''); }}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    isDark
+                      ? 'bg-white/[0.05] text-white/60 hover:bg-white/[0.08]'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Paperclip size={16} />
+                  Attach Content
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -506,6 +662,125 @@ export default function HomeworkList({ teacherId, isDark = true }) {
         </div>
       )}
 
+      {/* Content Picker Modal */}
+      {showContentPicker && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className={`w-full max-w-lg max-h-[70vh] flex flex-col rounded-2xl ${
+            isDark ? 'bg-[#1a1a1e]' : 'bg-white'
+          }`}>
+            <div className={`flex items-center justify-between p-4 border-b ${
+              isDark ? 'border-white/10' : 'border-gray-200'
+            }`}>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Attach Content
+              </h3>
+              <button
+                onClick={() => setShowContentPicker(false)}
+                className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/[0.05]' : 'hover:bg-gray-100'}`}
+              >
+                <X size={20} className={isDark ? 'text-white/60' : 'text-gray-500'} />
+              </button>
+            </div>
+
+            {/* Type tabs */}
+            <div className={`flex border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              {[
+                { key: 'material', label: 'Materials', icon: <BookOpen size={16} /> },
+                { key: 'test', label: 'Tests', icon: <ClipboardList size={16} /> },
+                { key: 'reading_text', label: 'Reading', icon: <BookText size={16} /> }
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => { setContentPickerType(tab.key); setContentPickerSearch(''); }}
+                  className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors ${
+                    contentPickerType === tab.key
+                      ? 'text-pink-vibrant border-b-2 border-pink-vibrant'
+                      : isDark ? 'text-white/50 hover:text-white/70' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Search */}
+            <div className="p-3">
+              <div className="relative">
+                <Search size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-white/40' : 'text-gray-400'}`} />
+                <input
+                  type="text"
+                  value={contentPickerSearch}
+                  onChange={(e) => setContentPickerSearch(e.target.value)}
+                  placeholder="Search..."
+                  className={`w-full pl-9 pr-4 py-2 rounded-xl border text-sm ${
+                    isDark
+                      ? 'bg-white/[0.03] border-white/10 text-white placeholder-white/40'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-pink-vibrant/50`}
+                />
+              </div>
+            </div>
+
+            {/* Items list */}
+            <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
+              {getPickerItems().length === 0 ? (
+                <p className={`text-center py-8 text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
+                  No {contentTypeLabel(contentPickerType).toLowerCase()}s found
+                </p>
+              ) : (
+                getPickerItems().map(item => {
+                  const isAttached = formData.attached_content.some(
+                    c => c.content_type === contentPickerType && c.content_id === item.id
+                  );
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        if (isAttached) return;
+                        addContent(contentPickerType, item.id, item.title);
+                      }}
+                      disabled={isAttached}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-colors ${
+                        isAttached
+                          ? isDark ? 'bg-pink-vibrant/10 text-pink-vibrant' : 'bg-pink-50 text-pink-600'
+                          : isDark
+                            ? 'hover:bg-white/[0.05] text-white/80'
+                            : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {contentTypeIcon(contentPickerType)}
+                        <span className="text-sm">{item.title}</span>
+                        {item.level && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${
+                            isDark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'
+                          }`}>
+                            {item.level}
+                          </span>
+                        )}
+                      </div>
+                      {isAttached && <CheckCircle size={16} />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            <div className={`p-3 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              <button
+                type="button"
+                onClick={() => setShowContentPicker(false)}
+                className="w-full px-4 py-2 bg-pink-vibrant text-white rounded-xl font-medium hover:brightness-110"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Submissions Modal */}
       {showSubmissions && (
         <SubmissionsModal
@@ -514,6 +789,15 @@ export default function HomeworkList({ teacherId, isDark = true }) {
           students={students}
           onClose={() => { setShowSubmissions(null); setSelectedHomework(null); }}
           onGrade={() => fetchSubmissions(selectedHomework.id)}
+          isDark={isDark}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.title}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
           isDark={isDark}
         />
       )}
@@ -610,11 +894,12 @@ function SubmissionsModal({ homework, submissions, students, onClose, onGrade, i
                       )}
                     </div>
                     {sub.content && (
-                      <div className={`mt-2 p-3 rounded-lg text-sm ${
-                        isDark ? 'bg-white/[0.02] text-white/80' : 'bg-white text-gray-700'
-                      }`}>
-                        {sub.content}
-                      </div>
+                      <div
+                        className={`mt-2 p-3 rounded-lg text-sm ${
+                          isDark ? 'bg-white/[0.02] text-white/80' : 'bg-white text-gray-700'
+                        } prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}
+                        dangerouslySetInnerHTML={{ __html: sub.content }}
+                      />
                     )}
                     {sub.homework_feedback?.[0]?.feedback && (
                       <div className={`mt-2 p-3 rounded-lg text-sm border-l-2 border-pink-vibrant ${

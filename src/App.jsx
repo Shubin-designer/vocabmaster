@@ -12,6 +12,7 @@ import TestTaker from './components/student/TestTaker';
 import InteractiveReader from './components/student/InteractiveReader';
 import VocabSetViewer from './components/student/VocabSetViewer';
 import NotificationBell from './components/common/NotificationBell';
+import ConfirmDeleteModal from './components/common/ConfirmDeleteModal';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const WORD_TYPES = ['noun', 'verb', 'adjective', 'adverb', 'phrasal verb', 'idiom', 'phrase', 'preposition', 'conjunction', 'interjection'];
@@ -3553,7 +3554,7 @@ function StudentApp({ user: contextUser }) {
           isDark={isDark}
         />
       }
-      {confirmDelete && <Modal onClose={() => setConfirmDelete(null)} isDark={isDark}><h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Delete?</h3><p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Delete "{confirmDelete.name}"?</p><div className="flex gap-2"><button onClick={() => setConfirmDelete(null)} className={btn({ variant: 'secondary', theme: isDark ? 'dark' : 'light' })}>Cancel</button><button onClick={executeDelete} className={btn({ variant: 'danger' })}>Delete</button></div></Modal>}
+      {confirmDelete && <ConfirmDeleteModal itemName={confirmDelete.name} onConfirm={executeDelete} onCancel={() => setConfirmDelete(null)} isDark={isDark} />}
       {toast && <Toast message={toast.message} onUndo={toast.canUndo ? undoDelete : null} onClose={() => setToast(null)} />}
       {alert && <Alert message={alert} onClose={() => setAlert(null)} isDark={isDark} />}
 
