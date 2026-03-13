@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -8,20 +8,14 @@ import Table from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
-import { Extension } from '@tiptap/core';
-import { Plugin, PluginKey } from 'prosemirror-state';
-import { Decoration, DecorationSet } from 'prosemirror-view';
-import { createPortal } from 'react-dom';
 import {
   X, Check, Loader2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Upload, ScanText, FileText, ArrowRight,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Quote,
-  Table as TableIcon, Minus, Pilcrow, Heading1, Heading2, Heading3, Trash2
+  Table as TableIcon, Minus, Pilcrow, Heading1, Heading2, Heading3, Trash2, Plus, RowsIcon, ColumnsIcon
 } from 'lucide-react';
 import { loadPdf, renderPageToCanvas, renderPageToBlob, generateThumbnail } from '../../utils/pdfUtils';
 import { ocrBlobToHtml } from '../../utils/ocrToHtml';
 import PdfPageThumbnail from './PdfPageThumbnail';
-
-const tableToolbarPluginKey = new PluginKey('tableToolbar');
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -57,50 +51,10 @@ export default function MaterialEditorFullscreen({
   const fileInputRef = useRef(null);
   const ocrContentRef = useRef(null);
 
-  // Table toolbar state
+  // Table state
   const [inTable, setInTable] = useState(false);
-  const tableToolbarRef = useRef(null);
-  if (!tableToolbarRef.current) {
-    const el = document.createElement('div');
-    el.setAttribute('contenteditable', 'false');
-    tableToolbarRef.current = el;
-  }
 
   const isEditing = !!material;
-
-  // Table toolbar extension
-  const TableToolbarExtension = useMemo(() => {
-    const toolbarEl = tableToolbarRef.current;
-    return Extension.create({
-      name: 'tableToolbar',
-      addProseMirrorPlugins() {
-        return [
-          new Plugin({
-            key: tableToolbarPluginKey,
-            props: {
-              decorations(state) {
-                const { $from } = state.selection;
-                let tablePos = null;
-                for (let d = $from.depth; d > 0; d--) {
-                  if ($from.node(d).type.name === 'table') {
-                    tablePos = $from.before(d);
-                    break;
-                  }
-                }
-                if (tablePos === null) return DecorationSet.empty;
-                return DecorationSet.create(state.doc, [
-                  Decoration.widget(tablePos, () => toolbarEl, {
-                    side: -1,
-                    key: 'table-toolbar-widget',
-                  }),
-                ]);
-              },
-            },
-          }),
-        ];
-      },
-    });
-  }, []);
 
   // Tiptap editor
   const editor = useEditor({
@@ -113,7 +67,6 @@ export default function MaterialEditorFullscreen({
       TableRow,
       TableHeader,
       TableCell,
-      TableToolbarExtension,
     ],
     content: formData.content || '',
     onUpdate: ({ editor }) => {
@@ -267,17 +220,21 @@ export default function MaterialEditorFullscreen({
   const hasOcrContent = ocrHtml && ocrHtml.trim().length > 0;
 
   // Toolbar button helper
-  const ToolBtn = ({ active, onClick, title, children }) => (
+  const ToolBtn = ({ active, onClick, title, children, danger }) => (
     <button
       type="button"
       title={title}
       onMouseDown={e => { e.preventDefault(); onClick(); }}
       className={`p-2 rounded-lg transition-colors ${
-        active
-          ? 'bg-pink-vibrant text-white'
-          : isDark
-            ? 'text-white/60 hover:text-white hover:bg-white/10'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+        danger
+          ? isDark
+            ? 'text-red-400 hover:text-red-300 hover:bg-red-500/20'
+            : 'text-red-500 hover:text-red-600 hover:bg-red-50'
+          : active
+            ? 'bg-pink-vibrant text-white'
+            : isDark
+              ? 'text-white/60 hover:text-white hover:bg-white/10'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
       }`}
     >
       {children}
@@ -403,13 +360,33 @@ export default function MaterialEditorFullscreen({
         {/* Editor Column - 50% */}
         <div className="w-1/2 flex flex-col relative">
           {/* Editor area */}
-          <div className="flex-1 overflow-auto p-4 pb-20">
+          <div className="flex-1 overflow-auto p-4 pb-24">
             <EditorContent editor={editor} className={`material-editor min-h-full ${isDark ? 'dark' : 'light'}`} />
           </div>
 
-          {/* Floating Dock Toolbar */}
+          {/* Floating Toolbars Container */}
           {editor && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+              {/* Table Toolbar - appears above main toolbar when in table */}
+              {inTable && (
+                <div className={`flex items-center gap-0.5 px-2 py-1.5 rounded-xl shadow-xl border backdrop-blur-xl ${
+                  isDark
+                    ? 'bg-[#2a2a30]/95 border-white/10 shadow-black/40'
+                    : 'bg-white/95 border-gray-200 shadow-gray-200/60'
+                }`}>
+                  <ToolBtn onClick={() => editor.chain().focus().addRowBefore().run()} title="Row above"><ChevronUp size={16} /></ToolBtn>
+                  <ToolBtn onClick={() => editor.chain().focus().addRowAfter().run()} title="Row below"><ChevronDown size={16} /></ToolBtn>
+                  <ToolBtn onClick={() => editor.chain().focus().deleteRow().run()} title="Delete row" danger><Trash2 size={14} /></ToolBtn>
+                  <div className={`w-px h-5 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                  <ToolBtn onClick={() => editor.chain().focus().addColumnBefore().run()} title="Column left"><ChevronLeft size={16} /></ToolBtn>
+                  <ToolBtn onClick={() => editor.chain().focus().addColumnAfter().run()} title="Column right"><ChevronRight size={16} /></ToolBtn>
+                  <ToolBtn onClick={() => editor.chain().focus().deleteColumn().run()} title="Delete column" danger><Trash2 size={14} /></ToolBtn>
+                  <div className={`w-px h-5 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                  <ToolBtn onClick={() => editor.chain().focus().deleteTable().run()} title="Delete table" danger><X size={16} /></ToolBtn>
+                </div>
+              )}
+
+              {/* Main Text Toolbar */}
               <div className={`flex items-center gap-1 px-3 py-2 rounded-2xl shadow-2xl border backdrop-blur-xl ${
                 isDark
                   ? 'bg-[#2a2a30]/90 border-white/10 shadow-black/50'
@@ -435,70 +412,10 @@ export default function MaterialEditorFullscreen({
 
                 <div className={`w-px h-6 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
 
-                <ToolBtn active={false} onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Table"><TableIcon size={18} /></ToolBtn>
-                <ToolBtn active={false} onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Divider"><Minus size={18} /></ToolBtn>
+                <ToolBtn active={inTable} onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Table"><TableIcon size={18} /></ToolBtn>
+                <ToolBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Divider"><Minus size={18} /></ToolBtn>
               </div>
             </div>
-          )}
-
-          {/* Table toolbar - rendered via portal into tableToolbarRef.current */}
-          {inTable && tableToolbarRef.current && createPortal(
-            <div className={`flex items-center gap-1 px-3 py-1.5 mb-1 rounded-lg border text-xs ${
-              isDark ? 'border-white/10 bg-white/[0.04]' : 'border-gray-200 bg-gray-50'
-            }`}>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().addRowBefore().run()}
-                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-200 text-gray-600'}`}
-              >
-                <ChevronUp size={12} /><span>Row above</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().addRowAfter().run()}
-                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-200 text-gray-600'}`}
-              >
-                <ChevronDown size={12} /><span>Row below</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().deleteRow().run()}
-                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
-              >
-                <Trash2 size={12} /><span>Del row</span>
-              </button>
-              <div className={`w-px h-4 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().addColumnBefore().run()}
-                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-200 text-gray-600'}`}
-              >
-                <ChevronLeft size={12} /><span>Col left</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().addColumnAfter().run()}
-                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-200 text-gray-600'}`}
-              >
-                <ChevronRight size={12} /><span>Col right</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().deleteColumn().run()}
-                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
-              >
-                <Trash2 size={12} /><span>Del col</span>
-              </button>
-              <div className={`w-px h-4 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().deleteTable().run()}
-                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
-              >
-                <Trash2 size={12} /><span>Delete table</span>
-              </button>
-            </div>,
-            tableToolbarRef.current
           )}
         </div>
       </div>
