@@ -90,8 +90,12 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
 
   // Run OCR on selected pages
   const runOcr = async () => {
-    if (selectedPages.length === 0 || !pdf) return;
+    if (selectedPages.length === 0 || !pdf) {
+      console.log('runOcr: no pages selected or no pdf');
+      return;
+    }
 
+    console.log('runOcr: starting with pages', selectedPages);
     setOcrProgress({ status: 'processing', current: 0, total: selectedPages.length, error: null });
     setOcrHtml('');
 
@@ -105,13 +109,18 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
     try {
       for (let i = 0; i < selectedPages.length; i++) {
         const pageNum = selectedPages[i];
+        console.log(`runOcr: processing page ${pageNum}`);
         setOcrProgress(prev => ({ ...prev, current: i + 1 }));
 
         // Render page to blob
+        console.log('runOcr: rendering page to blob...');
         const blob = await renderPageToBlob(pdf, pageNum, 2.0);
+        console.log('runOcr: blob created', blob?.size, 'bytes');
 
         // Run OCR
+        console.log('runOcr: calling OCR...');
         const html = await ocrBlobToHtml(blob);
+        console.log('runOcr: OCR result length', html?.length);
         htmlParts.push(html);
 
         // Update thumbnail status to done
@@ -124,6 +133,7 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
       const combinedHtml = htmlParts.join('<hr style="margin: 2em 0; border: none; border-top: 1px solid #ccc;">');
       setOcrHtml(combinedHtml);
       setOcrProgress({ status: 'done', current: selectedPages.length, total: selectedPages.length, error: null });
+      console.log('runOcr: completed successfully');
     } catch (err) {
       console.error('OCR failed:', err);
       setOcrProgress({ status: 'error', current: 0, total: selectedPages.length, error: err.message });
