@@ -3,11 +3,12 @@ import { supabase } from '../../supabaseClient';
 import {
   ArrowLeft, BookOpen, ClipboardList,
   Plus, Edit2, Trash2, X, Check, Loader,
-  ChevronDown, ChevronUp, GripVertical
+  ChevronDown, ChevronUp, GripVertical, ClipboardPaste
 } from 'lucide-react';
 import RichTextEditor from '../common/RichTextEditor';
 import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 import MaterialEditorFullscreen from './MaterialEditorFullscreen';
+import { parseTestText } from '../../utils/testParser';
 
 const QUESTION_TYPES = [
   { value: 'multiple_choice', label: 'Multiple Choice' },
@@ -143,12 +144,31 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
   const [expandedTest, setExpandedTest] = useState(null);
   const [savingTest, setSavingTest] = useState(false);
   const [testForm, setTestForm] = useState({ title: '', description: '', questions: [] });
+  const [showPasteModal, setShowPasteModal] = useState(false);
+  const [pasteText, setPasteText] = useState('');
 
   const emptyQ = () => ({
     question_text: '', question_type: 'multiple_choice',
     options: ['', '', '', ''], correct_answer: '',
     explanation_correct: '', explanation_wrong: '', hint: '',
   });
+
+  const handlePasteQuestions = () => {
+    if (!pasteText.trim()) return;
+    const parsed = parseTestText(pasteText);
+    if (parsed.length > 0) {
+      // Add parsed questions to existing ones
+      setTestForm(prev => ({
+        ...prev,
+        questions: [...prev.questions, ...parsed.map(q => ({
+          ...emptyQ(),
+          ...q,
+        }))]
+      }));
+    }
+    setPasteText('');
+    setShowPasteModal(false);
+  };
 
   const loadTests = async () => {
     setLoadingTests(true);
@@ -560,13 +580,22 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className={lbl(isDark).replace('mb-2', '')}>Questions</label>
-                  <button
-                    type="button"
-                    onClick={() => setTestForm({ ...testForm, questions: [...testForm.questions, emptyQ()] })}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${isDark ? 'bg-white/[0.05] text-white/60 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                  >
-                    <Plus size={14} /> Add Question
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTestForm({ ...testForm, questions: [...testForm.questions, emptyQ()] })}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${isDark ? 'bg-white/[0.05] text-white/60 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                    >
+                      <Plus size={14} /> Add Question
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPasteModal(true)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${isDark ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'}`}
+                    >
+                      <ClipboardPaste size={14} /> Paste Questions
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-4">
                   {testForm.questions.map((q, qi) => (
@@ -701,6 +730,59 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                 className="h-10 px-4 font-medium rounded-full transition-all flex items-center justify-center gap-2 bg-pink-vibrant text-white hover:brightness-110"
               >
                 Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Paste Questions Modal */}
+      {showPasteModal && (
+        <div
+          className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-[90] bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowPasteModal(false)}
+        >
+          <div
+            className={`relative rounded-2xl p-5 w-full max-w-2xl ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-gray-200'}`}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Paste Questions
+              </h3>
+              <button
+                onClick={() => setShowPasteModal(false)}
+                className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className={`text-sm mb-3 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+              Paste your test questions. Format: numbered questions with options (1. option 2. option...)
+            </p>
+            <textarea
+              value={pasteText}
+              onChange={e => setPasteText(e.target.value)}
+              placeholder={`Example:\n1. Did you remember to get ... bread?\n1. a, the  2. -, -  3. the, the  4. -, the\n\n2. The situation was getting out of ... hand.\n1. a, -  2. the, the  3. -, the  4. the, -`}
+              className={`w-full h-64 px-4 py-3 rounded-xl border text-sm font-mono resize-none ${
+                isDark
+                  ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400'
+              }`}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => { setPasteText(''); setShowPasteModal(false); }}
+                className={`px-4 py-2 rounded-lg font-medium ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePasteQuestions}
+                disabled={!pasteText.trim()}
+                className="px-4 py-2 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-50"
+              >
+                Parse & Add Questions
               </button>
             </div>
           </div>
