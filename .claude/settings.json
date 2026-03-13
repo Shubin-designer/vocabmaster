@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://ovvouljbrdvbvsggvfwz.supabase.co/rest/v1/content_assignments?select=is_required&limit=1\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dm91bGpicmR2YnZzZ2d2Znd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MzMwMTEsImV4cCI6MjA4NjUwOTAxMX0.Mc_oo3EpTruVZG43fzBRxmF1n6H5rPULXBdLtQ1W4DU\")",
+      "Bash(curl -s \"https://ovvouljbrdvbvsggvfwz.supabase.co/rest/v1/content_assignments?select=notes&limit=1\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dm91bGpicmR2YnZzZ2d2Znd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MzMwMTEsImV4cCI6MjA4NjUwOTAxMX0.Mc_oo3EpTruVZG43fzBRxmF1n6H5rPULXBdLtQ1W4DU\")",
+      "Bash(curl -s \"https://ovvouljbrdvbvsggvfwz.supabase.co/rest/v1/content_assignments?select=teacher_id,student_id,content_type,content_id,due_date,notes,is_required&limit=1\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dm91bGpicmR2YnZzZ2d2Znd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MzMwMTEsImV4cCI6MjA4NjUwOTAxMX0.Mc_oo3EpTruVZG43fzBRxmF1n6H5rPULXBdLtQ1W4DU\")",
+      "Bash(curl -s \"https://ovvouljbrdvbvsggvfwz.supabase.co/rest/v1/vocabulary_sets?select=*,sources\\(id,title\\)&limit=1\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dm91bGpicmR2YnZzZ2d2Znd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MzMwMTEsImV4cCI6MjA4NjUwOTAxMX0.Mc_oo3EpTruVZG43fzBRxmF1n6H5rPULXBdLtQ1W4DU\")",
+      "Bash(curl -s -X POST \"https://ovvouljbrdvbvsggvfwz.supabase.co/rest/v1/homework_assignments?columns=%22homework_id%22,%22student_id%22\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dm91bGpicmR2YnZzZ2d2Znd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MzMwMTEsImV4cCI6MjA4NjUwOTAxMX0.Mc_oo3EpTruVZG43fzBRxmF1n6H5rPULXBdLtQ1W4DU\" -H \"Content-Type: application/json\" -H \"Prefer: return=minimal\" -d '{}')",
+      "Bash(npm ls)",
+      "Bash(npx vite build)"
+    ]
+  }
+}
