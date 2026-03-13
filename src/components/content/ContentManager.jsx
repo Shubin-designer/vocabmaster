@@ -3,13 +3,15 @@ import TopicsList from './TopicsList';
 import ReadingTextsList from './ReadingTextsList';
 import VocabSetsList from './VocabSetsList';
 import HomeworkList from './HomeworkList';
-import { Layers, BookOpen, Languages, PenLine } from 'lucide-react';
+import PdfWorkbench from './PdfWorkbench';
+import { Layers, BookOpen, Languages, PenLine, FileText } from 'lucide-react';
 
 const TABS = [
   { key: 'topics', label: 'Topics', icon: Layers },
   { key: 'reading', label: 'Reading', icon: BookOpen },
   { key: 'vocabulary', label: 'Vocabulary', icon: Languages },
   { key: 'homework', label: 'Homework', icon: PenLine },
+  { key: 'pdf', label: 'PDF', icon: FileText },
 ];
 
 export default function ContentManager({ teacherId, isDark = true }) {
@@ -53,6 +55,10 @@ export default function ContentManager({ teacherId, isDark = true }) {
 
       {activeTab === 'homework' && (
         <HomeworkList teacherId={teacherId} isDark={isDark} />
+      )}
+
+      {activeTab === 'pdf' && (
+        <PdfWorkbench teacherId={teacherId} isDark={isDark} />
       )}
     </div>
   );
