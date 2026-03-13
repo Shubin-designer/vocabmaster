@@ -4,5 +4,10 @@
       "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "build": {
+    "env": {
+      "VITE_OPENROUTER_API_KEY": "@vite_openrouter_api_key"
+    }
+  }
 }
