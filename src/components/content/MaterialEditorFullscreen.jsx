@@ -42,6 +42,10 @@ export default function MaterialEditorFullscreen({
   const [selectedPages, setSelectedPages] = useState([]);
   const [loadingPdf, setLoadingPdf] = useState(false);
 
+  // Image state (for direct image upload)
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+
   // OCR state
   const [ocrProgress, setOcrProgress] = useState({ status: 'idle', current: 0, total: 0, error: null });
   const [ocrHtml, setOcrHtml] = useState('');
@@ -88,34 +92,55 @@ export default function MaterialEditorFullscreen({
     }
   }, [material?.content]);
 
-  // Load PDF
+  // Load PDF or Image
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
-    if (!file || file.type !== 'application/pdf') return;
+    if (!file) return;
+
+    const isPdf = file.type === 'application/pdf';
+    const isImage = file.type.startsWith('image/');
+
+    if (!isPdf && !isImage) return;
 
     setLoadingPdf(true);
     setFileName(file.name);
     setOcrHtml('');
     setSelectedPages([]);
 
+    // Reset both states
+    setPdf(null);
+    setImageFile(null);
+    setImageUrl(null);
+    setThumbnails([]);
+
     try {
-      const pdfDoc = await loadPdf(file);
-      setPdf(pdfDoc);
-      setTotalPages(pdfDoc.numPages);
-      setCurrentPage(1);
+      if (isPdf) {
+        const pdfDoc = await loadPdf(file);
+        setPdf(pdfDoc);
+        setTotalPages(pdfDoc.numPages);
+        setCurrentPage(1);
 
-      const thumbs = [];
-      for (let i = 1; i <= pdfDoc.numPages; i++) {
-        thumbs.push({ pageNum: i, dataUrl: null, status: 'pending' });
-      }
-      setThumbnails(thumbs);
+        const thumbs = [];
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          thumbs.push({ pageNum: i, dataUrl: null, status: 'pending' });
+        }
+        setThumbnails(thumbs);
 
-      for (let i = 1; i <= pdfDoc.numPages; i++) {
-        const dataUrl = await generateThumbnail(pdfDoc, i);
-        setThumbnails(prev => prev.map(t => t.pageNum === i ? { ...t, dataUrl } : t));
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          const dataUrl = await generateThumbnail(pdfDoc, i);
+          setThumbnails(prev => prev.map(t => t.pageNum === i ? { ...t, dataUrl } : t));
+        }
+      } else {
+        // Image file
+        setImageFile(file);
+        const url = URL.createObjectURL(file);
+        setImageUrl(url);
+        setTotalPages(1);
+        setCurrentPage(1);
+        setSelectedPages([1]); // Auto-select the image
       }
     } catch (err) {
-      console.error('Failed to load PDF:', err);
+      console.error('Failed to load file:', err);
     } finally {
       setLoadingPdf(false);
     }
@@ -150,26 +175,42 @@ export default function MaterialEditorFullscreen({
   };
 
   const runOcr = async () => {
-    if (selectedPages.length === 0 || !pdf) return;
+    // For images, selectedPages will be [1] and imageFile will be set
+    if (selectedPages.length === 0) return;
+    if (!pdf && !imageFile) return;
+
     setOcrProgress({ status: 'processing', current: 0, total: selectedPages.length, error: null });
     setOcrHtml('');
-    setThumbnails(prev => prev.map(t => selectedPages.includes(t.pageNum) ? { ...t, status: 'processing' } : t));
+
+    if (pdf) {
+      setThumbnails(prev => prev.map(t => selectedPages.includes(t.pageNum) ? { ...t, status: 'processing' } : t));
+    }
 
     const htmlParts = [];
     try {
-      for (let i = 0; i < selectedPages.length; i++) {
-        const pageNum = selectedPages[i];
-        setOcrProgress(prev => ({ ...prev, current: i + 1 }));
-        const blob = await renderPageToBlob(pdf, pageNum, 2.0);
-        const html = await ocrBlobToHtml(blob);
+      if (imageFile) {
+        // OCR single image
+        setOcrProgress(prev => ({ ...prev, current: 1 }));
+        const html = await ocrBlobToHtml(imageFile);
         htmlParts.push(html);
-        setThumbnails(prev => prev.map(t => t.pageNum === pageNum ? { ...t, status: 'done' } : t));
+      } else {
+        // OCR PDF pages
+        for (let i = 0; i < selectedPages.length; i++) {
+          const pageNum = selectedPages[i];
+          setOcrProgress(prev => ({ ...prev, current: i + 1 }));
+          const blob = await renderPageToBlob(pdf, pageNum, 2.0);
+          const html = await ocrBlobToHtml(blob);
+          htmlParts.push(html);
+          setThumbnails(prev => prev.map(t => t.pageNum === pageNum ? { ...t, status: 'done' } : t));
+        }
       }
       setOcrHtml(htmlParts.join('<hr>'));
       setOcrProgress({ status: 'done', current: selectedPages.length, total: selectedPages.length, error: null });
     } catch (err) {
       setOcrProgress({ status: 'error', current: 0, total: selectedPages.length, error: err.message });
-      setThumbnails(prev => prev.map(t => selectedPages.includes(t.pageNum) && t.status === 'processing' ? { ...t, status: 'error' } : t));
+      if (pdf) {
+        setThumbnails(prev => prev.map(t => selectedPages.includes(t.pageNum) && t.status === 'processing' ? { ...t, status: 'error' } : t));
+      }
     }
   };
 
@@ -207,11 +248,15 @@ export default function MaterialEditorFullscreen({
     setSaving(false);
   };
 
-  const closePdf = () => {
+  const closeFile = () => {
     setPdf(null);
+    setImageFile(null);
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+    setImageUrl(null);
     setFileName('');
     setThumbnails([]);
     setSelectedPages([]);
+    setTotalPages(0);
     setOcrHtml('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -285,23 +330,45 @@ export default function MaterialEditorFullscreen({
         </div>
       </div>
 
-      {/* Main: 25% PDF | 25% OCR | 50% Editor */}
+      {/* Main: 25% PDF/Image | 25% OCR | 50% Editor */}
       <div className="flex-1 flex overflow-hidden">
-        {/* PDF Column - 25% */}
+        {/* PDF/Image Column - 25% */}
         <div className={`w-1/4 flex flex-col border-r ${isDark ? 'bg-[#1a1a1e] border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-          {!pdf ? (
+          {!pdf && !imageFile ? (
             <div onClick={() => fileInputRef.current?.click()} className={`flex-1 flex flex-col items-center justify-center cursor-pointer ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-100'}`}>
               {loadingPdf ? <Loader2 className="w-8 h-8 animate-spin text-pink-vibrant mb-2" /> : <Upload className={`w-8 h-8 mb-2 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />}
-              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{loadingPdf ? 'Loading...' : 'Load PDF'}</p>
+              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{loadingPdf ? 'Loading...' : 'PDF / Image'}</p>
             </div>
+          ) : imageFile ? (
+            /* Image display */
+            <>
+              <div className={`flex items-center justify-between p-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <FileText className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                  <span className={`text-xs truncate ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{fileName}</span>
+                </div>
+                <button onClick={closeFile} className={`p-1 rounded ${isDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-gray-200 text-gray-400'}`}>
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-auto bg-gray-300 flex items-center justify-center p-2">
+                <img src={imageUrl} alt="Preview" className="max-w-full max-h-full object-contain shadow" />
+              </div>
+              <div className={`flex items-center justify-end p-2 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                <button onClick={runOcr} disabled={isProcessing} className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${isProcessing ? isDark ? 'bg-white/5 text-white/30' : 'bg-gray-200 text-gray-400' : 'bg-pink-vibrant text-white'}`}>
+                  {isProcessing ? <><Loader2 className="w-3 h-3 animate-spin" /> OCR...</> : <><ScanText className="w-3 h-3" /> Run OCR</>}
+                </button>
+              </div>
+            </>
           ) : (
+            /* PDF display */
             <>
               <div className={`flex items-center justify-between p-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
                 <div className="flex items-center gap-1.5 min-w-0">
                   <FileText className={`w-4 h-4 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
                   <span className={`text-xs truncate ${isDark ? 'text-white/80' : 'text-gray-700'}`}>{fileName}</span>
                 </div>
-                <button onClick={closePdf} className={`p-1 rounded ${isDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-gray-200 text-gray-400'}`}>
+                <button onClick={closeFile} className={`p-1 rounded ${isDark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-gray-200 text-gray-400'}`}>
                   <X size={14} />
                 </button>
               </div>
@@ -327,7 +394,7 @@ export default function MaterialEditorFullscreen({
               </div>
             </>
           )}
-          <input ref={fileInputRef} type="file" accept="application/pdf" onChange={handleFileSelect} className="hidden" />
+          <input ref={fileInputRef} type="file" accept="application/pdf,image/*" onChange={handleFileSelect} className="hidden" />
         </div>
 
         {/* OCR Column - 25% */}
