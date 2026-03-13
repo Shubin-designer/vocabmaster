@@ -248,12 +248,23 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
 
   const loadTests = async () => {
     setLoadingTests(true);
-    const { data } = await supabase
+    let { data } = await supabase
       .from('tests')
       .select('*')
       .eq('topic_id', topic.id)
-      .eq('teacher_id', teacherId)
-      .order('sort_order', { ascending: true });
+      .eq('teacher_id', teacherId);
+
+    // Sort by sort_order if exists, otherwise by created_at
+    if (data) {
+      data.sort((a, b) => {
+        if (a.sort_order != null && b.sort_order != null) {
+          return a.sort_order - b.sort_order;
+        }
+        if (a.sort_order != null) return -1;
+        if (b.sort_order != null) return 1;
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+    }
     if (data?.length) {
       const { data: qData } = await supabase
         .from('test_questions')
@@ -439,19 +450,18 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       setTests(items);
     }
 
-    // Update sort_order in database
-    const updates = items.map((item, idx) => ({
-      id: item.id,
-      sort_order: idx,
-    }));
-
-    const table = type === 'material' ? 'materials' : 'tests';
-    for (const update of updates) {
-      await supabase.from(table).update({ sort_order: update.sort_order }).eq('id', update.id);
-    }
-
     setDraggedItem(null);
     setDragOverItem(null);
+
+    // Update sort_order in database (silently fail if column doesn't exist)
+    try {
+      const table = type === 'material' ? 'materials' : 'tests';
+      for (let idx = 0; idx < items.length; idx++) {
+        await supabase.from(table).update({ sort_order: idx }).eq('id', items[idx].id);
+      }
+    } catch (err) {
+      console.error('Failed to save sort order:', err);
+    }
   };
 
   const tabBtn = (key, label, Icon) => (
