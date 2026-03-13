@@ -90,66 +90,84 @@ function finalizeQuestion(question, lines) {
  */
 function extractOptionsFromText(text) {
   let questionText = text;
-  let options = [];
+  let options = ['', '', '', ''];
   let correctAnswer = '';
 
-  // Try different patterns to find options
+  // Try letter-based options first (most common): a) ... b) ... c) ... d) ...
+  // Look for pattern where a) appears, then b), c), d)
+  const letterOptionsMatch = text.match(/\ba\s*\)\s*(.+?)\s+b\s*\)\s*(.+?)\s+c\s*\)\s*(.+?)\s+d\s*\)\s*(.+?)$/i);
 
-  // Pattern 1: Numbered options like "1. a, the  2. -, -  3. the, the  4. -, the"
-  const numberedPattern = /(?:^|[\s])([1-4])[.)]\s*([^1-4]+?)(?=(?:\s+[1-4][.)])|$)/g;
-  let numberedMatches = [...text.matchAll(numberedPattern)];
-
-  if (numberedMatches.length >= 2) {
-    // Find where options start (look for pattern like "1. something 2. something")
-    const optionsStartMatch = text.match(/[1-4][.)]\s*[^1-4]+?\s+[1-4][.)]/);
-    if (optionsStartMatch) {
-      const optionsStartIdx = text.indexOf(optionsStartMatch[0]);
+  if (letterOptionsMatch) {
+    // Find where 'a)' starts
+    const aMatch = text.match(/\ba\s*\)/i);
+    if (aMatch) {
+      const optionsStartIdx = text.indexOf(aMatch[0]);
       questionText = text.substring(0, optionsStartIdx).trim();
-      const optionsText = text.substring(optionsStartIdx);
-
-      // Re-extract from options portion only
-      const optMatches = [...optionsText.matchAll(/([1-4])[.)]\s*([^1-4]+?)(?=(?:\s+[1-4][.)])|$)/g)];
-      options = ['', '', '', ''];
-      optMatches.forEach(m => {
-        const idx = parseInt(m[1]) - 1;
-        if (idx >= 0 && idx < 4) {
-          options[idx] = m[2].trim().replace(/,\s*$/, '');
-        }
-      });
+      options = [
+        letterOptionsMatch[1].trim(),
+        letterOptionsMatch[2].trim(),
+        letterOptionsMatch[3].trim(),
+        letterOptionsMatch[4].trim()
+      ];
     }
   }
 
-  // Pattern 2: Letter options like "a) option b) option" or "a. option b. option"
-  if (options.filter(o => o).length < 2) {
-    const letterPattern = /(?:^|[\s])([a-d])[.)]\s*([^a-d]+?)(?=(?:\s+[a-d][.)])|$)/gi;
-    let letterMatches = [...text.matchAll(letterPattern)];
-
-    if (letterMatches.length >= 2) {
-      const optionsStartMatch = text.match(/[a-d][.)]\s*[^a-d]+?\s+[a-d][.)]/i);
-      if (optionsStartMatch) {
-        const optionsStartIdx = text.indexOf(optionsStartMatch[0]);
+  // Try 3 options: a) ... b) ... c) ...
+  if (options.every(o => !o)) {
+    const threeOptionsMatch = text.match(/\ba\s*\)\s*(.+?)\s+b\s*\)\s*(.+?)\s+c\s*\)\s*(.+?)$/i);
+    if (threeOptionsMatch) {
+      const aMatch = text.match(/\ba\s*\)/i);
+      if (aMatch) {
+        const optionsStartIdx = text.indexOf(aMatch[0]);
         questionText = text.substring(0, optionsStartIdx).trim();
-        const optionsText = text.substring(optionsStartIdx);
-
-        const optMatches = [...optionsText.matchAll(/([a-d])[.)]\s*([^a-d]+?)(?=(?:\s+[a-d][.)])|$)/gi)];
-        options = ['', '', '', ''];
-        optMatches.forEach(m => {
-          const idx = m[1].toLowerCase().charCodeAt(0) - 'a'.charCodeAt(0);
-          if (idx >= 0 && idx < 4) {
-            options[idx] = m[2].trim().replace(/,\s*$/, '');
-          }
-        });
+        options = [
+          threeOptionsMatch[1].trim(),
+          threeOptionsMatch[2].trim(),
+          threeOptionsMatch[3].trim(),
+          ''
+        ];
       }
     }
   }
 
-  // Clean up options - remove trailing numbers that might be part of next question
-  options = options.map(opt => opt.replace(/\s+\d+\.\s*$/, '').trim());
-
-  // Filter empty and normalize
+  // Try numbered options: 1) ... 2) ... 3) ... 4) ...
   if (options.every(o => !o)) {
-    options = ['', '', '', ''];
+    const numberedMatch = text.match(/\b1\s*\)\s*(.+?)\s+2\s*\)\s*(.+?)\s+3\s*\)\s*(.+?)\s+4\s*\)\s*(.+?)$/);
+    if (numberedMatch) {
+      const oneMatch = text.match(/\b1\s*\)/);
+      if (oneMatch) {
+        const optionsStartIdx = text.indexOf(oneMatch[0]);
+        questionText = text.substring(0, optionsStartIdx).trim();
+        options = [
+          numberedMatch[1].trim(),
+          numberedMatch[2].trim(),
+          numberedMatch[3].trim(),
+          numberedMatch[4].trim()
+        ];
+      }
+    }
   }
+
+  // Try with dots: a. ... b. ... c. ... d. ...
+  if (options.every(o => !o)) {
+    const dotOptionsMatch = text.match(/\ba\s*\.\s*(.+?)\s+b\s*\.\s*(.+?)\s+c\s*\.\s*(.+?)\s+d\s*\.\s*(.+?)$/i);
+    if (dotOptionsMatch) {
+      const aMatch = text.match(/\ba\s*\./i);
+      if (aMatch) {
+        const optionsStartIdx = text.indexOf(aMatch[0]);
+        questionText = text.substring(0, optionsStartIdx).trim();
+        options = [
+          dotOptionsMatch[1].trim(),
+          dotOptionsMatch[2].trim(),
+          dotOptionsMatch[3].trim(),
+          dotOptionsMatch[4].trim()
+        ];
+      }
+    }
+  }
+
+  // Clean up options - remove trailing question numbers
+  options = options.map(opt => opt.replace(/\s+\d+[.)]\s*$/, '').trim());
 
   return { questionText, options, correctAnswer };
 }
