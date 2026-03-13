@@ -1,27 +1,23 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, ChevronLeft, ChevronRight, Loader2, X, FileText } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Upload, ChevronLeft, ChevronRight, Loader2, X, FileText, ScanText, CheckCircle2 } from 'lucide-react';
 import { loadPdf, renderPageToCanvas, renderPageToBlob, generateThumbnail } from '../../utils/pdfUtils';
 import { ocrBlobToHtml } from '../../utils/ocrToHtml';
 import PdfPageThumbnail from './PdfPageThumbnail';
-import PdfOcrPanel from './PdfOcrPanel';
-import PdfSaveModal from './PdfSaveModal';
+import PdfOcrModal from './PdfOcrModal';
 
 export default function PdfWorkbench({ teacherId, isDark = true }) {
   const [pdf, setPdf] = useState(null);
   const [fileName, setFileName] = useState('');
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [thumbnails, setThumbnails] = useState([]); // Array of { pageNum, dataUrl, status }
-  const [selectedPages, setSelectedPages] = useState([]); // Array of page numbers
+  const [thumbnails, setThumbnails] = useState([]);
+  const [selectedPages, setSelectedPages] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // OCR state
   const [ocrProgress, setOcrProgress] = useState({ status: 'idle', current: 0, total: 0, error: null });
   const [ocrHtml, setOcrHtml] = useState('');
-
-  // Save modal
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [saveContentType, setSaveContentType] = useState('material');
+  const [showOcrModal, setShowOcrModal] = useState(false);
 
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -90,12 +86,8 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
 
   // Run OCR on selected pages
   const runOcr = async () => {
-    if (selectedPages.length === 0 || !pdf) {
-      console.log('runOcr: no pages selected or no pdf');
-      return;
-    }
+    if (selectedPages.length === 0 || !pdf) return;
 
-    console.log('runOcr: starting with pages', selectedPages);
     setOcrProgress({ status: 'processing', current: 0, total: selectedPages.length, error: null });
     setOcrHtml('');
 
@@ -109,18 +101,13 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
     try {
       for (let i = 0; i < selectedPages.length; i++) {
         const pageNum = selectedPages[i];
-        console.log(`runOcr: processing page ${pageNum}`);
         setOcrProgress(prev => ({ ...prev, current: i + 1 }));
 
         // Render page to blob
-        console.log('runOcr: rendering page to blob...');
         const blob = await renderPageToBlob(pdf, pageNum, 2.0);
-        console.log('runOcr: blob created', blob?.size, 'bytes');
 
         // Run OCR
-        console.log('runOcr: calling OCR...');
         const html = await ocrBlobToHtml(blob);
-        console.log('runOcr: OCR result length', html?.length);
         htmlParts.push(html);
 
         // Update thumbnail status to done
@@ -130,10 +117,12 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
       }
 
       // Combine HTML from all pages
-      const combinedHtml = htmlParts.join('<hr style="margin: 2em 0; border: none; border-top: 1px solid #ccc;">');
+      const combinedHtml = htmlParts.join('<hr style="margin: 2em 0; border: none; border-top: 2px solid #e5e7eb;">');
       setOcrHtml(combinedHtml);
       setOcrProgress({ status: 'done', current: selectedPages.length, total: selectedPages.length, error: null });
-      console.log('runOcr: completed successfully');
+
+      // Automatically open the editor modal
+      setShowOcrModal(true);
     } catch (err) {
       console.error('OCR failed:', err);
       setOcrProgress({ status: 'error', current: 0, total: selectedPages.length, error: err.message });
@@ -143,12 +132,6 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
         selectedPages.includes(t.pageNum) && t.status === 'processing' ? { ...t, status: 'error' } : t
       ));
     }
-  };
-
-  // Handle save
-  const handleSave = (contentType) => {
-    setSaveContentType(contentType);
-    setShowSaveModal(true);
   };
 
   // Close PDF
@@ -167,11 +150,12 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // Cleanup is handled by garbage collection
       setPdf(null);
       setThumbnails([]);
     };
   }, []);
+
+  const isProcessing = ocrProgress.status === 'processing';
 
   // No PDF loaded - show upload UI
   if (!pdf) {
@@ -234,27 +218,86 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
               {fileName}
             </h2>
             <p className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-              {totalPages} pages
+              {totalPages} pages • {selectedPages.length} selected
             </p>
           </div>
         </div>
-        <button
-          onClick={closePdf}
-          className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}
-        >
-          <X size={20} />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* OCR Button */}
+          <button
+            onClick={runOcr}
+            disabled={selectedPages.length === 0 || isProcessing}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all ${
+              selectedPages.length === 0 || isProcessing
+                ? isDark
+                  ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-pink-vibrant text-white hover:bg-pink-vibrant/90 shadow-lg shadow-pink-vibrant/25'
+            }`}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {ocrProgress.current}/{ocrProgress.total}
+              </>
+            ) : (
+              <>
+                <ScanText className="w-5 h-5" />
+                Run OCR {selectedPages.length > 0 && `(${selectedPages.length})`}
+              </>
+            )}
+          </button>
+
+          {/* Open Editor button (when OCR done) */}
+          {ocrHtml && (
+            <button
+              onClick={() => setShowOcrModal(true)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
+                isDark
+                  ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              Edit & Save
+            </button>
+          )}
+
+          <button
+            onClick={closePdf}
+            className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}
+          >
+            <X size={20} />
+          </button>
+        </div>
       </div>
 
-      {/* Main layout */}
-      <div className={`grid grid-cols-[180px_1fr_320px] gap-4 rounded-2xl border ${
+      {/* Progress bar */}
+      {isProcessing && (
+        <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}>
+          <div
+            className="h-full bg-pink-vibrant transition-all duration-300"
+            style={{ width: `${(ocrProgress.current / ocrProgress.total) * 100}%` }}
+          />
+        </div>
+      )}
+
+      {/* Error message */}
+      {ocrProgress.status === 'error' && (
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600'}`}>
+          OCR Error: {ocrProgress.error}
+        </div>
+      )}
+
+      {/* Main layout - Two columns */}
+      <div className={`grid grid-cols-[200px_1fr] gap-4 rounded-2xl border p-4 ${
         isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'
       }`}>
         {/* Left: Thumbnails */}
-        <div className={`p-3 border-r overflow-y-auto max-h-[600px] ${
-          isDark ? 'border-white/10' : 'border-gray-200'
+        <div className={`overflow-y-auto max-h-[600px] pr-2 ${
+          isDark ? 'scrollbar-dark' : ''
         }`}>
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             {thumbnails.map((thumb) => (
               <PdfPageThumbnail
                 key={thumb.pageNum}
@@ -271,9 +314,9 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
           </div>
         </div>
 
-        {/* Center: Page view */}
-        <div className="p-4 flex flex-col items-center">
-          <div className={`flex-1 overflow-auto rounded-lg border ${
+        {/* Right: Page view */}
+        <div className="flex flex-col items-center">
+          <div className={`flex-1 overflow-auto rounded-lg border max-h-[550px] ${
             isDark ? 'border-white/10 bg-white' : 'border-gray-200 bg-white'
           }`}>
             <canvas ref={canvasRef} className="max-w-full" />
@@ -304,35 +347,15 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
             </button>
           </div>
         </div>
-
-        {/* Right: OCR Panel */}
-        <div className={`border-l ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-          <PdfOcrPanel
-            selectedPages={selectedPages}
-            onRunOcr={runOcr}
-            ocrProgress={ocrProgress}
-            ocrHtml={ocrHtml}
-            onHtmlChange={setOcrHtml}
-            onSave={handleSave}
-            isDark={isDark}
-          />
-        </div>
       </div>
 
-      {/* Save Modal */}
-      {showSaveModal && (
-        <PdfSaveModal
-          contentType={saveContentType}
-          htmlContent={ocrHtml}
+      {/* OCR Editor Modal */}
+      {showOcrModal && (
+        <PdfOcrModal
+          ocrHtml={ocrHtml}
+          onHtmlChange={setOcrHtml}
+          onClose={() => setShowOcrModal(false)}
           teacherId={teacherId}
-          onClose={() => setShowSaveModal(false)}
-          onSuccess={() => {
-            setShowSaveModal(false);
-            // Optionally reset state after save
-            setOcrHtml('');
-            setSelectedPages([]);
-            setThumbnails(prev => prev.map(t => ({ ...t, status: 'pending' })));
-          }}
           isDark={isDark}
         />
       )}
