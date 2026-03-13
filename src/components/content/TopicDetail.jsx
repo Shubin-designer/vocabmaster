@@ -351,6 +351,34 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
     setTestForm({ ...testForm, questions: qs });
   };
 
+  const addQOption = (qi) => {
+    const qs = [...testForm.questions];
+    if (qs[qi].options.length >= 8) return; // Max 8 options
+    qs[qi] = { ...qs[qi], options: [...qs[qi].options, ''] };
+    setTestForm({ ...testForm, questions: qs });
+  };
+
+  const removeQOption = (qi, oi) => {
+    const qs = [...testForm.questions];
+    if (qs[qi].options.length <= 2) return; // Min 2 options
+    const newOpts = qs[qi].options.filter((_, i) => i !== oi);
+    // If removed option was the correct answer, clear it
+    const removedLetter = String.fromCharCode(65 + oi);
+    let newCorrect = qs[qi].correct_answer;
+    if (newCorrect === removedLetter) {
+      newCorrect = '';
+    } else if (newCorrect.length === 1 && newCorrect >= 'A' && newCorrect <= 'H') {
+      // Shift letter if needed
+      const removedIdx = oi;
+      const correctIdx = newCorrect.charCodeAt(0) - 65;
+      if (correctIdx > removedIdx) {
+        newCorrect = String.fromCharCode(64 + correctIdx); // Shift down by 1
+      }
+    }
+    qs[qi] = { ...qs[qi], options: newOpts, correct_answer: newCorrect };
+    setTestForm({ ...testForm, questions: qs });
+  };
+
   const deleteTest = (test) => setDeleteTarget({ type: 'test', item: test });
 
   const tabBtn = (key, label, Icon) => (
@@ -717,60 +745,93 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                           </button>
                         ))}
                       </div>
-                      {(q.question_type === 'multiple_choice' || q.question_type === 'fill_blank') && q.options.some(o => o) && (
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          {q.options.map((opt, oi) => {
-                            const letter = String.fromCharCode(65 + oi); // A, B, C, D
-                            const isSelected = q.correct_answer === letter || q.correct_answer === opt;
-                            return opt ? (
-                              <div key={oi} className="flex gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => updateQ(qi, 'correct_answer', letter)}
-                                  className={`w-8 h-full rounded-l-lg text-xs font-bold transition-all flex-shrink-0 ${
-                                    isSelected
-                                      ? 'bg-green-500 text-white'
-                                      : isDark
-                                        ? 'bg-white/[0.08] text-white/50 hover:bg-white/[0.15]'
-                                        : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                                  }`}
-                                >
-                                  {letter}
-                                </button>
-                                <input
-                                  value={opt}
-                                  onChange={e => updateQOption(qi, oi, e.target.value)}
-                                  className={`flex-1 px-3 py-2 rounded-r-lg text-sm border-y border-r ${
-                                    isSelected
-                                      ? isDark
-                                        ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                                        : 'bg-green-50 border-green-200 text-green-700'
-                                      : isDark
-                                        ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30'
-                                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                                  }`}
-                                />
-                              </div>
-                            ) : (
-                              <input
-                                key={oi}
-                                value={opt}
-                                onChange={e => updateQOption(qi, oi, e.target.value)}
-                                placeholder={`Option ${String.fromCharCode(65 + oi)}`}
-                                className={`px-3 py-2 rounded-lg text-sm border ${isDark ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
-                              />
-                            );
-                          })}
+                      {(q.question_type === 'multiple_choice' || q.question_type === 'fill_blank') && (
+                        <div className="space-y-2 mb-3">
+                          <div className="grid grid-cols-2 gap-2">
+                            {q.options.map((opt, oi) => {
+                              const letter = String.fromCharCode(65 + oi); // A, B, C, D, E, F, G, H
+                              const isSelected = q.correct_answer === letter || q.correct_answer === opt;
+                              return (
+                                <div key={oi} className="flex gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateQ(qi, 'correct_answer', letter)}
+                                    className={`w-8 h-full rounded-l-lg text-xs font-bold transition-all flex-shrink-0 ${
+                                      isSelected
+                                        ? 'bg-green-500 text-white'
+                                        : isDark
+                                          ? 'bg-white/[0.08] text-white/50 hover:bg-white/[0.15]'
+                                          : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                    }`}
+                                  >
+                                    {letter}
+                                  </button>
+                                  <input
+                                    value={opt}
+                                    onChange={e => updateQOption(qi, oi, e.target.value)}
+                                    placeholder={`Option ${letter}`}
+                                    className={`flex-1 px-3 py-2 text-sm border-y ${
+                                      isSelected
+                                        ? isDark
+                                          ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                          : 'bg-green-50 border-green-200 text-green-700'
+                                        : isDark
+                                          ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30'
+                                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                                    } ${q.options.length > 2 ? '' : 'rounded-r-lg border-r'}`}
+                                  />
+                                  {q.options.length > 2 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeQOption(qi, oi)}
+                                      className={`w-8 h-full rounded-r-lg text-xs transition-all flex-shrink-0 flex items-center justify-center ${
+                                        isDark
+                                          ? 'bg-white/[0.05] border-y border-r border-white/10 text-white/30 hover:text-red-400 hover:bg-red-500/10'
+                                          : 'bg-gray-50 border-y border-r border-gray-200 text-gray-300 hover:text-red-500 hover:bg-red-50'
+                                      }`}
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {q.options.length < 8 && (
+                            <button
+                              type="button"
+                              onClick={() => addQOption(qi)}
+                              className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${
+                                isDark
+                                  ? 'text-white/40 hover:text-white/70 hover:bg-white/[0.05]'
+                                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                              }`}
+                            >
+                              <Plus size={12} /> Add option
+                            </button>
+                          )}
                         </div>
                       )}
-                      {/* Show text input only if no options or for true/false */}
-                      {(q.question_type === 'true_false' || !q.options.some(o => o)) && (
-                        <input
-                          value={q.correct_answer}
-                          onChange={e => updateQ(qi, 'correct_answer', e.target.value)}
-                          placeholder={q.question_type === 'true_false' ? 'True or False' : 'Correct answer *'}
-                          className={`w-full px-3 py-2 rounded-lg text-sm border ${isDark ? 'bg-green-500/10 border-green-500/30 text-green-400 placeholder-green-400/50' : 'bg-green-50 border-green-200 text-green-700 placeholder-green-400'}`}
-                        />
+                      {/* Show text input only for true/false */}
+                      {q.question_type === 'true_false' && (
+                        <div className="flex gap-2">
+                          {['True', 'False'].map(val => (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => updateQ(qi, 'correct_answer', val)}
+                              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                q.correct_answer === val
+                                  ? 'bg-green-500 text-white'
+                                  : isDark
+                                    ? 'bg-white/[0.05] border border-white/10 text-white/60 hover:bg-white/[0.1]'
+                                    : 'bg-gray-100 border border-gray-200 text-gray-600 hover:bg-gray-200'
+                              }`}
+                            >
+                              {val}
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                   ))}
