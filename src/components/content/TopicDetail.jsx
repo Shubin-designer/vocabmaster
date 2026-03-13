@@ -275,16 +275,21 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       setTestForm({
         title: test.title,
         description: test.description || '',
-        questions: qs?.map(q => ({
-          id: q.id,
-          question_text: q.question || q.question_text || '',
-          question_type: q.type || q.question_type || 'multiple_choice',
-          options: q.options || ['', '', '', ''],
-          correct_answer: q.correct_answer || '',
-          explanation_correct: q.explanation_correct || '',
-          explanation_wrong: q.explanation_wrong || '',
-          hint: q.hint || '',
-        })) || [emptyQ()],
+        questions: qs?.map(q => {
+          // Ensure options array always has 4 elements
+          const opts = q.options || [];
+          const paddedOpts = [...opts, '', '', '', ''].slice(0, 4);
+          return {
+            id: q.id,
+            question_text: q.question || q.question_text || '',
+            question_type: q.type || q.question_type || 'multiple_choice',
+            options: paddedOpts,
+            correct_answer: q.correct_answer || '',
+            explanation_correct: q.explanation_correct || '',
+            explanation_wrong: q.explanation_wrong || '',
+            hint: q.hint || '',
+          };
+        }) || [emptyQ()],
       });
     } else {
       setEditingTest(null);
@@ -311,17 +316,21 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       const { data } = await supabase.from('tests').insert(payload).select('id').single();
       testId = data?.id;
     }
-    const qs = testForm.questions.filter(q => q.question_text.trim()).map((q, i) => ({
-      test_id: testId,
-      question: q.question_text,
-      type: q.question_type,
-      options: q.question_type === 'multiple_choice' ? q.options.filter(o => o.trim()) : null,
-      correct_answer: q.correct_answer,
-      explanation_correct: q.explanation_correct || null,
-      explanation_wrong: q.explanation_wrong || null,
-      hint: q.hint || null,
-      sort_order: i,
-    }));
+    const qs = testForm.questions.filter(q => q.question_text.trim()).map((q, i) => {
+      // Save options for both multiple_choice and fill_blank (if has options)
+      const hasOptions = q.options?.some(o => o?.trim());
+      return {
+        test_id: testId,
+        question: q.question_text,
+        type: q.question_type,
+        options: hasOptions ? q.options.filter(o => o?.trim()) : null,
+        correct_answer: q.correct_answer,
+        explanation_correct: q.explanation_correct || null,
+        explanation_wrong: q.explanation_wrong || null,
+        hint: q.hint || null,
+        sort_order: i,
+      };
+    });
     if (qs.length) await supabase.from('test_questions').insert(qs);
     await loadTests();
     setShowTestModal(false);
