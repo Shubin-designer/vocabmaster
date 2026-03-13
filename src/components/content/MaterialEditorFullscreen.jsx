@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -8,14 +8,20 @@ import Table from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
+import { Extension } from '@tiptap/core';
+import { Plugin, PluginKey } from 'prosemirror-state';
+import { Decoration, DecorationSet } from 'prosemirror-view';
+import { createPortal } from 'react-dom';
 import {
-  X, Check, Loader2, ChevronLeft, ChevronRight, Upload, ScanText, FileText, ArrowRight,
+  X, Check, Loader2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Upload, ScanText, FileText, ArrowRight,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Quote,
-  Table as TableIcon, Minus, Pilcrow, Heading1, Heading2, Heading3
+  Table as TableIcon, Minus, Pilcrow, Heading1, Heading2, Heading3, Trash2
 } from 'lucide-react';
 import { loadPdf, renderPageToCanvas, renderPageToBlob, generateThumbnail } from '../../utils/pdfUtils';
 import { ocrBlobToHtml } from '../../utils/ocrToHtml';
 import PdfPageThumbnail from './PdfPageThumbnail';
+
+const tableToolbarPluginKey = new PluginKey('tableToolbar');
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -51,7 +57,50 @@ export default function MaterialEditorFullscreen({
   const fileInputRef = useRef(null);
   const ocrContentRef = useRef(null);
 
+  // Table toolbar state
+  const [inTable, setInTable] = useState(false);
+  const tableToolbarRef = useRef(null);
+  if (!tableToolbarRef.current) {
+    const el = document.createElement('div');
+    el.setAttribute('contenteditable', 'false');
+    tableToolbarRef.current = el;
+  }
+
   const isEditing = !!material;
+
+  // Table toolbar extension
+  const TableToolbarExtension = useMemo(() => {
+    const toolbarEl = tableToolbarRef.current;
+    return Extension.create({
+      name: 'tableToolbar',
+      addProseMirrorPlugins() {
+        return [
+          new Plugin({
+            key: tableToolbarPluginKey,
+            props: {
+              decorations(state) {
+                const { $from } = state.selection;
+                let tablePos = null;
+                for (let d = $from.depth; d > 0; d--) {
+                  if ($from.node(d).type.name === 'table') {
+                    tablePos = $from.before(d);
+                    break;
+                  }
+                }
+                if (tablePos === null) return DecorationSet.empty;
+                return DecorationSet.create(state.doc, [
+                  Decoration.widget(tablePos, () => toolbarEl, {
+                    side: -1,
+                    key: 'table-toolbar-widget',
+                  }),
+                ]);
+              },
+            },
+          }),
+        ];
+      },
+    });
+  }, []);
 
   // Tiptap editor
   const editor = useEditor({
@@ -64,12 +113,21 @@ export default function MaterialEditorFullscreen({
       TableRow,
       TableHeader,
       TableCell,
+      TableToolbarExtension,
     ],
     content: formData.content || '',
     onUpdate: ({ editor }) => {
       setFormData(prev => ({ ...prev, content: editor.getHTML() }));
     },
   });
+
+  // Track if cursor is in table
+  useEffect(() => {
+    if (!editor) return;
+    const update = () => setInTable(editor.isActive('table'));
+    editor.on('selectionUpdate', update);
+    return () => editor.off('selectionUpdate', update);
+  }, [editor]);
 
   useEffect(() => {
     if (editor && material?.content && material.content !== editor.getHTML()) {
@@ -227,7 +285,7 @@ export default function MaterialEditorFullscreen({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: isDark ? '#0f0f12' : '#f5f5f5' }}>
+    <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-50 flex flex-col" style={{ background: isDark ? '#0f0f12' : '#f5f5f5' }}>
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-3 border-b ${isDark ? 'bg-[#1a1a1e] border-white/10' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center gap-4">
@@ -381,6 +439,66 @@ export default function MaterialEditorFullscreen({
                 <ToolBtn active={false} onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Divider"><Minus size={18} /></ToolBtn>
               </div>
             </div>
+          )}
+
+          {/* Table toolbar - rendered via portal into tableToolbarRef.current */}
+          {inTable && tableToolbarRef.current && createPortal(
+            <div className={`flex items-center gap-1 px-3 py-1.5 mb-1 rounded-lg border text-xs ${
+              isDark ? 'border-white/10 bg-white/[0.04]' : 'border-gray-200 bg-gray-50'
+            }`}>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().addRowBefore().run()}
+                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-200 text-gray-600'}`}
+              >
+                <ChevronUp size={12} /><span>Row above</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().addRowAfter().run()}
+                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-200 text-gray-600'}`}
+              >
+                <ChevronDown size={12} /><span>Row below</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().deleteRow().run()}
+                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+              >
+                <Trash2 size={12} /><span>Del row</span>
+              </button>
+              <div className={`w-px h-4 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().addColumnBefore().run()}
+                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-200 text-gray-600'}`}
+              >
+                <ChevronLeft size={12} /><span>Col left</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().addColumnAfter().run()}
+                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-200 text-gray-600'}`}
+              >
+                <ChevronRight size={12} /><span>Col right</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().deleteColumn().run()}
+                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+              >
+                <Trash2 size={12} /><span>Del col</span>
+              </button>
+              <div className={`w-px h-4 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().deleteTable().run()}
+                className={`flex items-center gap-1 px-2 py-1 rounded ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+              >
+                <Trash2 size={12} /><span>Delete table</span>
+              </button>
+            </div>,
+            tableToolbarRef.current
           )}
         </div>
       </div>

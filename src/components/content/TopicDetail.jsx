@@ -271,6 +271,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
   );
 
   return (
+    <>
     <div className="space-y-6">
       {/* Back + title */}
       <div className="flex items-center gap-3">
@@ -477,6 +478,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
           )}
         </div>
       )}
+    </div>
 
       {/* ── Material Fullscreen Editor ── */}
       {showMaterialForm && (
@@ -509,7 +511,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       {/* ── Test Modal ── */}
       {showTestModal && (
         <div
-          className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-black/60 backdrop-blur-sm"
+          className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-50 bg-black/60 backdrop-blur-sm"
           onClick={() => setShowTestModal(false)}
         >
           <div
@@ -658,7 +660,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       {/* Unsaved Changes Confirmation Modal */}
       {showUnsavedConfirm && (
         <div
-          className="fixed inset-0 flex items-center justify-center p-4 z-[80] animate-fadeIn"
+          className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-[80] animate-fadeIn"
           style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}
           onClick={() => setShowUnsavedConfirm(false)}
         >
@@ -698,6 +700,6 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
