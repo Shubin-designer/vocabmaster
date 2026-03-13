@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import RichTextEditor from '../common/RichTextEditor';
 import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
+import MaterialEditorFullscreen from './MaterialEditorFullscreen';
 
 const QUESTION_TYPES = [
   { value: 'multiple_choice', label: 'Multiple Choice' },
@@ -477,88 +478,32 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
         </div>
       )}
 
-      {/* ── Material Form Modal ── */}
+      {/* ── Material Fullscreen Editor ── */}
       {showMaterialForm && (
-        <div
-          className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-black/60 backdrop-blur-sm"
-          onClick={handleMaterialBackdropClick}
-        >
-          <div
-            className={`relative rounded-3xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-gray-200'}`}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {editingMaterial ? 'Edit Material' : 'New Material'}
-              </h3>
-              <button
-                onClick={handleMaterialBackdropClick}
-                className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex gap-4 flex-wrap">
-                <div className="flex-1 min-w-48">
-                  <label className={lbl(isDark)}>Title</label>
-                  <input
-                    value={materialForm.title}
-                    onChange={e => setMaterialForm({ ...materialForm, title: e.target.value })}
-                    className={inp(isDark)}
-                    placeholder="Material title..."
-                  />
-                </div>
-                <div>
-                  <label className={lbl(isDark)}>Level</label>
-                  <div className="flex gap-1.5">
-                    {LEVELS.map(l => (
-                      <button
-                        key={l}
-                        type="button"
-                        onClick={() => setMaterialForm({ ...materialForm, level: l })}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                          materialForm.level === l
-                            ? 'bg-pink-vibrant text-white'
-                            : isDark ? 'bg-white/[0.05] text-white/60 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className={lbl(isDark)}>Content *</label>
-                <RichTextEditor
-                  content={materialForm.content}
-                  onChange={html => setMaterialForm({ ...materialForm, content: html })}
-                  isDark={isDark}
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleMaterialBackdropClick}
-                  className={`flex-1 px-4 py-3 rounded-xl font-medium ${isDark ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveMaterial}
-                  disabled={savingMaterial || !materialForm.content || materialForm.content === '<p></p>'}
-                  className="flex-1 px-4 py-3 bg-pink-vibrant text-white rounded-xl font-medium hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {savingMaterial ? <Loader size={18} className="animate-spin" /> : <Check size={18} />}
-                  {editingMaterial ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MaterialEditorFullscreen
+          material={editingMaterial}
+          topicName={topic.name}
+          onSave={async (formData) => {
+            const payload = {
+              title: formData.title || topic.name,
+              content: formData.content,
+              level: formData.level,
+              topic_id: topic.id,
+              teacher_id: teacherId,
+              updated_at: new Date().toISOString(),
+            };
+            if (editingMaterial) {
+              await supabase.from('materials').update(payload).eq('id', editingMaterial.id);
+            } else {
+              payload.sort_order = materials.length;
+              await supabase.from('materials').insert(payload);
+            }
+            await loadMaterials();
+            closeMaterialForm();
+          }}
+          onClose={closeMaterialForm}
+          isDark={isDark}
+        />
       )}
 
       {/* ── Test Modal ── */}
