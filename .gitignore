@@ -79,6 +79,9 @@ temp/
 # Supabase local
 .supabase/
 
+# Claude Code settings (may contain sensitive commands)
+.claude/
+
 # Debug
 debug/
 *.debug
