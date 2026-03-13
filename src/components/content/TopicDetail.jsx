@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import {
   ArrowLeft, BookOpen, ClipboardList,
   Plus, Edit2, Trash2, X, Check, Loader,
-  ChevronDown, ChevronUp, GripVertical, ClipboardPaste
+  ChevronDown, ChevronUp, GripVertical, ClipboardPaste, Image, Upload
 } from 'lucide-react';
 import RichTextEditor from '../common/RichTextEditor';
 import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 import MaterialEditorFullscreen from './MaterialEditorFullscreen';
 import { parseTestText } from '../../utils/testParser';
+import { ocrBlobToHtml } from '../../utils/ocrToHtml';
 
 const QUESTION_TYPES = [
   { value: 'multiple_choice', label: 'Multiple Choice' },
@@ -146,6 +147,9 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
   const [testForm, setTestForm] = useState({ title: '', description: '', questions: [] });
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [pasteText, setPasteText] = useState('');
+  const [pasteImage, setPasteImage] = useState(null); // { file, url }
+  const [ocrProcessing, setOcrProcessing] = useState(false);
+  const pasteImageInputRef = useRef(null);
 
   const emptyQ = () => ({
     question_text: '', question_type: 'multiple_choice',
@@ -153,11 +157,40 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
     explanation_correct: '', explanation_wrong: '', hint: '',
   });
 
-  const handlePasteQuestions = () => {
+  const handlePasteQuestions = async () => {
+    // If image is present, run OCR first
+    if (pasteImage) {
+      setOcrProcessing(true);
+      try {
+        const html = await ocrBlobToHtml(pasteImage.file);
+        // Extract text from HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const text = doc.body.textContent || '';
+        const parsed = parseTestText(text);
+        if (parsed.length > 0) {
+          setTestForm(prev => ({
+            ...prev,
+            questions: [...prev.questions, ...parsed.map(q => ({
+              ...emptyQ(),
+              ...q,
+            }))]
+          }));
+        }
+      } catch (err) {
+        console.error('OCR error:', err);
+        alert('OCR error: ' + err.message);
+      }
+      setOcrProcessing(false);
+      setPasteImage(null);
+      setShowPasteModal(false);
+      return;
+    }
+
+    // Otherwise parse text
     if (!pasteText.trim()) return;
     const parsed = parseTestText(pasteText);
     if (parsed.length > 0) {
-      // Add parsed questions to existing ones
       setTestForm(prev => ({
         ...prev,
         questions: [...prev.questions, ...parsed.map(q => ({
@@ -168,6 +201,44 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
     }
     setPasteText('');
     setShowPasteModal(false);
+  };
+
+  const handlePasteModalPaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          setPasteImage({ file, url: URL.createObjectURL(file) });
+          setPasteText(''); // Clear text when image is pasted
+        }
+        return;
+      }
+    }
+  };
+
+  const handlePasteImageDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setPasteImage({ file, url: URL.createObjectURL(file) });
+      setPasteText('');
+    }
+  };
+
+  const handlePasteImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPasteImage({ file, url: URL.createObjectURL(file) });
+      setPasteText('');
+    }
+  };
+
+  const clearPasteImage = () => {
+    if (pasteImage?.url) URL.revokeObjectURL(pasteImage.url);
+    setPasteImage(null);
   };
 
   const loadTests = async () => {
@@ -637,25 +708,61 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                           </button>
                         ))}
                       </div>
-                      {q.question_type === 'multiple_choice' && (
+                      {(q.question_type === 'multiple_choice' || q.question_type === 'fill_blank') && q.options.some(o => o) && (
                         <div className="grid grid-cols-2 gap-2 mb-3">
-                          {q.options.map((opt, oi) => (
-                            <input
-                              key={oi}
-                              value={opt}
-                              onChange={e => updateQOption(qi, oi, e.target.value)}
-                              placeholder={`Option ${oi + 1}`}
-                              className={`px-3 py-2 rounded-lg text-sm border ${isDark ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
-                            />
-                          ))}
+                          {q.options.map((opt, oi) => {
+                            const letter = String.fromCharCode(65 + oi); // A, B, C, D
+                            const isSelected = q.correct_answer === letter || q.correct_answer === opt;
+                            return opt ? (
+                              <div key={oi} className="flex gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => updateQ(qi, 'correct_answer', letter)}
+                                  className={`w-8 h-full rounded-l-lg text-xs font-bold transition-all flex-shrink-0 ${
+                                    isSelected
+                                      ? 'bg-green-500 text-white'
+                                      : isDark
+                                        ? 'bg-white/[0.08] text-white/50 hover:bg-white/[0.15]'
+                                        : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                  }`}
+                                >
+                                  {letter}
+                                </button>
+                                <input
+                                  value={opt}
+                                  onChange={e => updateQOption(qi, oi, e.target.value)}
+                                  className={`flex-1 px-3 py-2 rounded-r-lg text-sm border-y border-r ${
+                                    isSelected
+                                      ? isDark
+                                        ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                        : 'bg-green-50 border-green-200 text-green-700'
+                                      : isDark
+                                        ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30'
+                                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                                  }`}
+                                />
+                              </div>
+                            ) : (
+                              <input
+                                key={oi}
+                                value={opt}
+                                onChange={e => updateQOption(qi, oi, e.target.value)}
+                                placeholder={`Option ${String.fromCharCode(65 + oi)}`}
+                                className={`px-3 py-2 rounded-lg text-sm border ${isDark ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'}`}
+                              />
+                            );
+                          })}
                         </div>
                       )}
-                      <input
-                        value={q.correct_answer}
-                        onChange={e => updateQ(qi, 'correct_answer', e.target.value)}
-                        placeholder="Correct answer *"
-                        className={`w-full px-3 py-2 rounded-lg text-sm border ${isDark ? 'bg-green-500/10 border-green-500/30 text-green-400 placeholder-green-400/50' : 'bg-green-50 border-green-200 text-green-700 placeholder-green-400'}`}
-                      />
+                      {/* Show text input only if no options or for true/false */}
+                      {(q.question_type === 'true_false' || !q.options.some(o => o)) && (
+                        <input
+                          value={q.correct_answer}
+                          onChange={e => updateQ(qi, 'correct_answer', e.target.value)}
+                          placeholder={q.question_type === 'true_false' ? 'True or False' : 'Correct answer *'}
+                          className={`w-full px-3 py-2 rounded-lg text-sm border ${isDark ? 'bg-green-500/10 border-green-500/30 text-green-400 placeholder-green-400/50' : 'bg-green-50 border-green-200 text-green-700 placeholder-green-400'}`}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -740,49 +847,113 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       {showPasteModal && (
         <div
           className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-[90] bg-black/60 backdrop-blur-sm"
-          onClick={() => setShowPasteModal(false)}
+          onClick={() => { setShowPasteModal(false); clearPasteImage(); }}
         >
           <div
             className={`relative rounded-2xl p-5 w-full max-w-2xl ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-gray-200'}`}
             onClick={e => e.stopPropagation()}
+            onPaste={handlePasteModalPaste}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 Paste Questions
               </h3>
               <button
-                onClick={() => setShowPasteModal(false)}
+                onClick={() => { setShowPasteModal(false); clearPasteImage(); }}
                 className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}
               >
                 <X size={18} />
               </button>
             </div>
-            <p className={`text-sm mb-3 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-              Paste your test questions. Format: numbered questions with options (1. option 2. option...)
-            </p>
-            <textarea
-              value={pasteText}
-              onChange={e => setPasteText(e.target.value)}
-              placeholder={`Example:\n1. Did you remember to get ... bread?\n1. a, the  2. -, -  3. the, the  4. -, the\n\n2. The situation was getting out of ... hand.\n1. a, -  2. the, the  3. -, the  4. the, -`}
-              className={`w-full h-64 px-4 py-3 rounded-xl border text-sm font-mono resize-none ${
-                isDark
-                  ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30'
-                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400'
-              }`}
-            />
+
+            {/* Mode selector: Text or Image */}
+            {!pasteImage ? (
+              <>
+                <p className={`text-sm mb-3 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                  Paste text or image (Ctrl+V), or drag & drop an image
+                </p>
+
+                {/* Drop zone / Image upload */}
+                <div
+                  onDrop={handlePasteImageDrop}
+                  onDragOver={e => e.preventDefault()}
+                  className={`mb-3 p-4 border-2 border-dashed rounded-xl flex items-center justify-center gap-3 cursor-pointer transition-colors ${
+                    isDark
+                      ? 'border-white/20 hover:border-white/40 hover:bg-white/[0.02]'
+                      : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                  }`}
+                  onClick={() => pasteImageInputRef.current?.click()}
+                >
+                  <Image size={20} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                  <span className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                    Drop image here, paste (Ctrl+V), or click to upload
+                  </span>
+                  <input
+                    ref={pasteImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePasteImageSelect}
+                    className="hidden"
+                  />
+                </div>
+
+                <textarea
+                  value={pasteText}
+                  onChange={e => setPasteText(e.target.value)}
+                  placeholder={`Or paste text:\n1. Did you remember to get ... bread?\na) a, the  b) -, -  c) the, the  d) -, the\n\n2. Last night we went out for ... meal.\na) -  b) the  c) a  d) an`}
+                  className={`w-full h-52 px-4 py-3 rounded-xl border text-sm font-mono resize-none ${
+                    isDark
+                      ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30'
+                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400'
+                  }`}
+                />
+              </>
+            ) : (
+              <>
+                <p className={`text-sm mb-3 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                  Image loaded. Click "Run OCR" to extract questions.
+                </p>
+                <div className="relative mb-3">
+                  <img
+                    src={pasteImage.url}
+                    alt="Pasted"
+                    className="w-full max-h-80 object-contain rounded-xl border border-white/10"
+                  />
+                  <button
+                    onClick={clearPasteImage}
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-white hover:bg-black/70"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </>
+            )}
+
             <div className="flex justify-end gap-2 mt-4">
               <button
-                onClick={() => { setPasteText(''); setShowPasteModal(false); }}
+                onClick={() => { setPasteText(''); clearPasteImage(); setShowPasteModal(false); }}
                 className={`px-4 py-2 rounded-lg font-medium ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
               >
                 Cancel
               </button>
               <button
                 onClick={handlePasteQuestions}
-                disabled={!pasteText.trim()}
-                className="px-4 py-2 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-50"
+                disabled={(!pasteText.trim() && !pasteImage) || ocrProcessing}
+                className="px-4 py-2 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-50 flex items-center gap-2"
               >
-                Parse & Add Questions
+                {ocrProcessing ? (
+                  <>
+                    <Loader size={16} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : pasteImage ? (
+                  <>
+                    <Upload size={16} />
+                    Run OCR & Add
+                  </>
+                ) : (
+                  'Parse & Add Questions'
+                )}
               </button>
             </div>
           </div>

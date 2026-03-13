@@ -75,7 +75,19 @@ function finalizeQuestion(question, lines) {
 
   if (options.length > 0) {
     question.options = options;
+  }
+
+  // Determine question type based on content
+  // If question has blanks (...), it's fill_blank
+  // If no blanks but has options, it's multiple_choice
+  const hasBlanks = /\.{2,}|…/.test(question.question_text);
+
+  if (hasBlanks) {
+    question.question_type = 'fill_blank';
+  } else if (options.some(o => o)) {
     question.question_type = 'multiple_choice';
+  } else {
+    question.question_type = 'fill_blank';
   }
 
   if (correctAnswer) {
