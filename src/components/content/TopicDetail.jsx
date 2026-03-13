@@ -151,6 +151,11 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const pasteImageInputRef = useRef(null);
 
+  // Drag state
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverItem, setDragOverItem] = useState(null);
+  const [dragType, setDragType] = useState(null); // 'material' or 'test'
+
   const emptyQ = () => ({
     question_text: '', question_type: 'multiple_choice',
     options: ['', '', '', ''], correct_answer: '',
@@ -248,7 +253,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       .select('*')
       .eq('topic_id', topic.id)
       .eq('teacher_id', teacherId)
-      .order('created_at', { ascending: false });
+      .order('sort_order', { ascending: true });
     if (data?.length) {
       const { data: qData } = await supabase
         .from('test_questions')
@@ -381,6 +386,74 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
 
   const deleteTest = (test) => setDeleteTarget({ type: 'test', item: test });
 
+  // Drag handlers for reordering
+  const handleDragStart = (e, item, type) => {
+    setDraggedItem(item);
+    setDragType(type);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', item.id);
+    // Add dragging class after a small delay to allow drag image to capture
+    setTimeout(() => e.target.classList.add('opacity-50'), 0);
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.classList.remove('opacity-50');
+    setDraggedItem(null);
+    setDragOverItem(null);
+    setDragType(null);
+  };
+
+  const handleDragOver = (e, item) => {
+    e.preventDefault();
+    if (draggedItem && draggedItem.id !== item.id) {
+      setDragOverItem(item);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverItem(null);
+  };
+
+  const handleDrop = async (e, targetItem, type) => {
+    e.preventDefault();
+    if (!draggedItem || draggedItem.id === targetItem.id || dragType !== type) {
+      setDraggedItem(null);
+      setDragOverItem(null);
+      return;
+    }
+
+    const items = type === 'material' ? [...materials] : [...tests];
+    const dragIdx = items.findIndex(i => i.id === draggedItem.id);
+    const targetIdx = items.findIndex(i => i.id === targetItem.id);
+
+    if (dragIdx === -1 || targetIdx === -1) return;
+
+    // Reorder
+    const [removed] = items.splice(dragIdx, 1);
+    items.splice(targetIdx, 0, removed);
+
+    // Update state immediately for responsiveness
+    if (type === 'material') {
+      setMaterials(items);
+    } else {
+      setTests(items);
+    }
+
+    // Update sort_order in database
+    const updates = items.map((item, idx) => ({
+      id: item.id,
+      sort_order: idx,
+    }));
+
+    const table = type === 'material' ? 'materials' : 'tests';
+    for (const update of updates) {
+      await supabase.from(table).update({ sort_order: update.sort_order }).eq('id', update.id);
+    }
+
+    setDraggedItem(null);
+    setDragOverItem(null);
+  };
+
   const tabBtn = (key, label, Icon) => (
     <button
       key={key}
@@ -453,8 +526,20 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
           ) : (
             <div className="space-y-3">
               {materials.map((mat) => (
-                <div key={mat.id} className={card(isDark) + ' overflow-hidden'}>
+                <div
+                  key={mat.id}
+                  className={`${card(isDark)} overflow-hidden transition-all ${dragOverItem?.id === mat.id && dragType === 'material' ? 'ring-2 ring-pink-vibrant ring-offset-2' : ''}`}
+                  draggable
+                  onDragStart={e => handleDragStart(e, mat, 'material')}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={e => handleDragOver(e, mat)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={e => handleDrop(e, mat, 'material')}
+                >
                   <div className="p-4 flex items-center gap-4">
+                    <div className={`cursor-grab active:cursor-grabbing ${isDark ? 'text-white/20 hover:text-white/40' : 'text-gray-300 hover:text-gray-400'}`}>
+                      <GripVertical size={18} />
+                    </div>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
                       <BookOpen size={20} />
                     </div>
@@ -557,8 +642,20 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
           ) : (
             <div className="space-y-3">
               {tests.map(test => (
-                <div key={test.id} className={card(isDark) + ' overflow-hidden'}>
+                <div
+                  key={test.id}
+                  className={`${card(isDark)} overflow-hidden transition-all ${dragOverItem?.id === test.id && dragType === 'test' ? 'ring-2 ring-pink-vibrant ring-offset-2' : ''}`}
+                  draggable
+                  onDragStart={e => handleDragStart(e, test, 'test')}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={e => handleDragOver(e, test)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={e => handleDrop(e, test, 'test')}
+                >
                   <div className="p-4 flex items-center gap-4">
+                    <div className={`cursor-grab active:cursor-grabbing ${isDark ? 'text-white/20 hover:text-white/40' : 'text-gray-300 hover:text-gray-400'}`}>
+                      <GripVertical size={18} />
+                    </div>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-600'}`}>
                       <ClipboardList size={20} />
                     </div>
