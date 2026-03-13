@@ -15,6 +15,16 @@ export async function loadPdf(file) {
 }
 
 /**
+ * Load a PDF from URL
+ * @param {string} url - PDF URL
+ * @returns {Promise<PDFDocumentProxy>}
+ */
+export async function loadPdfFromUrl(url) {
+  const pdf = await pdfjsLib.getDocument(url).promise;
+  return pdf;
+}
+
+/**
  * Render a PDF page to a canvas element
  * @param {PDFDocumentProxy} pdf - PDF document
  * @param {number} pageNum - Page number (1-indexed)

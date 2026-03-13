@@ -3,15 +3,16 @@ import TopicsList from './TopicsList';
 import ReadingTextsList from './ReadingTextsList';
 import VocabSetsList from './VocabSetsList';
 import HomeworkList from './HomeworkList';
-import PdfWorkbench from './PdfWorkbench';
-import { Layers, BookOpen, Languages, PenLine, FileText } from 'lucide-react';
+import PdfLibrary from './PdfLibrary';
+import PdfLibraryWorkbench from './PdfLibraryWorkbench';
+import { Layers, BookOpen, Languages, PenLine, FolderOpen } from 'lucide-react';
 
 const TABS = [
   { key: 'topics', label: 'Topics', icon: Layers },
   { key: 'reading', label: 'Reading', icon: BookOpen },
   { key: 'vocabulary', label: 'Vocabulary', icon: Languages },
   { key: 'homework', label: 'Homework', icon: PenLine },
-  { key: 'pdf', label: 'PDF', icon: FileText },
+  { key: 'library', label: 'Library', icon: FolderOpen },
 ];
 
 export default function ContentManager({ teacherId, isDark = true }) {
@@ -57,9 +58,32 @@ export default function ContentManager({ teacherId, isDark = true }) {
         <HomeworkList teacherId={teacherId} isDark={isDark} />
       )}
 
-      {activeTab === 'pdf' && (
-        <PdfWorkbench teacherId={teacherId} isDark={isDark} />
+      {activeTab === 'library' && (
+        <LibraryTab teacherId={teacherId} isDark={isDark} />
       )}
     </div>
+  );
+}
+
+function LibraryTab({ teacherId, isDark }) {
+  const [selectedPdf, setSelectedPdf] = useState(null);
+
+  if (selectedPdf) {
+    return (
+      <PdfLibraryWorkbench
+        pdf={selectedPdf}
+        teacherId={teacherId}
+        isDark={isDark}
+        onBack={() => setSelectedPdf(null)}
+      />
+    );
+  }
+
+  return (
+    <PdfLibrary
+      teacherId={teacherId}
+      isDark={isDark}
+      onSelectPdf={setSelectedPdf}
+    />
   );
 }
