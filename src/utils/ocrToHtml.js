@@ -2,17 +2,26 @@ import { supabase } from '../supabaseClient';
 
 /**
  * Check if cell content is effectively empty
- * (empty string, only whitespace, or non-breaking spaces)
+ * Strips ALL whitespace, special chars, and checks for meaningful content
  */
-function isCellEmpty(text) {
-  if (!text) return true;
-  // Remove all whitespace including nbsp
-  const cleaned = text.replace(/[\s\u00A0\u200B]+/g, '');
-  return cleaned.length === 0;
+function isCellEmpty(cell) {
+  if (!cell) return true;
+
+  // Get text content and innerHTML
+  const text = cell.textContent || '';
+  const html = cell.innerHTML || '';
+
+  // Strip absolutely everything that's not a letter, number, or common punctuation
+  const cleanedText = text.replace(/[\s\u00A0\u200B\u200C\u200D\uFEFF\n\r\t]+/g, '');
+  const cleanedHtml = html.replace(/<[^>]*>/g, '').replace(/[\s\u00A0\u200B\u200C\u200D\uFEFF\n\r\t&nbsp;]+/g, '');
+
+  // Cell is empty if both cleaned versions are empty or just punctuation like "|"
+  const finalText = cleanedText.replace(/^[|_\-—–]+$/, '');
+  return finalText.length === 0 && cleanedHtml.length === 0;
 }
 
 /**
- * Clean up tables in HTML - remove empty rows and columns
+ * Clean up tables in HTML - aggressively remove empty rows and columns
  * @param {string} html - HTML content with tables
  * @returns {string} Cleaned HTML
  */
@@ -24,53 +33,55 @@ function cleanTableHtml(html) {
   const tables = doc.querySelectorAll('table');
 
   tables.forEach(table => {
-    const rows = Array.from(table.querySelectorAll('tr'));
-    if (rows.length === 0) return;
+    // Keep cleaning until no more empty rows/columns found
+    let changed = true;
+    while (changed) {
+      changed = false;
 
-    // Get max columns count
-    const maxCols = Math.max(...rows.map(row => row.querySelectorAll('td, th').length));
-    if (maxCols === 0) return;
+      const rows = Array.from(table.querySelectorAll('tr'));
+      if (rows.length === 0) return;
 
-    // Build matrix of cell contents and references
-    const cellMatrix = rows.map(row => Array.from(row.querySelectorAll('td, th')));
-    const textMatrix = cellMatrix.map(cells =>
-      Array.from({ length: maxCols }, (_, i) =>
-        cells[i] ? cells[i].textContent : ''
-      )
-    );
+      // Get max columns count
+      const maxCols = Math.max(...rows.map(row => row.querySelectorAll('td, th').length), 0);
+      if (maxCols === 0) return;
 
-    // Find empty columns (all cells in column are empty)
-    const emptyColIndices = [];
-    for (let col = 0; col < maxCols; col++) {
-      const allEmpty = textMatrix.every(row => isCellEmpty(row[col]));
-      if (allEmpty) emptyColIndices.push(col);
+      // Build matrix of cell references
+      const cellMatrix = rows.map(row => {
+        const cells = Array.from(row.querySelectorAll('td, th'));
+        // Pad array to maxCols
+        while (cells.length < maxCols) cells.push(null);
+        return cells;
+      });
+
+      // Find and remove empty columns (check each column)
+      for (let col = maxCols - 1; col >= 0; col--) {
+        const allEmpty = cellMatrix.every(cells => isCellEmpty(cells[col]));
+        if (allEmpty) {
+          // Remove this column from all rows
+          cellMatrix.forEach(cells => {
+            if (cells[col] && cells[col].parentNode) {
+              cells[col].remove();
+            }
+          });
+          changed = true;
+        }
+      }
+
+      // Find and remove empty rows
+      for (let rowIdx = rows.length - 1; rowIdx >= 0; rowIdx--) {
+        const row = rows[rowIdx];
+        const cells = Array.from(row.querySelectorAll('td, th'));
+        const allEmpty = cells.length === 0 || cells.every(cell => isCellEmpty(cell));
+        if (allEmpty) {
+          row.remove();
+          changed = true;
+        }
+      }
     }
 
-    // Find empty rows (all cells in row are empty)
-    const emptyRowIndices = [];
-    textMatrix.forEach((row, idx) => {
-      const allEmpty = row.every(cell => isCellEmpty(cell));
-      if (allEmpty) emptyRowIndices.push(idx);
-    });
-
-    // Remove empty columns (in reverse order to preserve indices)
-    emptyColIndices.sort((a, b) => b - a).forEach(colIdx => {
-      cellMatrix.forEach(cells => {
-        if (cells[colIdx]) {
-          cells[colIdx].remove();
-        }
-      });
-    });
-
-    // Remove empty rows (in reverse order)
-    emptyRowIndices.sort((a, b) => b - a).forEach(rowIdx => {
-      if (rows[rowIdx]) {
-        rows[rowIdx].remove();
-      }
-    });
-
-    // If table now has no rows, remove it
-    if (table.querySelectorAll('tr').length === 0) {
+    // If table now has no content rows, remove it
+    const remainingRows = table.querySelectorAll('tr');
+    if (remainingRows.length === 0) {
       table.remove();
     }
   });
