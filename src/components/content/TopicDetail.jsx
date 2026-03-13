@@ -496,14 +496,20 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
             };
             if (editingMaterial) {
               await supabase.from('materials').update(payload).eq('id', editingMaterial.id);
+              // Update editingMaterial with new data
+              setEditingMaterial({ ...editingMaterial, ...payload });
             } else {
               payload.sort_order = materials.length;
-              await supabase.from('materials').insert(payload);
+              const { data } = await supabase.from('materials').insert(payload).select().single();
+              // Set editingMaterial to the newly created material so user can continue editing
+              if (data) setEditingMaterial(data);
             }
             await loadMaterials();
-            closeMaterialForm();
+            // Update initial form to current state (so no "unsaved changes" warning)
+            setInitialMaterialForm(formData);
+            // Don't close - user closes manually
           }}
-          onClose={closeMaterialForm}
+          onClose={handleMaterialBackdropClick}
           isDark={isDark}
         />
       )}

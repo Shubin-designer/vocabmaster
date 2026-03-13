@@ -32,6 +32,7 @@ export default function MaterialEditorFullscreen({
     level: material?.level || 'B1',
   });
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   // PDF state
   const [pdf, setPdf] = useState(null);
@@ -246,6 +247,8 @@ export default function MaterialEditorFullscreen({
     setSaving(true);
     await onSave({ ...formData, content });
     setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   const closeFile = () => {
@@ -319,10 +322,14 @@ export default function MaterialEditorFullscreen({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-500 disabled:opacity-50"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              saved
+                ? 'bg-green-500 text-white'
+                : 'bg-green-600 text-white hover:bg-green-500 disabled:opacity-50'
+            }`}
           >
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-            Save
+            {saved ? 'Saved!' : 'Save'}
           </button>
           <button onClick={onClose} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}>
             <X size={20} />

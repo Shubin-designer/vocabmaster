@@ -1,6 +1,17 @@
 import { supabase } from '../supabaseClient';
 
 /**
+ * Check if cell content is effectively empty
+ * (empty string, only whitespace, or non-breaking spaces)
+ */
+function isCellEmpty(text) {
+  if (!text) return true;
+  // Remove all whitespace including nbsp
+  const cleaned = text.replace(/[\s\u00A0\u200B]+/g, '');
+  return cleaned.length === 0;
+}
+
+/**
  * Clean up tables in HTML - remove empty rows and columns
  * @param {string} html - HTML content with tables
  * @returns {string} Cleaned HTML
@@ -20,37 +31,31 @@ function cleanTableHtml(html) {
     const maxCols = Math.max(...rows.map(row => row.querySelectorAll('td, th').length));
     if (maxCols === 0) return;
 
-    // Build matrix of cell contents
-    const matrix = rows.map(row => {
-      const cells = Array.from(row.querySelectorAll('td, th'));
-      // Pad to maxCols
-      const contents = [];
-      for (let i = 0; i < maxCols; i++) {
-        const cell = cells[i];
-        const text = cell ? cell.textContent.trim() : '';
-        contents.push(text);
-      }
-      return contents;
-    });
+    // Build matrix of cell contents and references
+    const cellMatrix = rows.map(row => Array.from(row.querySelectorAll('td, th')));
+    const textMatrix = cellMatrix.map(cells =>
+      Array.from({ length: maxCols }, (_, i) =>
+        cells[i] ? cells[i].textContent : ''
+      )
+    );
 
     // Find empty columns (all cells in column are empty)
     const emptyColIndices = [];
     for (let col = 0; col < maxCols; col++) {
-      const allEmpty = matrix.every(row => !row[col]);
+      const allEmpty = textMatrix.every(row => isCellEmpty(row[col]));
       if (allEmpty) emptyColIndices.push(col);
     }
 
     // Find empty rows (all cells in row are empty)
     const emptyRowIndices = [];
-    matrix.forEach((row, idx) => {
-      const allEmpty = row.every(cell => !cell);
+    textMatrix.forEach((row, idx) => {
+      const allEmpty = row.every(cell => isCellEmpty(cell));
       if (allEmpty) emptyRowIndices.push(idx);
     });
 
     // Remove empty columns (in reverse order to preserve indices)
-    emptyColIndices.reverse().forEach(colIdx => {
-      rows.forEach(row => {
-        const cells = row.querySelectorAll('td, th');
+    emptyColIndices.sort((a, b) => b - a).forEach(colIdx => {
+      cellMatrix.forEach(cells => {
         if (cells[colIdx]) {
           cells[colIdx].remove();
         }
@@ -58,7 +63,7 @@ function cleanTableHtml(html) {
     });
 
     // Remove empty rows (in reverse order)
-    emptyRowIndices.reverse().forEach(rowIdx => {
+    emptyRowIndices.sort((a, b) => b - a).forEach(rowIdx => {
       if (rows[rowIdx]) {
         rows[rowIdx].remove();
       }
