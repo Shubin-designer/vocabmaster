@@ -1,9 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, ChevronLeft, ChevronRight, Loader2, X, FileText, ScanText, CheckCircle2 } from 'lucide-react';
+import { Upload, ChevronLeft, ChevronRight, Loader2, X, FileText, ScanText, Save, TextSelect, FileDown, BookOpen, ClipboardList } from 'lucide-react';
 import { loadPdf, renderPageToCanvas, renderPageToBlob, generateThumbnail } from '../../utils/pdfUtils';
 import { ocrBlobToHtml } from '../../utils/ocrToHtml';
 import PdfPageThumbnail from './PdfPageThumbnail';
-import PdfOcrModal from './PdfOcrModal';
+import PdfSaveModal from './PdfSaveModal';
+import RichTextEditor from '../common/RichTextEditor';
+
+const CONTENT_TYPES = [
+  { key: 'material', label: 'Material', icon: FileText },
+  { key: 'reading', label: 'Reading', icon: BookOpen },
+  { key: 'test', label: 'Test', icon: ClipboardList },
+];
 
 export default function PdfWorkbench({ teacherId, isDark = true }) {
   const [pdf, setPdf] = useState(null);
@@ -17,10 +24,17 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
   // OCR state
   const [ocrProgress, setOcrProgress] = useState({ status: 'idle', current: 0, total: 0, error: null });
   const [ocrHtml, setOcrHtml] = useState('');
-  const [showOcrModal, setShowOcrModal] = useState(false);
+
+  // Save state
+  const [contentType, setContentType] = useState('material');
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveMode, setSaveMode] = useState('all');
+  const [selectedHtml, setSelectedHtml] = useState('');
+  const [hasTextSelected, setHasTextSelected] = useState(false);
 
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+  const editorContainerRef = useRef(null);
 
   // Load PDF file
   const handleFileSelect = async (e) => {
@@ -39,14 +53,12 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
       setTotalPages(pdfDoc.numPages);
       setCurrentPage(1);
 
-      // Generate thumbnails for all pages
       const thumbs = [];
       for (let i = 1; i <= pdfDoc.numPages; i++) {
         thumbs.push({ pageNum: i, dataUrl: null, status: 'pending' });
       }
       setThumbnails(thumbs);
 
-      // Generate thumbnails asynchronously
       for (let i = 1; i <= pdfDoc.numPages; i++) {
         const dataUrl = await generateThumbnail(pdfDoc, i);
         setThumbnails(prev => prev.map(t =>
@@ -66,7 +78,26 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
     renderPageToCanvas(pdf, currentPage, canvasRef.current, 1.5);
   }, [pdf, currentPage]);
 
-  // Handle page navigation
+  // Track text selection in editor
+  useEffect(() => {
+    const checkSelection = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+        setHasTextSelected(false);
+        return;
+      }
+      const editorEl = editorContainerRef.current?.querySelector('.rich-editor');
+      if (!editorEl) {
+        setHasTextSelected(false);
+        return;
+      }
+      const range = selection.getRangeAt(0);
+      setHasTextSelected(editorEl.contains(range.commonAncestorContainer));
+    };
+    document.addEventListener('selectionchange', checkSelection);
+    return () => document.removeEventListener('selectionchange', checkSelection);
+  }, []);
+
   const goToPrevPage = () => {
     if (currentPage > 1) setCurrentPage(p => p - 1);
   };
@@ -75,7 +106,6 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
     if (currentPage < totalPages) setCurrentPage(p => p + 1);
   };
 
-  // Toggle page selection
   const togglePageSelection = (pageNum) => {
     setSelectedPages(prev =>
       prev.includes(pageNum)
@@ -84,14 +114,13 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
     );
   };
 
-  // Run OCR on selected pages
+  // Run OCR
   const runOcr = async () => {
     if (selectedPages.length === 0 || !pdf) return;
 
     setOcrProgress({ status: 'processing', current: 0, total: selectedPages.length, error: null });
     setOcrHtml('');
 
-    // Update thumbnail statuses to processing
     setThumbnails(prev => prev.map(t =>
       selectedPages.includes(t.pageNum) ? { ...t, status: 'processing' } : t
     ));
@@ -103,38 +132,58 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
         const pageNum = selectedPages[i];
         setOcrProgress(prev => ({ ...prev, current: i + 1 }));
 
-        // Render page to blob
         const blob = await renderPageToBlob(pdf, pageNum, 2.0);
-
-        // Run OCR
         const html = await ocrBlobToHtml(blob);
         htmlParts.push(html);
 
-        // Update thumbnail status to done
         setThumbnails(prev => prev.map(t =>
           t.pageNum === pageNum ? { ...t, status: 'done' } : t
         ));
       }
 
-      // Combine HTML from all pages
       const combinedHtml = htmlParts.join('<hr style="margin: 2em 0; border: none; border-top: 2px solid #e5e7eb;">');
       setOcrHtml(combinedHtml);
       setOcrProgress({ status: 'done', current: selectedPages.length, total: selectedPages.length, error: null });
-
-      // Automatically open the editor modal
-      setShowOcrModal(true);
     } catch (err) {
       console.error('OCR failed:', err);
       setOcrProgress({ status: 'error', current: 0, total: selectedPages.length, error: err.message });
 
-      // Update thumbnail statuses to error
       setThumbnails(prev => prev.map(t =>
         selectedPages.includes(t.pageNum) && t.status === 'processing' ? { ...t, status: 'error' } : t
       ));
     }
   };
 
-  // Close PDF
+  // Get selected HTML
+  const getSelectionHtml = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return null;
+
+    const editorEl = editorContainerRef.current?.querySelector('.rich-editor');
+    if (!editorEl) return null;
+
+    const range = selection.getRangeAt(0);
+    if (!editorEl.contains(range.commonAncestorContainer)) return null;
+
+    const container = document.createElement('div');
+    container.appendChild(range.cloneContents());
+    return container.innerHTML;
+  };
+
+  const handleSaveAll = () => {
+    setSaveMode('all');
+    setShowSaveModal(true);
+  };
+
+  const handleSaveSelection = () => {
+    const html = getSelectionHtml();
+    if (html && html.trim()) {
+      setSelectedHtml(html);
+      setSaveMode('selection');
+      setShowSaveModal(true);
+    }
+  };
+
   const closePdf = () => {
     setPdf(null);
     setFileName('');
@@ -147,7 +196,6 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       setPdf(null);
@@ -156,8 +204,9 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
   }, []);
 
   const isProcessing = ocrProgress.status === 'processing';
+  const hasOcrContent = ocrHtml && ocrHtml.trim().length > 0;
 
-  // No PDF loaded - show upload UI
+  // No PDF loaded
   if (!pdf) {
     return (
       <div className="space-y-6">
@@ -202,7 +251,7 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
     );
   }
 
-  // PDF loaded - show workbench
+  // PDF loaded - 50/50 layout
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -222,54 +271,12 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {/* OCR Button */}
-          <button
-            onClick={runOcr}
-            disabled={selectedPages.length === 0 || isProcessing}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all ${
-              selectedPages.length === 0 || isProcessing
-                ? isDark
-                  ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-pink-vibrant text-white hover:bg-pink-vibrant/90 shadow-lg shadow-pink-vibrant/25'
-            }`}
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                {ocrProgress.current}/{ocrProgress.total}
-              </>
-            ) : (
-              <>
-                <ScanText className="w-5 h-5" />
-                Run OCR {selectedPages.length > 0 && `(${selectedPages.length})`}
-              </>
-            )}
-          </button>
-
-          {/* Open Editor button (when OCR done) */}
-          {ocrHtml && (
-            <button
-              onClick={() => setShowOcrModal(true)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
-                isDark
-                  ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                  : 'bg-green-100 text-green-700 hover:bg-green-200'
-              }`}
-            >
-              <CheckCircle2 className="w-5 h-5" />
-              Edit & Save
-            </button>
-          )}
-
-          <button
-            onClick={closePdf}
-            className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}
-          >
-            <X size={20} />
-          </button>
-        </div>
+        <button
+          onClick={closePdf}
+          className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}
+        >
+          <X size={20} />
+        </button>
       </div>
 
       {/* Progress bar */}
@@ -282,80 +289,200 @@ export default function PdfWorkbench({ teacherId, isDark = true }) {
         </div>
       )}
 
-      {/* Error message */}
+      {/* Error */}
       {ocrProgress.status === 'error' && (
         <div className={`p-4 rounded-xl ${isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600'}`}>
           OCR Error: {ocrProgress.error}
         </div>
       )}
 
-      {/* Main layout - Two columns */}
-      <div className={`grid grid-cols-[200px_1fr] gap-4 rounded-2xl border p-4 ${
-        isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'
-      }`}>
-        {/* Left: Thumbnails */}
-        <div className={`overflow-y-auto max-h-[600px] pr-2 ${
-          isDark ? 'scrollbar-dark' : ''
+      {/* Main 50/50 layout */}
+      <div className="grid grid-cols-2 gap-4" style={{ height: 'calc(100vh - 220px)' }}>
+        {/* LEFT: PDF Viewer */}
+        <div className={`flex flex-col rounded-2xl border overflow-hidden ${
+          isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'
         }`}>
-          <div className="grid grid-cols-2 gap-2">
+          {/* Thumbnails row */}
+          <div className={`flex gap-2 p-3 border-b overflow-x-auto ${
+            isDark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'
+          }`}>
             {thumbnails.map((thumb) => (
-              <PdfPageThumbnail
-                key={thumb.pageNum}
-                pageNum={thumb.pageNum}
-                thumbnail={thumb.dataUrl}
-                isSelected={selectedPages.includes(thumb.pageNum)}
-                isActive={currentPage === thumb.pageNum}
-                status={thumb.status}
-                onSelect={() => togglePageSelection(thumb.pageNum)}
-                onClick={() => setCurrentPage(thumb.pageNum)}
-                isDark={isDark}
-              />
+              <div key={thumb.pageNum} className="flex-shrink-0 w-16">
+                <PdfPageThumbnail
+                  pageNum={thumb.pageNum}
+                  thumbnail={thumb.dataUrl}
+                  isSelected={selectedPages.includes(thumb.pageNum)}
+                  isActive={currentPage === thumb.pageNum}
+                  status={thumb.status}
+                  onSelect={() => togglePageSelection(thumb.pageNum)}
+                  onClick={() => setCurrentPage(thumb.pageNum)}
+                  isDark={isDark}
+                />
+              </div>
             ))}
+          </div>
+
+          {/* Page view */}
+          <div className="flex-1 overflow-auto p-4 flex items-start justify-center bg-gray-100">
+            <canvas ref={canvasRef} className="max-w-full shadow-lg" />
+          </div>
+
+          {/* Navigation + OCR button */}
+          <div className={`flex items-center justify-between p-3 border-t ${
+            isDark ? 'border-white/10' : 'border-gray-200'
+          }`}>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={goToPrevPage}
+                disabled={currentPage <= 1}
+                className={`p-2 rounded-lg transition-colors disabled:opacity-30 ${
+                  isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <span className={`text-sm font-medium min-w-[80px] text-center ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={goToNextPage}
+                disabled={currentPage >= totalPages}
+                className={`p-2 rounded-lg transition-colors disabled:opacity-30 ${
+                  isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+
+            <button
+              onClick={runOcr}
+              disabled={selectedPages.length === 0 || isProcessing}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                selectedPages.length === 0 || isProcessing
+                  ? isDark
+                    ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-pink-vibrant text-white hover:bg-pink-vibrant/90'
+              }`}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {ocrProgress.current}/{ocrProgress.total}
+                </>
+              ) : (
+                <>
+                  <ScanText className="w-4 h-4" />
+                  OCR {selectedPages.length > 0 && `(${selectedPages.length})`}
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Right: Page view */}
-        <div className="flex flex-col items-center">
-          <div className={`flex-1 overflow-auto rounded-lg border max-h-[550px] ${
-            isDark ? 'border-white/10 bg-white' : 'border-gray-200 bg-white'
+        {/* RIGHT: OCR Editor */}
+        <div className={`flex flex-col rounded-2xl border overflow-hidden ${
+          isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-gray-200'
+        }`}>
+          {/* Toolbar */}
+          <div className={`flex items-center justify-between p-3 border-b ${
+            isDark ? 'border-white/10' : 'border-gray-200'
           }`}>
-            <canvas ref={canvasRef} className="max-w-full" />
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-medium ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                Save as:
+              </span>
+              {CONTENT_TYPES.map((type) => (
+                <button
+                  key={type.key}
+                  onClick={() => setContentType(type.key)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    contentType === type.key
+                      ? 'bg-pink-vibrant text-white'
+                      : isDark
+                        ? 'bg-white/5 text-white/60 hover:bg-white/10'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <type.icon className="w-3.5 h-3.5" />
+                  {type.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveSelection}
+                disabled={!hasTextSelected}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  !hasTextSelected
+                    ? isDark
+                      ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : isDark
+                      ? 'bg-white/10 text-white hover:bg-white/20'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <TextSelect className="w-3.5 h-3.5" />
+                Selection
+              </button>
+              <button
+                onClick={handleSaveAll}
+                disabled={!hasOcrContent}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  !hasOcrContent
+                    ? isDark
+                      ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-600 text-white hover:bg-green-500'
+                }`}
+              >
+                <FileDown className="w-3.5 h-3.5" />
+                Save All
+              </button>
+            </div>
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center gap-4 mt-4">
-            <button
-              onClick={goToPrevPage}
-              disabled={currentPage <= 1}
-              className={`p-2 rounded-lg transition-colors disabled:opacity-30 ${
-                isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-gray-700'
-              }`}
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={goToNextPage}
-              disabled={currentPage >= totalPages}
-              className={`p-2 rounded-lg transition-colors disabled:opacity-30 ${
-                isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-gray-700'
-              }`}
-            >
-              <ChevronRight size={20} />
-            </button>
+          {/* Editor */}
+          <div className="flex-1 overflow-auto p-4" ref={editorContainerRef}>
+            {hasOcrContent ? (
+              <RichTextEditor
+                content={ocrHtml}
+                onChange={setOcrHtml}
+                isDark={isDark}
+              />
+            ) : (
+              <div className={`flex flex-col items-center justify-center h-full text-center ${
+                isDark ? 'text-white/30' : 'text-gray-400'
+              }`}>
+                <ScanText className="w-12 h-12 mb-4" />
+                <p className="text-lg font-medium mb-2">No OCR result yet</p>
+                <p className="text-sm">Select pages and click OCR to extract text</p>
+              </div>
+            )}
           </div>
+
+          {/* Hint */}
+          {hasOcrContent && (
+            <div className={`px-4 py-2 border-t text-xs text-center ${
+              isDark ? 'border-white/10 text-white/40' : 'border-gray-200 text-gray-500'
+            }`}>
+              Select text to save only that portion, or Save All for entire content
+            </div>
+          )}
         </div>
       </div>
 
-      {/* OCR Editor Modal */}
-      {showOcrModal && (
-        <PdfOcrModal
-          ocrHtml={ocrHtml}
-          onHtmlChange={setOcrHtml}
-          onClose={() => setShowOcrModal(false)}
+      {/* Save Modal */}
+      {showSaveModal && (
+        <PdfSaveModal
+          contentType={contentType}
+          htmlContent={saveMode === 'selection' ? selectedHtml : ocrHtml}
           teacherId={teacherId}
+          onClose={() => setShowSaveModal(false)}
+          onSuccess={() => setShowSaveModal(false)}
           isDark={isDark}
         />
       )}
