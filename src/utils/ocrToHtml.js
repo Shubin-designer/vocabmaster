@@ -1,5 +1,12 @@
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
+// Debug: check if env vars are loaded
+console.log('ENV check:', {
+  hasKey: !!OPENROUTER_API_KEY,
+  keyPrefix: OPENROUTER_API_KEY?.substring(0, 10),
+  allViteEnv: Object.keys(import.meta.env).filter(k => k.startsWith('VITE_'))
+});
+
 const PROMPT = `You are an OCR tool. Convert the textbook page image to clean HTML for a rich-text editor (TipTap).
 
 Rules:
