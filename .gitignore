@@ -3,6 +3,9 @@ node_modules/
 
 # Build
 dist/
+
+# Materials (local files)
+materials/
 build/
 *.tsbuildinfo
 
