@@ -93,58 +93,10 @@ export default function MaterialEditorFullscreen({
     }
   }, [material?.content]);
 
-  // Load PDF or Image
+  // Load PDF or Image from file input
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    const isPdf = file.type === 'application/pdf';
-    const isImage = file.type.startsWith('image/');
-
-    if (!isPdf && !isImage) return;
-
-    setLoadingPdf(true);
-    setFileName(file.name);
-    setOcrHtml('');
-    setSelectedPages([]);
-
-    // Reset both states
-    setPdf(null);
-    setImageFile(null);
-    setImageUrl(null);
-    setThumbnails([]);
-
-    try {
-      if (isPdf) {
-        const pdfDoc = await loadPdf(file);
-        setPdf(pdfDoc);
-        setTotalPages(pdfDoc.numPages);
-        setCurrentPage(1);
-
-        const thumbs = [];
-        for (let i = 1; i <= pdfDoc.numPages; i++) {
-          thumbs.push({ pageNum: i, dataUrl: null, status: 'pending' });
-        }
-        setThumbnails(thumbs);
-
-        for (let i = 1; i <= pdfDoc.numPages; i++) {
-          const dataUrl = await generateThumbnail(pdfDoc, i);
-          setThumbnails(prev => prev.map(t => t.pageNum === i ? { ...t, dataUrl } : t));
-        }
-      } else {
-        // Image file
-        setImageFile(file);
-        const url = URL.createObjectURL(file);
-        setImageUrl(url);
-        setTotalPages(1);
-        setCurrentPage(1);
-        setSelectedPages([1]); // Auto-select the image
-      }
-    } catch (err) {
-      console.error('Failed to load file:', err);
-    } finally {
-      setLoadingPdf(false);
-    }
+    if (file) await processFile(file);
   };
 
   useEffect(() => {
@@ -264,6 +216,83 @@ export default function MaterialEditorFullscreen({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  // Handle paste from clipboard (Ctrl+V)
+  const handlePaste = async (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith('image/') || item.type === 'application/pdf') {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          await processFile(file);
+        }
+        return;
+      }
+    }
+  };
+
+  // Handle drag & drop
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files?.[0];
+    if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
+      await processFile(file);
+    }
+  };
+
+  // Process file (shared logic for file input, paste, and drop)
+  const processFile = async (file) => {
+    const isPdf = file.type === 'application/pdf';
+    const isImage = file.type.startsWith('image/');
+
+    if (!isPdf && !isImage) return;
+
+    setLoadingPdf(true);
+    setFileName(file.name || (isImage ? 'pasted-image.png' : 'document.pdf'));
+    setOcrHtml('');
+    setSelectedPages([]);
+
+    // Reset both states
+    setPdf(null);
+    setImageFile(null);
+    setImageUrl(null);
+    setThumbnails([]);
+
+    try {
+      if (isPdf) {
+        const pdfDoc = await loadPdf(file);
+        setPdf(pdfDoc);
+        setTotalPages(pdfDoc.numPages);
+        setCurrentPage(1);
+
+        const thumbs = [];
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          thumbs.push({ pageNum: i, dataUrl: null, status: 'pending' });
+        }
+        setThumbnails(thumbs);
+
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          const dataUrl = await generateThumbnail(pdfDoc, i);
+          setThumbnails(prev => prev.map(t => t.pageNum === i ? { ...t, dataUrl } : t));
+        }
+      } else {
+        // Image file
+        setImageFile(file);
+        const url = URL.createObjectURL(file);
+        setImageUrl(url);
+        setTotalPages(1);
+        setCurrentPage(1);
+        setSelectedPages([1]); // Auto-select the image
+      }
+    } catch (err) {
+      console.error('Failed to load file:', err);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
+
   const isProcessing = ocrProgress.status === 'processing';
   const hasOcrContent = ocrHtml && ocrHtml.trim().length > 0;
 
@@ -290,7 +319,11 @@ export default function MaterialEditorFullscreen({
   );
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-50 flex flex-col" style={{ background: isDark ? '#0f0f12' : '#f5f5f5' }}>
+    <div
+      className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-50 flex flex-col"
+      style={{ background: isDark ? '#0f0f12' : '#f5f5f5' }}
+      onPaste={handlePaste}
+    >
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-3 border-b ${isDark ? 'bg-[#1a1a1e] border-white/10' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center gap-4">
@@ -342,9 +375,27 @@ export default function MaterialEditorFullscreen({
         {/* PDF/Image Column - 25% */}
         <div className={`w-1/4 flex flex-col border-r ${isDark ? 'bg-[#1a1a1e] border-white/10' : 'bg-gray-50 border-gray-200'}`}>
           {!pdf && !imageFile ? (
-            <div onClick={() => fileInputRef.current?.click()} className={`flex-1 flex flex-col items-center justify-center cursor-pointer ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-100'}`}>
-              {loadingPdf ? <Loader2 className="w-8 h-8 animate-spin text-pink-vibrant mb-2" /> : <Upload className={`w-8 h-8 mb-2 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />}
-              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{loadingPdf ? 'Loading...' : 'PDF / Image'}</p>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDrop={handleDrop}
+              onDragOver={e => e.preventDefault()}
+              className={`flex-1 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed m-2 rounded-xl transition-colors ${
+                isDark
+                  ? 'border-white/20 hover:border-white/40 hover:bg-white/[0.02]'
+                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-100'
+              }`}
+            >
+              {loadingPdf ? (
+                <Loader2 className="w-8 h-8 animate-spin text-pink-vibrant mb-2" />
+              ) : (
+                <Upload className={`w-8 h-8 mb-2 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
+              )}
+              <p className={`text-sm text-center ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
+                {loadingPdf ? 'Loading...' : 'Drop PDF/Image here'}
+              </p>
+              <p className={`text-xs mt-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
+                or click to browse, or Ctrl+V
+              </p>
             </div>
           ) : imageFile ? (
             /* Image display */
