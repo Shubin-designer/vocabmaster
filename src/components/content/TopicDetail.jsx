@@ -801,10 +801,11 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
           className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-50 bg-black/60 backdrop-blur-sm"
         >
           <div
-            className={`relative rounded-3xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-gray-200'}`}
+            className={`relative rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-gray-200'}`}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
+            {/* Header */}
+            <div className={`flex items-center justify-between p-6 pb-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
               <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {editingTest ? 'Edit Test' : 'New Test'}
               </h3>
@@ -816,7 +817,8 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
               </button>
             </div>
 
-            <form onSubmit={saveTest} className="space-y-5">
+            {/* Scrollable content */}
+            <form onSubmit={saveTest} className="flex-1 overflow-y-auto p-6 space-y-5">
               <div>
                 <label className={lbl(isDark)}>Title *</label>
                 <input
@@ -904,12 +906,12 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                           </button>
                         ))}
                       </div>
-                      {(q.question_type === 'multiple_choice' || q.question_type === 'fill_blank') && (
+                      {/* Multiple Choice: always show options */}
+                      {q.question_type === 'multiple_choice' && (
                         <div className="space-y-2 mb-3">
-                          {q.options.length > 0 && (
                           <div className="grid grid-cols-2 gap-2">
                             {q.options.map((opt, oi) => {
-                              const letter = String.fromCharCode(65 + oi); // A, B, C, D, E, F, G, H
+                              const letter = String.fromCharCode(65 + oi);
                               const isSelected = q.correct_answer === letter || q.correct_answer === opt;
                               return (
                                 <div key={oi} className="flex gap-1">
@@ -957,6 +959,84 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                               );
                             })}
                           </div>
+                          {q.options.length < 8 && (
+                            <button
+                              type="button"
+                              onClick={() => addQOption(qi)}
+                              className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${
+                                isDark
+                                  ? 'text-white/40 hover:text-white/70 hover:bg-white/[0.05]'
+                                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                              }`}
+                            >
+                              <Plus size={12} /> Add option
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Fill in the Blank */}
+                      {q.question_type === 'fill_blank' && (
+                        <div className="space-y-3 mb-3">
+                          {/* Text input for correct answer */}
+                          <div>
+                            <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                              Correct Answer (word or phrase to fill in)
+                            </label>
+                            <input
+                              value={q.correct_answer}
+                              onChange={e => updateQ(qi, 'correct_answer', e.target.value)}
+                              placeholder="e.g., her, him, the book..."
+                              className={`w-full px-3 py-2.5 rounded-lg text-sm border ${
+                                isDark
+                                  ? 'bg-green-500/10 border-green-500/30 text-green-400 placeholder-green-400/50'
+                                  : 'bg-green-50 border-green-200 text-green-700 placeholder-green-600/50'
+                              }`}
+                            />
+                          </div>
+
+                          {/* Optional: multiple choice options */}
+                          {q.options.length > 0 && (
+                            <div>
+                              <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                                Options for student to choose from (optional)
+                              </label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {q.options.map((opt, oi) => {
+                                  const letter = String.fromCharCode(65 + oi);
+                                  const isCorrect = q.correct_answer.toLowerCase() === opt.toLowerCase();
+                                  return (
+                                    <div key={oi} className="flex gap-1">
+                                      <input
+                                        value={opt}
+                                        onChange={e => updateQOption(qi, oi, e.target.value)}
+                                        placeholder={`Option ${letter}`}
+                                        className={`flex-1 px-3 py-2 text-sm rounded-l-lg border ${
+                                          isCorrect
+                                            ? isDark
+                                              ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                              : 'bg-green-50 border-green-200 text-green-700'
+                                            : isDark
+                                              ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30'
+                                              : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                                        }`}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => removeQOption(qi, oi)}
+                                        className={`w-8 h-full rounded-r-lg text-xs transition-all flex-shrink-0 flex items-center justify-center ${
+                                          isDark
+                                            ? 'bg-white/[0.05] border border-l-0 border-white/10 text-white/30 hover:text-red-400 hover:bg-red-500/10'
+                                            : 'bg-gray-50 border border-l-0 border-gray-200 text-gray-300 hover:text-red-500 hover:bg-red-50'
+                                        }`}
+                                      >
+                                        <X size={12} />
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           )}
                           {q.options.length < 8 && (
                             <button
@@ -968,7 +1048,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                                   : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                               }`}
                             >
-                              <Plus size={12} /> {q.options.length === 0 ? 'Add options' : 'Add option'}
+                              <Plus size={12} /> {q.options.length === 0 ? 'Add answer options (for multiple choice)' : 'Add option'}
                             </button>
                           )}
                         </div>
@@ -999,24 +1079,26 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowTestModal(false)}
-                  className={`flex-1 px-4 py-3 rounded-xl font-medium ${isDark ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingTest}
-                  className="flex-1 px-4 py-3 bg-pink-vibrant text-white rounded-xl font-medium hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {savingTest ? <Loader size={18} className="animate-spin" /> : <Check size={18} />}
-                  {editingTest ? 'Update' : 'Create'}
-                </button>
-              </div>
             </form>
+
+            {/* Sticky footer buttons */}
+            <div className={`flex gap-3 p-6 pt-4 border-t ${isDark ? 'border-white/10 bg-[#1a1a1e]' : 'border-gray-200 bg-white'} rounded-b-3xl`}>
+              <button
+                type="button"
+                onClick={() => setShowTestModal(false)}
+                className={`flex-1 px-4 py-3 rounded-xl font-medium ${isDark ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveTest}
+                disabled={savingTest}
+                className="flex-1 px-4 py-3 bg-pink-vibrant text-white rounded-xl font-medium hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {savingTest ? <Loader size={18} className="animate-spin" /> : <Check size={18} />}
+                {editingTest ? 'Update' : 'Create'}
+              </button>
+            </div>
           </div>
         </div>
       )}
