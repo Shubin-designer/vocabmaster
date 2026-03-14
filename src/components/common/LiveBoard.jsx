@@ -5,7 +5,8 @@ import {
   Users, Radio, Square, Save, ArrowLeft, Copy, Check,
   Pencil, Type, StickyNote, ImagePlus, MessageSquare,
   Circle as CircleIcon, Minus, MousePointer, Trash2, Palette,
-  Bold, Italic, Underline, Strikethrough, ChevronDown
+  Bold, Italic, Underline, Strikethrough, ChevronDown,
+  ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown
 } from 'lucide-react';
 
 const COLORS = ['#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff'];
@@ -311,6 +312,122 @@ function EditableText({ shapeProps, isSelected, onSelect, onChange, stageRef }) 
       {isSelected && !isEditing && (
         <Transformer
           ref={trRef}
+          enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+          boundBoxFunc={(oldBox, newBox) => {
+            if (newBox.width < 20 || newBox.height < 20) return oldBox;
+            return newBox;
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+// Transformable Rectangle component
+function TransformableRect({ shapeProps, isSelected, onSelect, onChange }) {
+  const shapeRef = useRef();
+  const trRef = useRef();
+
+  useEffect(() => {
+    if (isSelected && trRef.current && shapeRef.current) {
+      trRef.current.nodes([shapeRef.current]);
+      trRef.current.getLayer().batchDraw();
+    }
+  }, [isSelected]);
+
+  return (
+    <>
+      <Rect
+        ref={shapeRef}
+        x={shapeProps.x}
+        y={shapeProps.y}
+        width={shapeProps.width}
+        height={shapeProps.height}
+        fill={shapeProps.fill || 'transparent'}
+        stroke={shapeProps.stroke || '#000'}
+        strokeWidth={shapeProps.strokeWidth || 2}
+        draggable
+        onClick={onSelect}
+        onTap={onSelect}
+        onDragEnd={(e) => {
+          onChange({ ...shapeProps, x: e.target.x(), y: e.target.y() });
+        }}
+        onTransformEnd={() => {
+          const node = shapeRef.current;
+          const scaleX = node.scaleX();
+          const scaleY = node.scaleY();
+          node.scaleX(1);
+          node.scaleY(1);
+          onChange({
+            ...shapeProps,
+            x: node.x(),
+            y: node.y(),
+            width: Math.max(20, shapeProps.width * scaleX),
+            height: Math.max(20, shapeProps.height * scaleY),
+          });
+        }}
+      />
+      {isSelected && (
+        <Transformer
+          ref={trRef}
+          rotateEnabled={false}
+          boundBoxFunc={(oldBox, newBox) => {
+            if (newBox.width < 20 || newBox.height < 20) return oldBox;
+            return newBox;
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+// Transformable Circle component
+function TransformableCircle({ shapeProps, isSelected, onSelect, onChange }) {
+  const shapeRef = useRef();
+  const trRef = useRef();
+
+  useEffect(() => {
+    if (isSelected && trRef.current && shapeRef.current) {
+      trRef.current.nodes([shapeRef.current]);
+      trRef.current.getLayer().batchDraw();
+    }
+  }, [isSelected]);
+
+  return (
+    <>
+      <Circle
+        ref={shapeRef}
+        x={shapeProps.x}
+        y={shapeProps.y}
+        radius={shapeProps.radius}
+        fill={shapeProps.fill || 'transparent'}
+        stroke={shapeProps.stroke || '#000'}
+        strokeWidth={shapeProps.strokeWidth || 2}
+        draggable
+        onClick={onSelect}
+        onTap={onSelect}
+        onDragEnd={(e) => {
+          onChange({ ...shapeProps, x: e.target.x(), y: e.target.y() });
+        }}
+        onTransformEnd={() => {
+          const node = shapeRef.current;
+          const scaleX = node.scaleX();
+          const scaleY = node.scaleY();
+          const avgScale = (scaleX + scaleY) / 2;
+          node.scaleX(1);
+          node.scaleY(1);
+          onChange({
+            ...shapeProps,
+            x: node.x(),
+            y: node.y(),
+            radius: Math.max(10, shapeProps.radius * avgScale),
+          });
+        }}
+      />
+      {isSelected && (
+        <Transformer
+          ref={trRef}
+          rotateEnabled={false}
           enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
           boundBoxFunc={(oldBox, newBox) => {
             if (newBox.width < 20 || newBox.height < 20) return oldBox;
@@ -636,6 +753,47 @@ export default function LiveBoard({
       updateShapes(shapes.filter((s) => !selectedIds.includes(s.id)));
       setSelectedIds([]);
     }
+  };
+
+  // Layer order functions
+  const bringToFront = () => {
+    if (selectedIds.length !== 1) return;
+    const id = selectedIds[0];
+    const idx = shapes.findIndex(s => s.id === id);
+    if (idx === -1 || idx === shapes.length - 1) return;
+    const newShapes = shapes.filter(s => s.id !== id);
+    newShapes.push(shapes[idx]);
+    updateShapes(newShapes);
+  };
+
+  const sendToBack = () => {
+    if (selectedIds.length !== 1) return;
+    const id = selectedIds[0];
+    const idx = shapes.findIndex(s => s.id === id);
+    if (idx === -1 || idx === 0) return;
+    const newShapes = shapes.filter(s => s.id !== id);
+    newShapes.unshift(shapes[idx]);
+    updateShapes(newShapes);
+  };
+
+  const bringForward = () => {
+    if (selectedIds.length !== 1) return;
+    const id = selectedIds[0];
+    const idx = shapes.findIndex(s => s.id === id);
+    if (idx === -1 || idx === shapes.length - 1) return;
+    const newShapes = [...shapes];
+    [newShapes[idx], newShapes[idx + 1]] = [newShapes[idx + 1], newShapes[idx]];
+    updateShapes(newShapes);
+  };
+
+  const sendBackward = () => {
+    if (selectedIds.length !== 1) return;
+    const id = selectedIds[0];
+    const idx = shapes.findIndex(s => s.id === id);
+    if (idx === -1 || idx === 0) return;
+    const newShapes = [...shapes];
+    [newShapes[idx], newShapes[idx - 1]] = [newShapes[idx - 1], newShapes[idx]];
+    updateShapes(newShapes);
   };
 
   // Stage click handlers
@@ -1319,18 +1477,20 @@ export default function LiveBoard({
                 <span className="text-gray-600 text-xs">Stroke</span>
               </button>
               {showColors === 'stroke' && (
-                <div className="absolute top-full left-0 mt-1 p-2 bg-white rounded-lg shadow-lg border flex gap-1 z-20">
-                  {COLORS.filter(c => c !== '#ffffff').map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => {
-                        updateSelectedStyle({ stroke: c });
-                        setShowColors(false);
-                      }}
-                      className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
-                      style={{ backgroundColor: c, borderColor: selectedShape.stroke === c ? '#3b82f6' : '#d1d5db' }}
-                    />
-                  ))}
+                <div className="absolute top-full left-0 mt-1 p-2 bg-white rounded-lg shadow-lg border z-20">
+                  <div className="flex gap-1 flex-wrap" style={{ maxWidth: '180px' }}>
+                    {COLORS.filter(c => c !== '#ffffff').map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => {
+                          updateSelectedStyle({ stroke: c });
+                          setShowColors(false);
+                        }}
+                        className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
+                        style={{ backgroundColor: c, borderColor: selectedShape.stroke === c ? '#3b82f6' : '#d1d5db' }}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -1356,6 +1516,43 @@ export default function LiveBoard({
                   />
                 </button>
               ))}
+            </div>
+          </>
+        )}
+
+        {/* Layer controls - show for any selected shape */}
+        {selectedIds.length === 1 && (
+          <>
+            <div className="w-px h-6 bg-gray-300 mx-2" />
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={bringToFront}
+                className="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors"
+                title="Bring to Front"
+              >
+                <ArrowUpToLine size={16} />
+              </button>
+              <button
+                onClick={bringForward}
+                className="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors"
+                title="Bring Forward"
+              >
+                <ArrowUp size={16} />
+              </button>
+              <button
+                onClick={sendBackward}
+                className="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors"
+                title="Send Backward"
+              >
+                <ArrowDown size={16} />
+              </button>
+              <button
+                onClick={sendToBack}
+                className="p-1.5 rounded hover:bg-gray-200 text-gray-600 transition-colors"
+                title="Send to Back"
+              >
+                <ArrowDownToLine size={16} />
+              </button>
             </div>
           </>
         )}
@@ -1440,55 +1637,30 @@ export default function LiveBoard({
                 );
               }
               if (shape.type === 'rect') {
-                const isRectSelected = selectedIds.includes(shape.id);
                 return (
-                  <Rect
+                  <TransformableRect
                     key={shape.id}
-                    x={shape.x}
-                    y={shape.y}
-                    width={shape.width}
-                    height={shape.height}
-                    fill={shape.fill || 'transparent'}
-                    stroke={isRectSelected ? '#3b82f6' : (shape.stroke || '#000')}
-                    strokeWidth={isRectSelected ? Math.max(shape.strokeWidth || 2, 2) : (shape.strokeWidth || 2)}
-                    draggable
-                    onClick={() => {
+                    shapeProps={shape}
+                    isSelected={selectedIds.includes(shape.id)}
+                    onSelect={() => {
                       setSelectedIds([shape.id]);
                       setTool('select');
                     }}
-                    onTap={() => {
-                      setSelectedIds([shape.id]);
-                      setTool('select');
-                    }}
-                    onDragEnd={(e) => {
-                      handleChange(shape.id, { x: e.target.x(), y: e.target.y() });
-                    }}
+                    onChange={(newAttrs) => handleChange(shape.id, newAttrs)}
                   />
                 );
               }
               if (shape.type === 'circle') {
-                const isCircleSelected = selectedIds.includes(shape.id);
                 return (
-                  <Circle
+                  <TransformableCircle
                     key={shape.id}
-                    x={shape.x}
-                    y={shape.y}
-                    radius={shape.radius}
-                    fill={shape.fill || 'transparent'}
-                    stroke={isCircleSelected ? '#3b82f6' : (shape.stroke || '#000')}
-                    strokeWidth={isCircleSelected ? Math.max(shape.strokeWidth || 2, 2) : (shape.strokeWidth || 2)}
-                    draggable
-                    onClick={() => {
+                    shapeProps={shape}
+                    isSelected={selectedIds.includes(shape.id)}
+                    onSelect={() => {
                       setSelectedIds([shape.id]);
                       setTool('select');
                     }}
-                    onTap={() => {
-                      setSelectedIds([shape.id]);
-                      setTool('select');
-                    }}
-                    onDragEnd={(e) => {
-                      handleChange(shape.id, { x: e.target.x(), y: e.target.y() });
-                    }}
+                    onChange={(newAttrs) => handleChange(shape.id, newAttrs)}
                   />
                 );
               }
