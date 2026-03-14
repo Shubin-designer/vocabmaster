@@ -166,19 +166,20 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
     explanation_correct: '', explanation_wrong: '', hint: '',
   });
 
-  // Handle OCR text from PDF library
-  const handleLibraryOcrComplete = (text) => {
-    setTestLibraryPdf(null);
-    if (!text.trim()) return;
+  // Helper to process parsed result and update test form
+  const applyParsedQuestions = (result) => {
+    // Handle both new format (object with title/description/questions) and old format (just array)
+    const parsedQuestions = Array.isArray(result) ? result : (result.questions || []);
+    const parsedTitle = Array.isArray(result) ? '' : (result.title || '');
+    const parsedDescription = Array.isArray(result) ? '' : (result.description || '');
 
-    const parsed = parseTestText(text);
-    if (parsed.length > 0) {
-      setTestForm(prev => ({
-        ...prev,
-        questions: [...prev.questions, ...parsed.map(q => {
+    if (parsedQuestions.length > 0) {
+      setTestForm(prev => {
+        // Check if the existing questions array has only one empty question
+        const hasOnlyEmptyQuestion = prev.questions.length === 1 && !prev.questions[0].question_text.trim();
+
+        const newQuestions = parsedQuestions.map(q => {
           const opts = q.options || [];
-          // For fill_blank without options, keep empty array
-          // For multiple_choice, ensure at least 2 options
           const finalOpts = q.type === 'fill_blank' && opts.length === 0
             ? []
             : opts.length > 0 ? opts : ['', ''];
@@ -189,9 +190,24 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
             correct_answer: q.answer || '',
             explanation_correct: '', explanation_wrong: '', hint: '',
           };
-        })],
-      }));
+        });
+
+        return {
+          title: prev.title || parsedTitle,
+          description: prev.description || parsedDescription,
+          questions: hasOnlyEmptyQuestion ? newQuestions : [...prev.questions, ...newQuestions],
+        };
+      });
     }
+  };
+
+  // Handle OCR text from PDF library
+  const handleLibraryOcrComplete = (text) => {
+    setTestLibraryPdf(null);
+    if (!text.trim()) return;
+
+    const result = parseTestText(text);
+    applyParsedQuestions(result);
   };
 
   const handlePasteQuestions = async () => {
@@ -204,25 +220,8 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         const text = doc.body.textContent || '';
-        const parsed = parseTestText(text);
-        if (parsed.length > 0) {
-          setTestForm(prev => ({
-            ...prev,
-            questions: [...prev.questions, ...parsed.map(q => {
-              const opts = q.options || [];
-              const finalOpts = q.type === 'fill_blank' && opts.length === 0
-                ? []
-                : opts.length > 0 ? opts : ['', ''];
-              return {
-                question_text: q.question || '',
-                question_type: q.type || 'fill_blank',
-                options: finalOpts,
-                correct_answer: q.answer || '',
-                explanation_correct: '', explanation_wrong: '', hint: '',
-              };
-            })]
-          }));
-        }
+        const result = parseTestText(text);
+        applyParsedQuestions(result);
       } catch (err) {
         console.error('OCR error:', err);
         alert('OCR error: ' + err.message);
@@ -235,25 +234,8 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
 
     // Otherwise parse text
     if (!pasteText.trim()) return;
-    const parsed = parseTestText(pasteText);
-    if (parsed.length > 0) {
-      setTestForm(prev => ({
-        ...prev,
-        questions: [...prev.questions, ...parsed.map(q => {
-          const opts = q.options || [];
-          const finalOpts = q.type === 'fill_blank' && opts.length === 0
-            ? []
-            : opts.length > 0 ? opts : ['', ''];
-          return {
-            question_text: q.question || '',
-            question_type: q.type || 'fill_blank',
-            options: finalOpts,
-            correct_answer: q.answer || '',
-            explanation_correct: '', explanation_wrong: '', hint: '',
-          };
-        })]
-      }));
-    }
+    const result = parseTestText(pasteText);
+    applyParsedQuestions(result);
     setPasteText('');
     setShowPasteModal(false);
   };
@@ -342,14 +324,26 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
         title: test.title,
         description: test.description || '',
         questions: qs?.map(q => {
-          // Ensure options array always has 4 elements
+          const questionType = q.type || q.question_type || 'multiple_choice';
           const opts = q.options || [];
-          const paddedOpts = [...opts, '', '', '', ''].slice(0, 4);
+
+          // For fill_blank without stored options, keep empty array
+          // For multiple_choice, pad to 4 options
+          let finalOpts;
+          if (questionType === 'fill_blank' && opts.length === 0) {
+            finalOpts = [];
+          } else if (questionType === 'multiple_choice' || questionType === 'true_false') {
+            finalOpts = [...opts, '', '', '', ''].slice(0, 4);
+          } else {
+            // fill_blank with options - keep as is
+            finalOpts = opts;
+          }
+
           return {
             id: q.id,
             question_text: q.question || q.question_text || '',
-            question_type: q.type || q.question_type || 'multiple_choice',
-            options: paddedOpts,
+            question_type: questionType,
+            options: finalOpts,
             correct_answer: q.correct_answer || '',
             explanation_correct: q.explanation_correct || '',
             explanation_wrong: q.explanation_wrong || '',
