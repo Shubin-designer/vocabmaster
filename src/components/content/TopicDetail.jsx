@@ -765,8 +765,9 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
               if (data) setEditingMaterial(data);
             }
             await loadMaterials();
-            // Update initial form to current state (so no "unsaved changes" warning)
+            // Update both forms to current state (so no "unsaved changes" warning)
             setInitialMaterialForm(formData);
+            setMaterialForm(formData);
             // Don't close - user closes manually
           }}
           onClose={handleMaterialBackdropClick}
