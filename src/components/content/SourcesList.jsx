@@ -231,7 +231,6 @@ export default function SourcesList({ teacherId, isDark = true }) {
         <div
           className="fixed inset-0 flex items-center justify-center p-4 z-50"
           style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}
-          onClick={closeModal}
         >
           <div
             className={`relative rounded-3xl p-6 w-full max-w-md ${

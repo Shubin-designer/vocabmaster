@@ -5,7 +5,6 @@ export default function ConfirmDeleteModal({ title = 'Delete?', itemName, onConf
     <div
       className="fixed inset-0 flex items-center justify-center p-4 z-[70] animate-fadeIn"
       style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}
-      onClick={onCancel}
     >
       <div
         className={`relative liquid-glass rounded-3xl p-6 w-full max-w-sm animate-scaleIn ${

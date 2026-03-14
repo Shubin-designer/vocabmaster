@@ -240,7 +240,6 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
       {deleteTarget && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={() => setDeleteTarget(null)}
         >
           <div
             className={`rounded-2xl p-6 w-full max-w-sm ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white'}`}

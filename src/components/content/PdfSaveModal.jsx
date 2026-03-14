@@ -230,7 +230,6 @@ export default function PdfSaveModal({
     <div
       className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-50"
       style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}
-      onClick={onClose}
     >
       <div
         className={`relative rounded-3xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto ${

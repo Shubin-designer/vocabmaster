@@ -805,7 +805,6 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       {showTestModal && (
         <div
           className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-50 bg-black/60 backdrop-blur-sm"
-          onClick={() => setShowTestModal(false)}
         >
           <div
             className={`relative rounded-3xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-gray-200'}`}
@@ -1042,7 +1041,6 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
         <div
           className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-[80] animate-fadeIn"
           style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}
-          onClick={() => setShowUnsavedConfirm(false)}
         >
           <div
             className={`relative rounded-3xl p-6 w-full max-w-sm animate-scaleIn ${
@@ -1085,7 +1083,6 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       {showPasteModal && (
         <div
           className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen flex items-center justify-center p-4 z-[90] bg-black/60 backdrop-blur-sm"
-          onClick={() => { setShowPasteModal(false); clearPasteImage(); }}
         >
           <div
             className={`relative rounded-2xl p-5 w-full max-w-2xl ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white border border-gray-200'}`}

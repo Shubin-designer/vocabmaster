@@ -99,7 +99,6 @@ export default function PdfOcrModal({ pdf, isDark, onComplete, onClose }) {
   return (
     <div
       className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
     >
       <div
         className={`rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col ${

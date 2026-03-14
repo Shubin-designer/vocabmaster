@@ -49,7 +49,6 @@ export default function PdfLibraryModal({ teacherId, isDark, onSelect, onClose }
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
     >
       <div
         className={`rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col ${

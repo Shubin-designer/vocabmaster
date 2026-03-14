@@ -257,7 +257,7 @@ export default function PdfLibraryWorkbench({ pdf, teacherId, isDark, onBack }) 
       </div>
 
       {showSaveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowSaveModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className={`rounded-2xl p-6 w-full max-w-md ${isDark ? 'bg-[#1a1a1e] border border-white/10' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
             <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Save as {saveType === 'material' ? 'Material' : 'Test'}</h3>
             <div className="space-y-4">
