@@ -420,7 +420,6 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
 
   const removeQOption = (qi, oi) => {
     const qs = [...testForm.questions];
-    if (qs[qi].options.length <= 2) return; // Min 2 options
     const newOpts = qs[qi].options.filter((_, i) => i !== oi);
     // If removed option was the correct answer, clear it
     const removedLetter = String.fromCharCode(65 + oi);
@@ -940,21 +939,19 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                                         : isDark
                                           ? 'bg-white/[0.05] border-white/10 text-white placeholder-white/30'
                                           : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                                    } ${q.options.length > 2 ? '' : 'rounded-r-lg border-r'}`}
+                                    }`}
                                   />
-                                  {q.options.length > 2 && (
-                                    <button
-                                      type="button"
-                                      onClick={() => removeQOption(qi, oi)}
-                                      className={`w-8 h-full rounded-r-lg text-xs transition-all flex-shrink-0 flex items-center justify-center ${
-                                        isDark
-                                          ? 'bg-white/[0.05] border-y border-r border-white/10 text-white/30 hover:text-red-400 hover:bg-red-500/10'
-                                          : 'bg-gray-50 border-y border-r border-gray-200 text-gray-300 hover:text-red-500 hover:bg-red-50'
-                                      }`}
-                                    >
-                                      <X size={12} />
-                                    </button>
-                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeQOption(qi, oi)}
+                                    className={`w-8 h-full rounded-r-lg text-xs transition-all flex-shrink-0 flex items-center justify-center ${
+                                      isDark
+                                        ? 'bg-white/[0.05] border-y border-r border-white/10 text-white/30 hover:text-red-400 hover:bg-red-500/10'
+                                        : 'bg-gray-50 border-y border-r border-gray-200 text-gray-300 hover:text-red-500 hover:bg-red-50'
+                                    }`}
+                                  >
+                                    <X size={12} />
+                                  </button>
                                 </div>
                               );
                             })}
@@ -1081,23 +1078,53 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
 
             </form>
 
-            {/* Sticky footer buttons */}
-            <div className={`flex gap-3 p-6 pt-4 border-t ${isDark ? 'border-white/10 bg-[#1a1a1e]' : 'border-gray-200 bg-white'} rounded-b-3xl`}>
-              <button
-                type="button"
-                onClick={() => setShowTestModal(false)}
-                className={`flex-1 px-4 py-3 rounded-xl font-medium ${isDark ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            {/* Floating bottom bar */}
+            <div className="p-4 pb-6">
+              {/* Warning about missing answers */}
+              {(() => {
+                const missingAnswers = testForm.questions.filter(q => q.question_text.trim() && !q.correct_answer.trim()).length;
+                if (missingAnswers > 0) {
+                  return (
+                    <div className={`mb-3 px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 ${
+                      isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    }`}>
+                      <span className="font-medium">{missingAnswers} {missingAnswers === 1 ? 'question' : 'questions'}</span>
+                      <span className={isDark ? 'text-amber-400/70' : 'text-amber-600'}>missing correct answer</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Floating button bar */}
+              <div
+                className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg ${
+                  isDark
+                    ? 'bg-[#252529] border border-white/10'
+                    : 'bg-white border border-gray-200 shadow-xl'
+                }`}
+                style={{ boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.12)' }}
               >
-                Cancel
-              </button>
-              <button
-                onClick={saveTest}
-                disabled={savingTest}
-                className="flex-1 px-4 py-3 bg-pink-vibrant text-white rounded-xl font-medium hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {savingTest ? <Loader size={18} className="animate-spin" /> : <Check size={18} />}
-                {editingTest ? 'Update' : 'Create'}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowTestModal(false)}
+                  className={`flex-1 px-6 py-2.5 rounded-xl font-medium transition-all ${
+                    isDark
+                      ? 'bg-white/[0.05] text-white/70 hover:bg-white/[0.1] hover:text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveTest}
+                  disabled={savingTest}
+                  className="flex-1 px-6 py-2.5 bg-pink-vibrant text-white rounded-xl font-medium hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
+                >
+                  {savingTest ? <Loader size={18} className="animate-spin" /> : <Check size={18} />}
+                  {editingTest ? 'Update' : 'Create'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
