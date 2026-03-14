@@ -201,8 +201,11 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
           setTestForm(prev => ({
             ...prev,
             questions: [...prev.questions, ...parsed.map(q => ({
-              ...emptyQ(),
-              ...q,
+              question_text: q.question || '',
+              question_type: q.type || 'multiple_choice',
+              options: q.options || ['', '', '', ''],
+              correct_answer: q.answer || '',
+              explanation_correct: '', explanation_wrong: '', hint: '',
             }))]
           }));
         }
@@ -223,8 +226,11 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
       setTestForm(prev => ({
         ...prev,
         questions: [...prev.questions, ...parsed.map(q => ({
-          ...emptyQ(),
-          ...q,
+          question_text: q.question || '',
+          question_type: q.type || 'multiple_choice',
+          options: q.options || ['', '', '', ''],
+          correct_answer: q.answer || '',
+          explanation_correct: '', explanation_wrong: '', hint: '',
         }))]
       }));
     }
