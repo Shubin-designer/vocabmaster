@@ -11,17 +11,19 @@ import TableCell from '@tiptap/extension-table-cell';
 import {
   X, Check, Loader2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Upload, ScanText, FileText, ArrowRight,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Quote,
-  Table as TableIcon, Minus, Pilcrow, Heading1, Heading2, Heading3, Trash2, Plus, RowsIcon, ColumnsIcon
+  Table as TableIcon, Minus, Pilcrow, Heading1, Heading2, Heading3, Trash2, Plus, RowsIcon, ColumnsIcon, FolderOpen
 } from 'lucide-react';
-import { loadPdf, renderPageToCanvas, renderPageToBlob, generateThumbnail } from '../../utils/pdfUtils';
+import { loadPdf, loadPdfFromUrl, renderPageToCanvas, renderPageToBlob, generateThumbnail } from '../../utils/pdfUtils';
 import { ocrBlobToHtml } from '../../utils/ocrToHtml';
 import PdfPageThumbnail from './PdfPageThumbnail';
+import PdfLibraryModal from './PdfLibraryModal';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 export default function MaterialEditorFullscreen({
   material,
   topicName,
+  teacherId,
   onSave,
   onClose,
   isDark,
@@ -55,6 +57,9 @@ export default function MaterialEditorFullscreen({
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const ocrContentRef = useRef(null);
+
+  // Library modal state
+  const [showLibraryModal, setShowLibraryModal] = useState(false);
 
   // Table state
   const [inTable, setInTable] = useState(false);
@@ -216,6 +221,41 @@ export default function MaterialEditorFullscreen({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  // Load PDF from library
+  const handleLibrarySelect = async (libraryPdf) => {
+    setShowLibraryModal(false);
+    setLoadingPdf(true);
+    setFileName(libraryPdf.title);
+    setOcrHtml('');
+    setSelectedPages([]);
+    setPdf(null);
+    setImageFile(null);
+    setImageUrl(null);
+    setThumbnails([]);
+
+    try {
+      const pdfDoc = await loadPdfFromUrl(libraryPdf.signedUrl);
+      setPdf(pdfDoc);
+      setTotalPages(pdfDoc.numPages);
+      setCurrentPage(1);
+
+      const thumbs = [];
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        thumbs.push({ pageNum: i, dataUrl: null, status: 'pending' });
+      }
+      setThumbnails(thumbs);
+
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        const dataUrl = await generateThumbnail(pdfDoc, i);
+        setThumbnails(prev => prev.map(t => t.pageNum === i ? { ...t, dataUrl } : t));
+      }
+    } catch (err) {
+      console.error('Failed to load PDF from library:', err);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
+
   // Handle paste from clipboard (Ctrl+V)
   const handlePaste = async (e) => {
     const items = e.clipboardData?.items;
@@ -375,27 +415,42 @@ export default function MaterialEditorFullscreen({
         {/* PDF/Image Column - 25% */}
         <div className={`w-1/4 flex flex-col border-r ${isDark ? 'bg-[#1a1a1e] border-white/10' : 'bg-gray-50 border-gray-200'}`}>
           {!pdf && !imageFile ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDrop={handleDrop}
-              onDragOver={e => e.preventDefault()}
-              className={`flex-1 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed m-2 rounded-xl transition-colors ${
-                isDark
-                  ? 'border-white/20 hover:border-white/40 hover:bg-white/[0.02]'
-                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-100'
-              }`}
-            >
-              {loadingPdf ? (
-                <Loader2 className="w-8 h-8 animate-spin text-pink-vibrant mb-2" />
-              ) : (
-                <Upload className={`w-8 h-8 mb-2 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
+            <div className="flex-1 flex flex-col m-2">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDrop={handleDrop}
+                onDragOver={e => e.preventDefault()}
+                className={`flex-1 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed rounded-xl transition-colors ${
+                  isDark
+                    ? 'border-white/20 hover:border-white/40 hover:bg-white/[0.02]'
+                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-100'
+                }`}
+              >
+                {loadingPdf ? (
+                  <Loader2 className="w-8 h-8 animate-spin text-pink-vibrant mb-2" />
+                ) : (
+                  <Upload className={`w-8 h-8 mb-2 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
+                )}
+                <p className={`text-sm text-center ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
+                  {loadingPdf ? 'Loading...' : 'Drop PDF/Image here'}
+                </p>
+                <p className={`text-xs mt-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
+                  or click to browse, or Ctrl+V
+                </p>
+              </div>
+              {teacherId && (
+                <button
+                  onClick={() => setShowLibraryModal(true)}
+                  className={`mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
+                    isDark
+                      ? 'bg-white/[0.05] text-white/70 hover:bg-white/[0.1] hover:text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                  }`}
+                >
+                  <FolderOpen size={18} />
+                  From Library
+                </button>
               )}
-              <p className={`text-sm text-center ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-                {loadingPdf ? 'Loading...' : 'Drop PDF/Image here'}
-              </p>
-              <p className={`text-xs mt-1 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
-                or click to browse, or Ctrl+V
-              </p>
             </div>
           ) : imageFile ? (
             /* Image display */
@@ -572,6 +627,15 @@ export default function MaterialEditorFullscreen({
         .material-editor .ProseMirror th, .material-editor .ProseMirror td { border: 1px solid ${isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'}; padding: 6px 10px; }
         .material-editor .ProseMirror th { background: ${isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'}; font-weight: 600; }
       `}</style>
+
+      {showLibraryModal && teacherId && (
+        <PdfLibraryModal
+          teacherId={teacherId}
+          isDark={isDark}
+          onSelect={handleLibrarySelect}
+          onClose={() => setShowLibraryModal(false)}
+        />
+      )}
     </div>
   );
 }

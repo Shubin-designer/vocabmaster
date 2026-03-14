@@ -3,11 +3,13 @@ import { supabase } from '../../supabaseClient';
 import {
   ArrowLeft, BookOpen, ClipboardList,
   Plus, Edit2, Trash2, X, Check, Loader,
-  ChevronDown, ChevronUp, GripVertical, ClipboardPaste, Image, Upload
+  ChevronDown, ChevronUp, GripVertical, ClipboardPaste, Image, Upload, FolderOpen
 } from 'lucide-react';
 import RichTextEditor from '../common/RichTextEditor';
 import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 import MaterialEditorFullscreen from './MaterialEditorFullscreen';
+import PdfLibraryModal from './PdfLibraryModal';
+import PdfOcrModal from './PdfOcrModal';
 import { parseTestText } from '../../utils/testParser';
 import { ocrBlobToHtml } from '../../utils/ocrToHtml';
 
@@ -150,6 +152,8 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
   const [pasteImage, setPasteImage] = useState(null); // { file, url }
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const pasteImageInputRef = useRef(null);
+  const [showTestLibraryModal, setShowTestLibraryModal] = useState(false);
+  const [testLibraryPdf, setTestLibraryPdf] = useState(null);
 
   // Drag state
   const [draggedItem, setDraggedItem] = useState(null);
@@ -161,6 +165,26 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
     options: ['', '', '', ''], correct_answer: '',
     explanation_correct: '', explanation_wrong: '', hint: '',
   });
+
+  // Handle OCR text from PDF library
+  const handleLibraryOcrComplete = (text) => {
+    setTestLibraryPdf(null);
+    if (!text.trim()) return;
+
+    const parsed = parseTestText(text);
+    if (parsed.length > 0) {
+      setTestForm(prev => ({
+        ...prev,
+        questions: [...prev.questions, ...parsed.map(q => ({
+          question_text: q.question,
+          question_type: q.type || 'multiple_choice',
+          options: q.options || ['', '', '', ''],
+          correct_answer: q.answer || '',
+          explanation_correct: '', explanation_wrong: '', hint: '',
+        }))],
+      }));
+    }
+  };
 
   const handlePasteQuestions = async () => {
     // If image is present, run OCR first
@@ -720,6 +744,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
         <MaterialEditorFullscreen
           material={editingMaterial}
           topicName={topic.name}
+          teacherId={teacherId}
           onSave={async (formData) => {
             const payload = {
               title: formData.title || topic.name,
@@ -809,6 +834,13 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${isDark ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'}`}
                     >
                       <ClipboardPaste size={14} /> Paste Questions
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowTestLibraryModal(true)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${isDark ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
+                    >
+                      <FolderOpen size={14} /> From Library
                     </button>
                   </div>
                 </div>
@@ -1135,6 +1167,29 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* PDF Library Modal for Tests */}
+      {showTestLibraryModal && (
+        <PdfLibraryModal
+          teacherId={teacherId}
+          isDark={isDark}
+          onSelect={(pdf) => {
+            setShowTestLibraryModal(false);
+            setTestLibraryPdf(pdf);
+          }}
+          onClose={() => setShowTestLibraryModal(false)}
+        />
+      )}
+
+      {/* PDF OCR Modal for Tests */}
+      {testLibraryPdf && (
+        <PdfOcrModal
+          pdf={testLibraryPdf}
+          isDark={isDark}
+          onComplete={handleLibraryOcrComplete}
+          onClose={() => setTestLibraryPdf(null)}
+        />
       )}
     </>
   );
