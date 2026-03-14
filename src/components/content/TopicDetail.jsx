@@ -175,13 +175,21 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
     if (parsed.length > 0) {
       setTestForm(prev => ({
         ...prev,
-        questions: [...prev.questions, ...parsed.map(q => ({
-          question_text: q.question,
-          question_type: q.type || 'multiple_choice',
-          options: q.options || ['', '', '', ''],
-          correct_answer: q.answer || '',
-          explanation_correct: '', explanation_wrong: '', hint: '',
-        }))],
+        questions: [...prev.questions, ...parsed.map(q => {
+          const opts = q.options || [];
+          // For fill_blank without options, keep empty array
+          // For multiple_choice, ensure at least 2 options
+          const finalOpts = q.type === 'fill_blank' && opts.length === 0
+            ? []
+            : opts.length > 0 ? opts : ['', ''];
+          return {
+            question_text: q.question || '',
+            question_type: q.type || 'fill_blank',
+            options: finalOpts,
+            correct_answer: q.answer || '',
+            explanation_correct: '', explanation_wrong: '', hint: '',
+          };
+        })],
       }));
     }
   };
@@ -200,13 +208,19 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
         if (parsed.length > 0) {
           setTestForm(prev => ({
             ...prev,
-            questions: [...prev.questions, ...parsed.map(q => ({
-              question_text: q.question || '',
-              question_type: q.type || 'multiple_choice',
-              options: q.options || ['', '', '', ''],
-              correct_answer: q.answer || '',
-              explanation_correct: '', explanation_wrong: '', hint: '',
-            }))]
+            questions: [...prev.questions, ...parsed.map(q => {
+              const opts = q.options || [];
+              const finalOpts = q.type === 'fill_blank' && opts.length === 0
+                ? []
+                : opts.length > 0 ? opts : ['', ''];
+              return {
+                question_text: q.question || '',
+                question_type: q.type || 'fill_blank',
+                options: finalOpts,
+                correct_answer: q.answer || '',
+                explanation_correct: '', explanation_wrong: '', hint: '',
+              };
+            })]
           }));
         }
       } catch (err) {
@@ -225,13 +239,19 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
     if (parsed.length > 0) {
       setTestForm(prev => ({
         ...prev,
-        questions: [...prev.questions, ...parsed.map(q => ({
-          question_text: q.question || '',
-          question_type: q.type || 'multiple_choice',
-          options: q.options || ['', '', '', ''],
-          correct_answer: q.answer || '',
-          explanation_correct: '', explanation_wrong: '', hint: '',
-        }))]
+        questions: [...prev.questions, ...parsed.map(q => {
+          const opts = q.options || [];
+          const finalOpts = q.type === 'fill_blank' && opts.length === 0
+            ? []
+            : opts.length > 0 ? opts : ['', ''];
+          return {
+            question_text: q.question || '',
+            question_type: q.type || 'fill_blank',
+            options: finalOpts,
+            correct_answer: q.answer || '',
+            explanation_correct: '', explanation_wrong: '', hint: '',
+          };
+        })]
       }));
     }
     setPasteText('');
@@ -893,6 +913,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                       </div>
                       {(q.question_type === 'multiple_choice' || q.question_type === 'fill_blank') && (
                         <div className="space-y-2 mb-3">
+                          {q.options.length > 0 && (
                           <div className="grid grid-cols-2 gap-2">
                             {q.options.map((opt, oi) => {
                               const letter = String.fromCharCode(65 + oi); // A, B, C, D, E, F, G, H
@@ -943,6 +964,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                               );
                             })}
                           </div>
+                          )}
                           {q.options.length < 8 && (
                             <button
                               type="button"
@@ -953,7 +975,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                                   : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                               }`}
                             >
-                              <Plus size={12} /> Add option
+                              <Plus size={12} /> {q.options.length === 0 ? 'Add options' : 'Add option'}
                             </button>
                           )}
                         </div>

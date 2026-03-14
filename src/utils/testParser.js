@@ -1,62 +1,66 @@
 /**
  * Parse pasted text into test questions
- * Handles formats like:
- * 1. Question text with ... blanks
- * 1. option a  2. option b  3. option c  4. option d
- *
- * Also handles:
- * - Verbs in parentheses: "Two hours... (be) enough"
- * - Options on separate numbered lines
- * - Slash-separated choices: "sheep\sheeps" or "are/is"
+ * Supports multiple formats:
+ * - Fill in blank: "Two hours... (be) enough"
+ * - Multiple choice with inline options: "Question a) opt1 b) opt2"
+ * - Numbered options on separate lines
+ * - Slash choices: "sheep\sheeps" or "are/is"
  */
 
-/**
- * Parse raw text into structured test questions
- * @param {string} text - Raw pasted text
- * @returns {Array} Array of question objects
- */
 export function parseTestText(text) {
   if (!text || !text.trim()) return [];
 
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
 
-  // First, try to detect the format
-  const format = detectFormat(lines);
+  // Detect format and parse accordingly
+  const format = detectFormat(lines, text);
 
-  if (format === 'numbered_options') {
-    return parseNumberedOptionsFormat(lines);
+  let questions = [];
+
+  if (format === 'numbered_options_multiline') {
+    questions = parseNumberedOptionsMultiline(lines);
   } else if (format === 'slash_choices') {
-    return parseSlashChoicesFormat(lines);
+    questions = parseSlashChoices(lines);
   } else {
-    return parseStandardFormat(lines);
+    questions = parseStandard(lines);
   }
+
+  // Clean up: remove questions without text, remove empty options
+  return questions
+    .filter(q => q.question && q.question.trim())
+    .map(q => ({
+      ...q,
+      // Only keep non-empty options
+      options: (q.options || []).filter(o => o && o.trim()),
+    }));
 }
 
 /**
  * Detect the format of the test
  */
-function detectFormat(lines) {
-  // Check for numbered options format (options on separate lines like "2. is" "3. are")
-  let hasQuestionWithOptions = false;
+function detectFormat(lines, fullText) {
+  // Check for slash choices: word\word or word/word (not URLs)
+  if (lines.some(l => /\b\w+[\\\/]\w+\b/.test(l) && !l.includes('http'))) {
+    return 'slash_choices';
+  }
+
+  // Check for numbered options on separate lines:
+  // Pattern: question line followed by short option lines (1. is, 2. are)
   for (let i = 0; i < lines.length - 1; i++) {
     const line = lines[i];
-    const nextLine = lines[i + 1];
+    const nextLines = lines.slice(i + 1, i + 4);
 
-    // Question line followed by short numbered option
-    if (line.match(/^\d+[.)]\s*.+/) && nextLine.match(/^\d+[.)]\s*\w{1,20}$/)) {
-      hasQuestionWithOptions = true;
-      break;
+    // Current line has ... or ? (is a question)
+    if (/\.{2,}|…|\?/.test(line)) {
+      // Next lines are short numbered items (options)
+      const areOptions = nextLines.filter(l => {
+        const match = l.match(/^(\d+)[.)]\s*(.*)$/);
+        return match && match[2].length < 30 && !/\.{2,}|…/.test(match[2]);
+      });
+      if (areOptions.length >= 2) {
+        return 'numbered_options_multiline';
+      }
     }
-  }
-
-  if (hasQuestionWithOptions) {
-    return 'numbered_options';
-  }
-
-  // Check for slash choices format (sheep\sheeps or are/is)
-  const hasSlashChoices = lines.some(l => /\w+[\\\/]\w+/.test(l) && !l.match(/^\d+[.)]/));
-  if (hasSlashChoices) {
-    return 'slash_choices';
   }
 
   return 'standard';
@@ -64,63 +68,78 @@ function detectFormat(lines) {
 
 /**
  * Parse format where options are on separate numbered lines
- * Example:
- * 1. Cattle ... kept for their meat.
- * 2. is
- * 3. are
  */
-function parseNumberedOptionsFormat(lines) {
+function parseNumberedOptionsMultiline(lines) {
   const questions = [];
   let i = 0;
 
   while (i < lines.length) {
     const line = lines[i];
+
+    // Skip section headers (Russian text without question markers)
+    if (line.match(/^\d+\.\s*[А-Яа-яЁё]/) && !/\.{2,}|…|\?/.test(line)) {
+      i++;
+      continue;
+    }
+
+    // Check if this is a question (has blanks or is substantial)
     const questionMatch = line.match(/^(\d+)[.)]\s*(.+)/);
 
     if (questionMatch) {
       const questionText = questionMatch[2];
+      const hasBlank = /\.{2,}|…/.test(questionText);
+      const isLongEnough = questionText.length > 20;
 
-      // Check if this is a question (has ... or is longer) or just an option
-      const isQuestion = questionText.length > 25 || /\.{2,}|…|\?/.test(questionText);
-
-      if (isQuestion) {
+      if (hasBlank || isLongEnough) {
         // Collect options from following lines
         const options = [];
         let j = i + 1;
 
         while (j < lines.length) {
           const optLine = lines[j];
-          const optMatch = optLine.match(/^(\d+)[.)]\s*(.+)/);
+          const optMatch = optLine.match(/^(\d+)[.)]\s*(.+)$/);
 
           if (optMatch) {
             const optText = optMatch[2].trim();
-            // Short text = option, long text = next question
-            if (optText.length <= 25 && !/\.{2,}|…/.test(optText)) {
+            // Short text without blanks = option
+            if (optText.length < 30 && !/\.{2,}|…/.test(optText)) {
               options.push(optText);
               j++;
             } else {
               break;
+            }
+          } else if (optLine.match(/^[a-d][.)]\s*.+$/i)) {
+            // Letter options like "a) is"
+            const letterMatch = optLine.match(/^[a-d][.)]\s*(.+)$/i);
+            if (letterMatch) {
+              options.push(letterMatch[1].trim());
+              j++;
             }
           } else {
             break;
           }
         }
 
-        if (options.length > 0) {
-          // Pad options to at least 4
-          while (options.length < 4) options.push('');
+        questions.push({
+          question: cleanText(questionText),
+          type: hasBlank ? 'fill_blank' : 'multiple_choice',
+          options: options,
+          answer: '',
+        });
 
-          questions.push({
-            question: cleanQuestionText(questionText),
-            type: /\.{2,}|…/.test(questionText) ? 'fill_blank' : 'multiple_choice',
-            options: options.slice(0, 8),
-            answer: '',
-          });
-
-          i = j;
-          continue;
-        }
+        i = j;
+        continue;
       }
+    }
+
+    // Not a question, might be standalone text with blanks
+    if (/\.{2,}|…/.test(line) && !line.match(/^\d+[.)]/)) {
+      questions.push({
+        question: cleanText(line),
+        type: 'fill_blank',
+        options: [],
+        answer: '',
+      });
     }
 
     i++;
@@ -130,42 +149,39 @@ function parseNumberedOptionsFormat(lines) {
 }
 
 /**
- * Parse format with slash-separated choices
- * Example: "On this farm there are many sheep\sheeps, swine\swines."
- * Or: "The police are/is investigating"
+ * Parse slash-separated choices
  */
-function parseSlashChoicesFormat(lines) {
+function parseSlashChoices(lines) {
   const questions = [];
 
   for (const line of lines) {
     // Skip section headers
-    if (line.match(/^\d+\.\s*[А-Яа-яЁё]/) && line.length < 80) continue;
+    if (line.match(/^\d+\.\s*[А-Яа-яЁё]/) && line.length < 60 && !/[\\\/]/.test(line)) {
+      continue;
+    }
 
-    // Find all slash choices in the line
-    const slashMatches = line.match(/\w+[\\\/]\w+/g);
+    // Find slash choices
+    const slashPattern = /\b(\w+)[\\\/](\w+)\b/g;
+    const matches = [...line.matchAll(slashPattern)];
 
-    if (slashMatches && slashMatches.length > 0) {
-      // Create question with choices
+    if (matches.length > 0) {
+      // Collect all options from slashes
+      const options = [];
+      matches.forEach(m => {
+        if (!options.includes(m[1])) options.push(m[1]);
+        if (!options.includes(m[2])) options.push(m[2]);
+      });
+
+      // Create question text with blanks
       let questionText = line;
-      const allOptions = [];
-
-      for (const match of slashMatches) {
-        const separator = match.includes('\\') ? '\\' : '/';
-        const choices = match.split(separator);
-        allOptions.push(...choices);
-
-        // Replace the choice in question text with blank
-        questionText = questionText.replace(match, '...');
-      }
-
-      // Remove duplicates and limit options
-      const uniqueOptions = [...new Set(allOptions)];
-      while (uniqueOptions.length < 4) uniqueOptions.push('');
+      matches.forEach(m => {
+        questionText = questionText.replace(m[0], '...');
+      });
 
       questions.push({
-        question: cleanQuestionText(questionText),
+        question: cleanText(questionText),
         type: 'fill_blank',
-        options: uniqueOptions.slice(0, 8),
+        options: options,
         answer: '',
       });
     }
@@ -177,218 +193,137 @@ function parseSlashChoicesFormat(lines) {
 /**
  * Parse standard format with inline options
  */
-function parseStandardFormat(lines) {
+function parseStandard(lines) {
   const questions = [];
-  let currentQuestion = null;
-  let questionBuffer = [];
+  let currentQ = null;
+  let buffer = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Check if line starts a new question (number followed by period or parenthesis)
-    const questionStart = line.match(/^(\d+)[.)]\s*(.+)/);
+    // New question starts with number
+    const qMatch = line.match(/^(\d+)[.)]\s*(.+)/);
 
-    if (questionStart) {
-      // Save previous question if exists
-      if (currentQuestion) {
-        questions.push(finalizeQuestion(currentQuestion, questionBuffer));
+    if (qMatch) {
+      // Save previous question
+      if (currentQ) {
+        questions.push(finalizeStandardQuestion(currentQ, buffer));
       }
 
-      // Start new question
-      currentQuestion = {
-        num: parseInt(questionStart[1]),
-        question_text: '',
-        question_type: 'multiple_choice',
-        options: ['', '', '', ''],
-        correct_answer: '',
-      };
-      questionBuffer = [questionStart[2]];
-    } else if (currentQuestion) {
-      // Continue collecting content for current question
-      questionBuffer.push(line);
+      currentQ = { num: parseInt(qMatch[1]) };
+      buffer = [qMatch[2]];
+    } else if (currentQ) {
+      buffer.push(line);
+    } else {
+      // Line without question number - might be a standalone fill-blank
+      if (/\.{2,}|…|\([a-z]+\)/i.test(line)) {
+        questions.push({
+          question: cleanText(line),
+          type: 'fill_blank',
+          options: [],
+          answer: '',
+        });
+      }
     }
   }
 
-  // Don't forget the last question
-  if (currentQuestion) {
-    questions.push(finalizeQuestion(currentQuestion, questionBuffer));
+  // Don't forget last question
+  if (currentQ) {
+    questions.push(finalizeStandardQuestion(currentQ, buffer));
   }
 
-  // Convert to standard format
-  return questions.map(q => ({
-    question: q.question_text,
-    type: q.question_type,
-    options: q.options,
-    answer: q.correct_answer,
-  }));
+  return questions;
 }
 
 /**
- * Process collected lines for a question
+ * Finalize a standard format question
  */
-function finalizeQuestion(question, lines) {
-  const fullText = lines.join(' ');
+function finalizeStandardQuestion(q, buffer) {
+  const fullText = buffer.join(' ');
 
-  // Try to extract options from the text
-  const { questionText, options, correctAnswer } = extractOptionsFromText(fullText);
+  // Try to extract inline options
+  const { questionText, options } = extractInlineOptions(fullText);
 
-  question.question_text = cleanQuestionText(questionText);
+  const hasBlank = /\.{2,}|…|\([a-z]+\)/i.test(questionText);
 
-  if (options.length > 0 && options.some(o => o)) {
-    question.options = options;
-  }
-
-  // Determine question type based on content
-  const hasBlanks = /\.{2,}|…/.test(question.question_text);
-  const hasVerbInParens = /\([a-z]+\)/i.test(question.question_text);
-
-  if (hasBlanks || hasVerbInParens) {
-    question.question_type = 'fill_blank';
-  } else if (options.some(o => o)) {
-    question.question_type = 'multiple_choice';
-  } else {
-    question.question_type = 'fill_blank';
-  }
-
-  if (correctAnswer) {
-    question.correct_answer = correctAnswer;
-  }
-
-  return question;
+  return {
+    question: cleanText(questionText),
+    type: hasBlank ? 'fill_blank' : (options.length > 0 ? 'multiple_choice' : 'fill_blank'),
+    options: options,
+    answer: '',
+  };
 }
 
 /**
- * Extract options and question text from combined text
+ * Extract inline options from text
+ * Handles: a) opt b) opt c) opt OR a. opt b. opt
  */
-function extractOptionsFromText(text) {
+function extractInlineOptions(text) {
   let questionText = text;
   let options = [];
-  let correctAnswer = '';
 
-  // Try letter-based options: a) ... b) ... c) ... d) ...
-  const letterOptionsMatch = text.match(/\ba\s*\)\s*(.+?)\s+b\s*\)\s*(.+?)\s+c\s*\)\s*(.+?)\s+d\s*\)\s*(.+?)$/i);
+  // Try a) b) c) d) format
+  const letterParenMatch = text.match(/^(.+?)\s+a\s*\)\s*(.+?)\s+b\s*\)\s*(.+?)(?:\s+c\s*\)\s*(.+?))?(?:\s+d\s*\)\s*(.+?))?$/i);
 
-  if (letterOptionsMatch) {
-    const aMatch = text.match(/\ba\s*\)/i);
-    if (aMatch) {
-      const optionsStartIdx = text.indexOf(aMatch[0]);
-      questionText = text.substring(0, optionsStartIdx).trim();
-      options = [
-        letterOptionsMatch[1].trim(),
-        letterOptionsMatch[2].trim(),
-        letterOptionsMatch[3].trim(),
-        letterOptionsMatch[4].trim()
-      ];
-    }
+  if (letterParenMatch) {
+    questionText = letterParenMatch[1];
+    options = [
+      letterParenMatch[2]?.trim(),
+      letterParenMatch[3]?.trim(),
+      letterParenMatch[4]?.trim(),
+      letterParenMatch[5]?.trim(),
+    ].filter(Boolean);
+    return { questionText, options };
   }
 
-  // Try 3 options: a) ... b) ... c) ...
-  if (options.length === 0) {
-    const threeOptionsMatch = text.match(/\ba\s*\)\s*(.+?)\s+b\s*\)\s*(.+?)\s+c\s*\)\s*(.+?)$/i);
-    if (threeOptionsMatch) {
-      const aMatch = text.match(/\ba\s*\)/i);
-      if (aMatch) {
-        const optionsStartIdx = text.indexOf(aMatch[0]);
-        questionText = text.substring(0, optionsStartIdx).trim();
-        options = [
-          threeOptionsMatch[1].trim(),
-          threeOptionsMatch[2].trim(),
-          threeOptionsMatch[3].trim(),
-          ''
-        ];
-      }
-    }
+  // Try a. b. c. d. format
+  const letterDotMatch = text.match(/^(.+?)\s+a\s*\.\s*(.+?)\s+b\s*\.\s*(.+?)(?:\s+c\s*\.\s*(.+?))?(?:\s+d\s*\.\s*(.+?))?$/i);
+
+  if (letterDotMatch) {
+    questionText = letterDotMatch[1];
+    options = [
+      letterDotMatch[2]?.trim(),
+      letterDotMatch[3]?.trim(),
+      letterDotMatch[4]?.trim(),
+      letterDotMatch[5]?.trim(),
+    ].filter(Boolean);
+    return { questionText, options };
   }
 
-  // Try 2 options: a) ... b) ...
-  if (options.length === 0) {
-    const twoOptionsMatch = text.match(/\ba\s*\)\s*(.+?)\s+b\s*\)\s*(.+?)$/i);
-    if (twoOptionsMatch) {
-      const aMatch = text.match(/\ba\s*\)/i);
-      if (aMatch) {
-        const optionsStartIdx = text.indexOf(aMatch[0]);
-        questionText = text.substring(0, optionsStartIdx).trim();
-        options = [
-          twoOptionsMatch[1].trim(),
-          twoOptionsMatch[2].trim(),
-          '',
-          ''
-        ];
-      }
-    }
+  // Try comma-separated in parentheses: (is, are)
+  const parenOptionsMatch = text.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+  if (parenOptionsMatch && parenOptionsMatch[2].includes(',')) {
+    questionText = parenOptionsMatch[1];
+    options = parenOptionsMatch[2].split(',').map(o => o.trim()).filter(Boolean);
+    return { questionText, options };
   }
 
-  // Try numbered options: 1) ... 2) ... 3) ... 4) ...
-  if (options.length === 0) {
-    const numberedMatch = text.match(/\b1\s*\)\s*(.+?)\s+2\s*\)\s*(.+?)\s+3\s*\)\s*(.+?)\s+4\s*\)\s*(.+?)$/);
-    if (numberedMatch) {
-      const oneMatch = text.match(/\b1\s*\)/);
-      if (oneMatch) {
-        const optionsStartIdx = text.indexOf(oneMatch[0]);
-        questionText = text.substring(0, optionsStartIdx).trim();
-        options = [
-          numberedMatch[1].trim(),
-          numberedMatch[2].trim(),
-          numberedMatch[3].trim(),
-          numberedMatch[4].trim()
-        ];
-      }
-    }
-  }
-
-  // Try with dots: a. ... b. ... c. ... d. ...
-  if (options.length === 0) {
-    const dotOptionsMatch = text.match(/\ba\s*\.\s*(.+?)\s+b\s*\.\s*(.+?)\s+c\s*\.\s*(.+?)\s+d\s*\.\s*(.+?)$/i);
-    if (dotOptionsMatch) {
-      const aMatch = text.match(/\ba\s*\./i);
-      if (aMatch) {
-        const optionsStartIdx = text.indexOf(aMatch[0]);
-        questionText = text.substring(0, optionsStartIdx).trim();
-        options = [
-          dotOptionsMatch[1].trim(),
-          dotOptionsMatch[2].trim(),
-          dotOptionsMatch[3].trim(),
-          dotOptionsMatch[4].trim()
-        ];
-      }
-    }
-  }
-
-  // Clean up options - remove trailing question numbers
-  options = options.map(opt => opt.replace(/\s+\d+[.)]\s*$/, '').trim());
-
-  // Pad to 4 if needed
-  while (options.length < 4) options.push('');
-
-  return { questionText, options, correctAnswer };
+  return { questionText, options: [] };
 }
 
 /**
- * Clean up question text
+ * Clean text
  */
-function cleanQuestionText(text) {
+function cleanText(text) {
   return text
-    // Normalize blanks
     .replace(/\.\s*\.\s*\./g, '...')
     .replace(/…/g, '...')
-    // Clean extra whitespace
     .replace(/\s+/g, ' ')
     .trim();
 }
 
 /**
- * Parse a simple list format where each line is a question
+ * Simple line-by-line parser
  */
 export function parseSimpleQuestions(text) {
   const lines = text.split('\n').filter(l => l.trim());
-  return lines.map((line, idx) => {
-    // Remove leading number if present
+  return lines.map(line => {
     const cleaned = line.replace(/^\d+[.)]\s*/, '').trim();
     return {
-      question_text: cleaned,
-      question_type: 'fill_blank',
-      options: ['', '', '', ''],
-      correct_answer: '',
+      question: cleaned,
+      type: 'fill_blank',
+      options: [],
+      answer: '',
     };
   });
 }
