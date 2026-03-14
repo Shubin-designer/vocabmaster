@@ -3,7 +3,7 @@ import { supabase } from '../../supabaseClient';
 import {
   Plus, Edit2, Trash2, Loader, BookOpen, Hash,
   GraduationCap, Globe, Clock, Zap, Target, Layers,
-  ChevronDown, X, Check, ChevronRight
+  ChevronDown, X, Check, ChevronRight, GripVertical
 } from 'lucide-react';
 import TopicDetail from './TopicDetail';
 import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
@@ -57,6 +57,10 @@ export default function TopicsList({ teacherId, isDark = true }) {
   const [saving, setSaving] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Drag state
+  const [draggedTopic, setDraggedTopic] = useState(null);
+  const [dragOverTopic, setDragOverTopic] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -171,6 +175,46 @@ export default function TopicsList({ teacherId, isDark = true }) {
     setDeleteTarget(null);
   };
 
+  // Drag handlers
+  const handleDragStart = (e, topic) => {
+    setDraggedTopic(topic);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedTopic(null);
+    setDragOverTopic(null);
+  };
+
+  const handleDragOver = (e, topic) => {
+    e.preventDefault();
+    if (draggedTopic && topic.id !== draggedTopic.id) {
+      setDragOverTopic(topic);
+    }
+  };
+
+  const handleDrop = async (e, targetTopic) => {
+    e.preventDefault();
+    if (!draggedTopic || draggedTopic.id === targetTopic.id) return;
+
+    const oldIndex = topics.findIndex(t => t.id === draggedTopic.id);
+    const newIndex = topics.findIndex(t => t.id === targetTopic.id);
+
+    const newTopics = [...topics];
+    newTopics.splice(oldIndex, 1);
+    newTopics.splice(newIndex, 0, draggedTopic);
+
+    setTopics(newTopics);
+    setDraggedTopic(null);
+    setDragOverTopic(null);
+
+    // Update sort_order in database
+    const updates = newTopics.map((t, i) => ({ id: t.id, sort_order: i }));
+    for (const u of updates) {
+      await supabase.from('topics').update({ sort_order: u.sort_order }).eq('id', u.id);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -224,10 +268,21 @@ export default function TopicsList({ teacherId, isDark = true }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {topics.map(topic => {
             const IconComponent = getIconComponent(topic.icon);
+            const isDragging = draggedTopic?.id === topic.id;
+            const isDragOver = dragOverTopic?.id === topic.id;
             return (
               <div
                 key={topic.id}
+                draggable
+                onDragStart={e => handleDragStart(e, topic)}
+                onDragEnd={handleDragEnd}
+                onDragOver={e => handleDragOver(e, topic)}
+                onDrop={e => handleDrop(e, topic)}
                 className={`group rounded-2xl p-5 transition-all cursor-pointer ${
+                  isDragging ? 'opacity-50' : ''
+                } ${
+                  isDragOver ? 'ring-2 ring-pink-vibrant' : ''
+                } ${
                   isDark
                     ? 'bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/20'
                     : 'bg-white border border-gray-200 hover:shadow-md hover:border-gray-300'
@@ -235,8 +290,16 @@ export default function TopicsList({ teacherId, isDark = true }) {
                 onClick={() => setSelectedTopic(topic)}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getColorClass(topic.icon_color, isDark)}`}>
-                    <IconComponent size={24} />
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`cursor-grab active:cursor-grabbing p-1 -ml-1 rounded ${isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-300 hover:text-gray-500'}`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <GripVertical size={18} />
+                    </div>
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getColorClass(topic.icon_color, isDark)}`}>
+                      <IconComponent size={24} />
+                    </div>
                   </div>
                   <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                     <button
