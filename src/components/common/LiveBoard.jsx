@@ -358,6 +358,17 @@ export default function LiveBoard({
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
   const toolbarRef = useRef(null);
 
+  // Pan & Zoom state
+  const [stageScale, setStageScale] = useState(1);
+  const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
+  const lastPanPosition = useRef({ x: 0, y: 0 });
+
+  const MIN_SCALE = 0.1;
+  const MAX_SCALE = 5;
+  const ZOOM_SENSITIVITY = 0.001;
+
   // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -369,19 +380,96 @@ export default function LiveBoard({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Delete key handler
+  // Delete key and Space (for panning) handlers
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Space for panning mode
+      if (e.code === 'Space' && !isSpacePressed) {
+        if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
+        e.preventDefault();
+        setIsSpacePressed(true);
+      }
+      // Delete/Backspace to delete selected
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length > 0 && !editingId) {
-        // Don't delete if editing text
         if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
         updateShapes(shapes.filter(s => !selectedIds.includes(s.id)));
         setSelectedIds([]);
       }
     };
+    const handleKeyUp = (e) => {
+      if (e.code === 'Space') {
+        setIsSpacePressed(false);
+        setIsPanning(false);
+      }
+    };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIds, shapes, editingId]);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [selectedIds, shapes, editingId, isSpacePressed]);
+
+  // Wheel zoom handler
+  const handleWheel = (e) => {
+    e.evt.preventDefault();
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const oldScale = stageScale;
+    const pointer = stage.getPointerPosition();
+
+    const mousePointTo = {
+      x: (pointer.x - stagePosition.x) / oldScale,
+      y: (pointer.y - stagePosition.y) / oldScale,
+    };
+
+    // Determine zoom direction
+    const direction = e.evt.deltaY > 0 ? -1 : 1;
+    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, oldScale * (1 + direction * ZOOM_SENSITIVITY * Math.abs(e.evt.deltaY))));
+
+    const newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+
+    setStageScale(newScale);
+    setStagePosition(newPos);
+  };
+
+  // Zoom controls
+  const zoomIn = () => {
+    const newScale = Math.min(MAX_SCALE, stageScale * 1.2);
+    const center = { x: stageSize.width / 2, y: stageSize.height / 2 };
+    const mousePointTo = {
+      x: (center.x - stagePosition.x) / stageScale,
+      y: (center.y - stagePosition.y) / stageScale,
+    };
+    setStageScale(newScale);
+    setStagePosition({
+      x: center.x - mousePointTo.x * newScale,
+      y: center.y - mousePointTo.y * newScale,
+    });
+  };
+
+  const zoomOut = () => {
+    const newScale = Math.max(MIN_SCALE, stageScale / 1.2);
+    const center = { x: stageSize.width / 2, y: stageSize.height / 2 };
+    const mousePointTo = {
+      x: (center.x - stagePosition.x) / stageScale,
+      y: (center.y - stagePosition.y) / stageScale,
+    };
+    setStageScale(newScale);
+    setStagePosition({
+      x: center.x - mousePointTo.x * newScale,
+      y: center.y - mousePointTo.y * newScale,
+    });
+  };
+
+  const resetZoom = () => {
+    setStageScale(1);
+    setStagePosition({ x: 0, y: 0 });
+  };
 
   // Resize handler
   useEffect(() => {
@@ -552,14 +640,29 @@ export default function LiveBoard({
 
   // Stage click handlers
   const handleStageMouseDown = (e) => {
-    const clickedOnEmpty = e.target === e.target.getStage();
-    const pos = e.target.getStage().getPointerPosition();
+    const stage = e.target.getStage();
+    const clickedOnEmpty = e.target === stage;
+    const pos = stage.getPointerPosition();
+
+    // Middle mouse button (button 1) or Space pressed = panning
+    if (e.evt.button === 1 || isSpacePressed) {
+      e.evt.preventDefault();
+      setIsPanning(true);
+      lastPanPosition.current = { x: e.evt.clientX, y: e.evt.clientY };
+      return;
+    }
+
+    // Transform pointer position to canvas coordinates
+    const canvasPos = {
+      x: (pos.x - stagePosition.x) / stageScale,
+      y: (pos.y - stagePosition.y) / stageScale,
+    };
 
     if (clickedOnEmpty && tool === 'select') {
       // Start selection rectangle
       setSelectedIds([]);
       setIsSelecting(true);
-      setSelectionRect({ x: pos.x, y: pos.y, width: 0, height: 0, startX: pos.x, startY: pos.y });
+      setSelectionRect({ x: canvasPos.x, y: canvasPos.y, width: 0, height: 0, startX: canvasPos.x, startY: canvasPos.y });
       return;
     }
 
@@ -568,7 +671,7 @@ export default function LiveBoard({
       setCurrentLine({
         id: genId(),
         type: 'line',
-        points: [pos.x, pos.y],
+        points: [canvasPos.x, canvasPos.y],
         stroke: color,
         strokeWidth: brushSize,
       });
@@ -582,8 +685,8 @@ export default function LiveBoard({
         newShape = {
           id: genId(),
           type: 'note',
-          x: pos.x - 100,
-          y: pos.y - 75,
+          x: canvasPos.x - 100,
+          y: canvasPos.y - 75,
           width: 200,
           height: 150,
           text: '',
@@ -594,8 +697,8 @@ export default function LiveBoard({
         newShape = {
           id: genId(),
           type: 'comment',
-          x: pos.x - 100,
-          y: pos.y - 30,
+          x: canvasPos.x - 100,
+          y: canvasPos.y - 30,
           width: 200,
           height: 60,
           text: '',
@@ -606,8 +709,8 @@ export default function LiveBoard({
         newShape = {
           id: genId(),
           type: 'text',
-          x: pos.x,
-          y: pos.y,
+          x: canvasPos.x,
+          y: canvasPos.y,
           text: 'Type here',
           fontSize: 18,
           fill: color,
@@ -616,8 +719,8 @@ export default function LiveBoard({
         newShape = {
           id: genId(),
           type: 'rect',
-          x: pos.x - 50,
-          y: pos.y - 30,
+          x: canvasPos.x - 50,
+          y: canvasPos.y - 30,
           width: 100,
           height: 60,
           stroke: color,
@@ -628,8 +731,8 @@ export default function LiveBoard({
         newShape = {
           id: genId(),
           type: 'circle',
-          x: pos.x,
-          y: pos.y,
+          x: canvasPos.x,
+          y: canvasPos.y,
           radius: 40,
           stroke: color,
           strokeWidth: brushSize,
@@ -639,7 +742,7 @@ export default function LiveBoard({
         newShape = {
           id: genId(),
           type: 'line',
-          points: [pos.x - 50, pos.y, pos.x + 50, pos.y],
+          points: [canvasPos.x - 50, canvasPos.y, canvasPos.x + 50, canvasPos.y],
           stroke: color,
           strokeWidth: brushSize,
         };
@@ -654,12 +757,31 @@ export default function LiveBoard({
   };
 
   const handleStageMouseMove = (e) => {
-    const pos = e.target.getStage().getPointerPosition();
+    // Handle panning
+    if (isPanning) {
+      const dx = e.evt.clientX - lastPanPosition.current.x;
+      const dy = e.evt.clientY - lastPanPosition.current.y;
+      lastPanPosition.current = { x: e.evt.clientX, y: e.evt.clientY };
+      setStagePosition(prev => ({
+        x: prev.x + dx,
+        y: prev.y + dy,
+      }));
+      return;
+    }
+
+    const stage = e.target.getStage();
+    const pos = stage.getPointerPosition();
+
+    // Transform pointer position to canvas coordinates
+    const canvasPos = {
+      x: (pos.x - stagePosition.x) / stageScale,
+      y: (pos.y - stagePosition.y) / stageScale,
+    };
 
     if (isDrawing && currentLine) {
       setCurrentLine({
         ...currentLine,
-        points: [...currentLine.points, pos.x, pos.y],
+        points: [...currentLine.points, canvasPos.x, canvasPos.y],
       });
       return;
     }
@@ -667,16 +789,22 @@ export default function LiveBoard({
     if (isSelecting && selectionRect) {
       const newRect = {
         ...selectionRect,
-        x: Math.min(pos.x, selectionRect.startX),
-        y: Math.min(pos.y, selectionRect.startY),
-        width: Math.abs(pos.x - selectionRect.startX),
-        height: Math.abs(pos.y - selectionRect.startY),
+        x: Math.min(canvasPos.x, selectionRect.startX),
+        y: Math.min(canvasPos.y, selectionRect.startY),
+        width: Math.abs(canvasPos.x - selectionRect.startX),
+        height: Math.abs(canvasPos.y - selectionRect.startY),
       };
       setSelectionRect(newRect);
     }
   };
 
-  const handleStageMouseUp = () => {
+  const handleStageMouseUp = (e) => {
+    // Stop panning
+    if (isPanning) {
+      setIsPanning(false);
+      return;
+    }
+
     if (isDrawing && currentLine) {
       updateShapes([...shapes, currentLine]);
       setCurrentLine(null);
@@ -1234,11 +1362,26 @@ export default function LiveBoard({
       </div>
 
       {/* Canvas */}
-      <div ref={containerRef} className="flex-1 overflow-hidden relative bg-white">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-hidden relative"
+        style={{
+          background: '#f8f9fa',
+          backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)',
+          backgroundSize: `${20 * stageScale}px ${20 * stageScale}px`,
+          backgroundPosition: `${stagePosition.x}px ${stagePosition.y}px`,
+          cursor: isSpacePressed || isPanning ? 'grab' : (isPanning ? 'grabbing' : 'default'),
+        }}
+      >
         <Stage
           ref={stageRef}
           width={stageSize.width}
           height={stageSize.height}
+          scaleX={stageScale}
+          scaleY={stageScale}
+          x={stagePosition.x}
+          y={stagePosition.y}
+          onWheel={handleWheel}
           onMouseDown={handleStageMouseDown}
           onMousemove={handleStageMouseMove}
           onMouseup={handleStageMouseUp}
@@ -1414,6 +1557,38 @@ export default function LiveBoard({
             )}
           </Layer>
         </Stage>
+
+        {/* Zoom Controls */}
+        <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white rounded-lg shadow-lg border border-gray-200 p-1">
+          <button
+            onClick={zoomOut}
+            className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600 text-lg font-medium"
+            title="Zoom Out"
+          >
+            −
+          </button>
+          <button
+            onClick={resetZoom}
+            className="px-2 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600 text-sm font-medium min-w-[60px]"
+            title="Reset Zoom"
+          >
+            {Math.round(stageScale * 100)}%
+          </button>
+          <button
+            onClick={zoomIn}
+            className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600 text-lg font-medium"
+            title="Zoom In"
+          >
+            +
+          </button>
+        </div>
+
+        {/* Pan mode indicator */}
+        {isSpacePressed && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm">
+            Drag to pan
+          </div>
+        )}
       </div>
     </div>
   );
