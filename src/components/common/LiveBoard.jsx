@@ -12,6 +12,8 @@ import {
 const COLORS = ['#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff'];
 const SIZES = [2, 4, 8, 12];
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 32];
+// Rotation snap angles (every 15 degrees) for Shift+rotate
+const ROTATION_SNAPS = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345];
 const FONTS = [
   { value: 'Inter, sans-serif', label: 'Inter' },
   { value: 'Arial, sans-serif', label: 'Arial' },
@@ -286,6 +288,7 @@ function EditableText({ shapeProps, isSelected, onSelect, onChange, stageRef }) 
         fontFamily={shapeProps.fontFamily || 'Inter, sans-serif'}
         fontStyle={shapeProps.fontStyle || 'normal'}
         textDecoration={shapeProps.textDecoration || ''}
+        rotation={shapeProps.rotation || 0}
         draggable
         onClick={onSelect}
         onTap={onSelect}
@@ -304,7 +307,10 @@ function EditableText({ shapeProps, isSelected, onSelect, onChange, stageRef }) 
           node.scaleY(1);
           onChange({
             ...shapeProps,
+            x: node.x(),
+            y: node.y(),
             fontSize: newFontSize,
+            rotation: node.rotation(),
           });
         }}
         visible={!isEditing}
@@ -312,6 +318,8 @@ function EditableText({ shapeProps, isSelected, onSelect, onChange, stageRef }) 
       {isSelected && !isEditing && (
         <Transformer
           ref={trRef}
+          rotateEnabled={true}
+          rotationSnaps={ROTATION_SNAPS}
           enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
           boundBoxFunc={(oldBox, newBox) => {
             if (newBox.width < 20 || newBox.height < 20) return oldBox;
@@ -343,6 +351,7 @@ function TransformableRect({ shapeProps, isSelected, onSelect, onChange }) {
         y={shapeProps.y}
         width={shapeProps.width}
         height={shapeProps.height}
+        rotation={shapeProps.rotation || 0}
         fill={shapeProps.fill || 'transparent'}
         stroke={shapeProps.stroke || '#000'}
         strokeWidth={shapeProps.strokeWidth || 2}
@@ -364,13 +373,15 @@ function TransformableRect({ shapeProps, isSelected, onSelect, onChange }) {
             y: node.y(),
             width: Math.max(20, shapeProps.width * scaleX),
             height: Math.max(20, shapeProps.height * scaleY),
+            rotation: node.rotation(),
           });
         }}
       />
       {isSelected && (
         <Transformer
           ref={trRef}
-          rotateEnabled={false}
+          rotateEnabled={true}
+          rotationSnaps={ROTATION_SNAPS}
           boundBoxFunc={(oldBox, newBox) => {
             if (newBox.width < 20 || newBox.height < 20) return oldBox;
             return newBox;
@@ -400,6 +411,7 @@ function TransformableCircle({ shapeProps, isSelected, onSelect, onChange }) {
         x={shapeProps.x}
         y={shapeProps.y}
         radius={shapeProps.radius}
+        rotation={shapeProps.rotation || 0}
         fill={shapeProps.fill || 'transparent'}
         stroke={shapeProps.stroke || '#000'}
         strokeWidth={shapeProps.strokeWidth || 2}
@@ -421,16 +433,137 @@ function TransformableCircle({ shapeProps, isSelected, onSelect, onChange }) {
             x: node.x(),
             y: node.y(),
             radius: Math.max(10, shapeProps.radius * avgScale),
+            rotation: node.rotation(),
           });
         }}
       />
       {isSelected && (
         <Transformer
           ref={trRef}
-          rotateEnabled={false}
+          rotateEnabled={true}
+          rotationSnaps={ROTATION_SNAPS}
           enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
           boundBoxFunc={(oldBox, newBox) => {
             if (newBox.width < 20 || newBox.height < 20) return oldBox;
+            return newBox;
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+// Transformable Line component - uses Group wrapper for proper rotation
+function TransformableLine({ shapeProps, isSelected, onSelect, onChange }) {
+  const groupRef = useRef();
+  const trRef = useRef();
+
+  useEffect(() => {
+    if (isSelected && trRef.current && groupRef.current) {
+      trRef.current.nodes([groupRef.current]);
+      trRef.current.getLayer().batchDraw();
+    }
+  }, [isSelected]);
+
+  // Use stored position/rotation or calculate from points
+  const points = shapeProps.points || [];
+  if (points.length < 4) return null;
+
+  // If we have stored center position, use it; otherwise calculate
+  let centerX, centerY, localPoints;
+
+  if (shapeProps.lineX !== undefined && shapeProps.lineY !== undefined && shapeProps.localPoints) {
+    // Use stored local coordinate system
+    centerX = shapeProps.lineX;
+    centerY = shapeProps.lineY;
+    localPoints = shapeProps.localPoints;
+  } else {
+    // First time or legacy: calculate from absolute points
+    const xs = points.filter((_, i) => i % 2 === 0);
+    const ys = points.filter((_, i) => i % 2 === 1);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    centerX = (minX + maxX) / 2;
+    centerY = (minY + maxY) / 2;
+
+    localPoints = [];
+    for (let i = 0; i < points.length; i += 2) {
+      localPoints.push(points[i] - centerX);
+      localPoints.push(points[i + 1] - centerY);
+    }
+  }
+
+  // Calculate width/height for the group (needed for transformer)
+  const lxs = localPoints.filter((_, i) => i % 2 === 0);
+  const lys = localPoints.filter((_, i) => i % 2 === 1);
+  const width = Math.max(...lxs) - Math.min(...lxs) || 1;
+  const height = Math.max(...lys) - Math.min(...lys) || 1;
+
+  return (
+    <>
+      <Group
+        ref={groupRef}
+        x={centerX}
+        y={centerY}
+        width={width}
+        height={height}
+        rotation={shapeProps.rotation || 0}
+        draggable
+        onClick={onSelect}
+        onTap={onSelect}
+        onDragEnd={(e) => {
+          const node = e.target;
+          onChange({
+            ...shapeProps,
+            lineX: node.x(),
+            lineY: node.y(),
+            localPoints: localPoints,
+          });
+        }}
+        onTransformEnd={() => {
+          const node = groupRef.current;
+          const scaleX = node.scaleX();
+          const scaleY = node.scaleY();
+
+          // Scale local points
+          const newLocalPoints = [];
+          for (let i = 0; i < localPoints.length; i += 2) {
+            newLocalPoints.push(localPoints[i] * scaleX);
+            newLocalPoints.push(localPoints[i + 1] * scaleY);
+          }
+
+          // Reset scale, keep rotation
+          node.scaleX(1);
+          node.scaleY(1);
+
+          onChange({
+            ...shapeProps,
+            lineX: node.x(),
+            lineY: node.y(),
+            rotation: node.rotation(),
+            localPoints: newLocalPoints,
+          });
+        }}
+      >
+        <Line
+          points={localPoints}
+          stroke={shapeProps.stroke || '#000'}
+          strokeWidth={shapeProps.strokeWidth || 2}
+          lineCap="round"
+          lineJoin="round"
+          tension={0.5}
+          hitStrokeWidth={Math.max(20, (shapeProps.strokeWidth || 2) + 10)}
+        />
+      </Group>
+      {isSelected && (
+        <Transformer
+          ref={trRef}
+          rotateEnabled={true}
+          rotationSnaps={ROTATION_SNAPS}
+          boundBoxFunc={(oldBox, newBox) => {
+            if (newBox.width < 5 || newBox.height < 5) return oldBox;
             return newBox;
           }}
         />
@@ -1429,36 +1562,32 @@ export default function LiveBoard({
                 <span className="text-gray-600 text-xs">Fill</span>
               </button>
               {showColors === 'fill' && (
-                <div className="absolute top-full left-0 mt-1 p-2 bg-white rounded-lg shadow-lg border z-20">
-                  <div className="flex gap-1 mb-2">
+                <div className="absolute top-full left-0 mt-1 p-2 bg-white rounded-lg shadow-lg border z-20 flex gap-1">
+                  <button
+                    onClick={() => {
+                      updateSelectedStyle({ fill: 'transparent' });
+                      setShowColors(false);
+                    }}
+                    className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-transform hover:scale-110 ${
+                      selectedShape.fill === 'transparent' ? 'border-blue-500' : 'border-gray-300'
+                    }`}
+                    title="No fill"
+                  >
+                    <svg viewBox="0 0 16 16" className="w-4 h-4 text-red-500">
+                      <line x1="0" y1="16" x2="16" y2="0" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </button>
+                  {COLORS.map((c) => (
                     <button
+                      key={c}
                       onClick={() => {
-                        updateSelectedStyle({ fill: 'transparent' });
+                        updateSelectedStyle({ fill: c });
                         setShowColors(false);
                       }}
-                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-transform hover:scale-110 ${
-                        selectedShape.fill === 'transparent' ? 'border-blue-500' : 'border-gray-300'
-                      }`}
-                      title="No fill"
-                    >
-                      <svg viewBox="0 0 16 16" className="w-4 h-4 text-red-500">
-                        <line x1="0" y1="16" x2="16" y2="0" stroke="currentColor" strokeWidth="2"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="flex gap-1 flex-wrap" style={{ maxWidth: '180px' }}>
-                    {COLORS.map((c) => (
-                      <button
-                        key={c}
-                        onClick={() => {
-                          updateSelectedStyle({ fill: c });
-                          setShowColors(false);
-                        }}
-                        className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
-                        style={{ backgroundColor: c, borderColor: selectedShape.fill === c ? '#3b82f6' : '#d1d5db' }}
-                      />
-                    ))}
-                  </div>
+                      className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
+                      style={{ backgroundColor: c, borderColor: selectedShape.fill === c ? '#3b82f6' : '#d1d5db' }}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -1477,20 +1606,18 @@ export default function LiveBoard({
                 <span className="text-gray-600 text-xs">Stroke</span>
               </button>
               {showColors === 'stroke' && (
-                <div className="absolute top-full left-0 mt-1 p-2 bg-white rounded-lg shadow-lg border z-20">
-                  <div className="flex gap-1 flex-wrap" style={{ maxWidth: '180px' }}>
-                    {COLORS.filter(c => c !== '#ffffff').map((c) => (
-                      <button
-                        key={c}
-                        onClick={() => {
-                          updateSelectedStyle({ stroke: c });
-                          setShowColors(false);
-                        }}
-                        className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
-                        style={{ backgroundColor: c, borderColor: selectedShape.stroke === c ? '#3b82f6' : '#d1d5db' }}
-                      />
-                    ))}
-                  </div>
+                <div className="absolute top-full left-0 mt-1 p-2 bg-white rounded-lg shadow-lg border z-20 flex gap-1">
+                  {COLORS.filter(c => c !== '#ffffff').map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => {
+                        updateSelectedStyle({ stroke: c });
+                        setShowColors(false);
+                      }}
+                      className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
+                      style={{ backgroundColor: c, borderColor: selectedShape.stroke === c ? '#3b82f6' : '#d1d5db' }}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -1665,39 +1792,16 @@ export default function LiveBoard({
                 );
               }
               if (shape.type === 'line') {
-                const isLineSelected = selectedIds.includes(shape.id);
                 return (
-                  <Line
+                  <TransformableLine
                     key={shape.id}
-                    points={shape.points}
-                    stroke={isLineSelected ? '#3b82f6' : shape.stroke}
-                    strokeWidth={shape.strokeWidth}
-                    lineCap="round"
-                    lineJoin="round"
-                    tension={0.5}
-                    hitStrokeWidth={Math.max(20, shape.strokeWidth + 10)}
-                    draggable
-                    onClick={() => {
+                    shapeProps={shape}
+                    isSelected={selectedIds.includes(shape.id)}
+                    onSelect={() => {
                       setSelectedIds([shape.id]);
                       setTool('select');
                     }}
-                    onTap={() => {
-                      setSelectedIds([shape.id]);
-                      setTool('select');
-                    }}
-                    onDragEnd={(e) => {
-                      // Update all points by delta
-                      const node = e.target;
-                      const dx = node.x();
-                      const dy = node.y();
-                      node.position({ x: 0, y: 0 });
-                      const newPoints = [];
-                      for (let i = 0; i < shape.points.length; i += 2) {
-                        newPoints.push(shape.points[i] + dx);
-                        newPoints.push(shape.points[i + 1] + dy);
-                      }
-                      handleChange(shape.id, { points: newPoints });
-                    }}
+                    onChange={(newAttrs) => handleChange(shape.id, newAttrs)}
                   />
                 );
               }
