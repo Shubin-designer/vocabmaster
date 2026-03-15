@@ -64,6 +64,10 @@ export default function MaterialEditorFullscreen({
   // Table state
   const [inTable, setInTable] = useState(false);
 
+  // Color picker state
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const colorPickerRef = useRef(null);
+
   const isEditing = !!material;
 
   // Tiptap editor
@@ -97,6 +101,17 @@ export default function MaterialEditorFullscreen({
       editor.commands.setContent(material.content, false);
     }
   }, [material?.content]);
+
+  // Close color picker on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target)) {
+        setShowColorPicker(false);
+      }
+    };
+    if (showColorPicker) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showColorPicker]);
 
   // Load PDF or Image from file input
   const handleFileSelect = async (e) => {
@@ -583,6 +598,73 @@ export default function MaterialEditorFullscreen({
                 <ToolBtn active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic"><Italic size={18} /></ToolBtn>
                 <ToolBtn active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline"><UnderlineIcon size={18} /></ToolBtn>
                 <ToolBtn active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()} title="Strike"><Strikethrough size={18} /></ToolBtn>
+
+                {/* Text Color */}
+                <div className="relative" ref={colorPickerRef}>
+                  <button
+                    type="button"
+                    title="Text Color"
+                    onMouseDown={e => { e.preventDefault(); setShowColorPicker(!showColorPicker); }}
+                    className={`p-2 rounded-lg transition-colors ${
+                      editor.isActive('textStyle')
+                        ? 'bg-pink-vibrant text-white'
+                        : isDark
+                          ? 'text-white/60 hover:text-white hover:bg-white/10'
+                          : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-sm font-bold leading-none">A</span>
+                      <div
+                        className="w-4 h-1 rounded-full"
+                        style={{ background: editor.getAttributes('textStyle').color || (isDark ? '#fff' : '#000') }}
+                      />
+                    </div>
+                  </button>
+                  {showColorPicker && (
+                    <div className={`absolute bottom-full mb-2 left-1/2 -translate-x-1/2 p-2 rounded-xl shadow-xl border backdrop-blur-xl ${
+                      isDark ? 'bg-[#2a2a30]/95 border-white/10' : 'bg-white/95 border-gray-200'
+                    }`}>
+                      <div className="grid grid-cols-6 gap-1.5">
+                        {[
+                          '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6',
+                          '#ec4899', '#14b8a6', '#f43f5e', '#06b6d4', '#6366f1', '#a855f7',
+                          '#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#2563eb', '#7c3aed',
+                          '#ffffff', '#d1d5db', '#9ca3af', '#6b7280', '#374151', '#000000',
+                        ].map(color => (
+                          <button
+                            key={color}
+                            type="button"
+                            onMouseDown={e => {
+                              e.preventDefault();
+                              editor.chain().focus().setColor(color).run();
+                              setShowColorPicker(false);
+                            }}
+                            className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-125 ${
+                              editor.getAttributes('textStyle').color === color
+                                ? 'border-pink-vibrant scale-110'
+                                : isDark ? 'border-white/20' : 'border-gray-300'
+                            }`}
+                            style={{ background: color }}
+                          />
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onMouseDown={e => {
+                          e.preventDefault();
+                          editor.chain().focus().unsetColor().run();
+                          setShowColorPicker(false);
+                        }}
+                        className={`mt-2 w-full text-xs py-1 rounded-lg font-medium ${
+                          isDark ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        Reset color
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 <div className={`w-px h-6 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
 
