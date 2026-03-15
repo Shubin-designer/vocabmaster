@@ -644,7 +644,7 @@ export default function LiveBoard({
       // Delete/Backspace to delete selected
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length > 0 && !editingId) {
         if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
-        updateShapes(shapes.filter(s => !selectedIds.includes(s.id)));
+        updateShapes(shapesRef.current.filter(s => !selectedIds.includes(s.id)));
         setSelectedIds([]);
       }
     };
@@ -660,7 +660,7 @@ export default function LiveBoard({
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
     };
-  }, [selectedIds, shapes, editingId, isSpacePressed, undo, redo]);
+  }, [selectedIds, editingId, isSpacePressed]);
 
   // Wheel zoom handler
   const handleWheel = (e) => {
@@ -830,9 +830,15 @@ export default function LiveBoard({
     }, 2000);
   }, [isTeacher, boardId, shapes]);
 
+  // Keep a ref to current shapes for history
+  const shapesRef = useRef(shapes);
+  useEffect(() => {
+    shapesRef.current = shapes;
+  }, [shapes]);
+
   // Push current state to history before making changes
-  const pushToHistory = useCallback((currentShapes) => {
-    if (isUndoRedoRef.current) return; // Don't record undo/redo actions
+  const pushToHistory = (currentShapes) => {
+    if (isUndoRedoRef.current) return;
 
     const history = historyRef.current;
     const index = historyIndexRef.current;
@@ -851,18 +857,18 @@ export default function LiveBoard({
     } else {
       historyIndexRef.current = historyRef.current.length - 1;
     }
-  }, []);
+  };
 
-  const updateShapes = useCallback((newShapes, skipHistory = false) => {
+  const updateShapes = (newShapes, skipHistory = false) => {
     if (!skipHistory) {
-      pushToHistory(shapes);
+      pushToHistory(shapesRef.current);
     }
     setShapes(newShapes);
     broadcastShapes(newShapes);
     scheduleAutoSave();
-  }, [shapes, pushToHistory, broadcastShapes, scheduleAutoSave]);
+  };
 
-  const undo = useCallback(() => {
+  const undo = () => {
     const history = historyRef.current;
     const index = historyIndexRef.current;
 
@@ -870,19 +876,18 @@ export default function LiveBoard({
 
     // Save current state for redo if at the end
     if (index === history.length - 1) {
-      history.push(JSON.stringify(shapes));
+      history.push(JSON.stringify(shapesRef.current));
     }
 
     isUndoRedoRef.current = true;
     const previousState = JSON.parse(history[index]);
     setShapes(previousState);
     broadcastShapes(previousState);
-    scheduleAutoSave();
     historyIndexRef.current = index - 1;
     isUndoRedoRef.current = false;
-  }, [shapes, broadcastShapes, scheduleAutoSave]);
+  };
 
-  const redo = useCallback(() => {
+  const redo = () => {
     const history = historyRef.current;
     const index = historyIndexRef.current;
 
@@ -892,13 +897,12 @@ export default function LiveBoard({
     const nextState = JSON.parse(history[index + 2]);
     setShapes(nextState);
     broadcastShapes(nextState);
-    scheduleAutoSave();
     historyIndexRef.current = index + 1;
     isUndoRedoRef.current = false;
-  }, [broadcastShapes, scheduleAutoSave]);
+  };
 
   const handleChange = (id, newAttrs) => {
-    const newShapes = shapes.map((s) => (s.id === id ? { ...s, ...newAttrs } : s));
+    const newShapes = shapesRef.current.map((s) => (s.id === id ? { ...s, ...newAttrs } : s));
     updateShapes(newShapes);
   };
 
