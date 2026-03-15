@@ -412,7 +412,7 @@ export default function HomeworkList({ teacherId, isDark = true }) {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredHomework.map(hw => {
             const status = getStatusCounts(hw);
             const pastDue = isPastDue(hw.due_date);
@@ -430,99 +430,99 @@ export default function HomeworkList({ teacherId, isDark = true }) {
                 onDragOver={e => handleDragOver(e, hw)}
                 onDragLeave={handleDragLeave}
                 onDrop={e => handleDrop(e, hw)}
-                className={`rounded-2xl border p-5 transition-all ${
+                className={`group rounded-2xl border p-5 transition-all ${
                   isDragging ? 'opacity-50' : ''
                 } ${
                   isDragOver ? 'ring-2 ring-pink-vibrant' : ''
                 } ${
-                  isDark ? 'bg-white/[0.02] border-white/[0.05]' : 'bg-white border-gray-200'
+                  isDark
+                    ? 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/20'
+                    : 'bg-white border-gray-200 hover:shadow-md hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
                     <div
-                      className={`cursor-grab active:cursor-grabbing p-1 mt-0.5 rounded ${isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-300 hover:text-gray-500'}`}
+                      className={`cursor-grab active:cursor-grabbing p-1 -ml-1 rounded ${isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-300 hover:text-gray-500'}`}
                     >
                       <GripVertical size={18} />
                     </div>
-                    <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {hw.title}
-                      </h3>
-                      {pastDue ? (
-                        <span className="px-2 py-0.5 rounded-full text-xs bg-red-500/20 text-red-400">
-                          Past due
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">
-                          Active
-                        </span>
-                      )}
-                      {hw.topics?.name && (
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${
-                          isDark ? 'bg-white/10 text-white/60' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {hw.topics.name}
-                        </span>
-                      )}
-                    </div>
-
-                    {hw.description && (
-                      <p className={`text-sm mb-2 ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-                        {hw.description}
-                      </p>
+                    {pastDue ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs bg-red-500/20 text-red-400">
+                        Past due
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">
+                        Active
+                      </span>
                     )}
-
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className={`flex items-center gap-1 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-                        <Calendar size={14} />
-                        Due: {new Date(hw.due_date).toLocaleDateString()}
-                      </span>
-                      <span className={`flex items-center gap-1 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-                        <Users size={14} />
-                        {status.submitted}/{status.total} submitted
-                      </span>
-                      <span className={`flex items-center gap-1 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-                        <CheckCircle size={14} />
-                        {status.graded} graded
-                      </span>
-                      {contentCount > 0 && (
-                        <span className={`flex items-center gap-1 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-                          <Paperclip size={14} />
-                          {contentCount} attached
-                        </span>
-                      )}
-                    </div>
-                    </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openSubmissions(hw)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                        isDark
-                          ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Eye size={16} />
-                      View ({status.submitted})
-                    </button>
+                  <div className="flex gap-1">
                     <button
                       onClick={() => openEdit(hw)}
-                      className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/[0.05] text-white/60' : 'hover:bg-gray-100 text-gray-600'}`}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'
+                      }`}
                     >
-                      <Edit2 size={18} />
+                      <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(hw)}
-                      className={`p-2 rounded-lg ${isDark ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-500'}`}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-500'
+                      }`}
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
+
+                <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {hw.title}
+                </h3>
+
+                {hw.topics?.name && (
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs mb-2 ${
+                    isDark ? 'bg-white/10 text-white/60' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {hw.topics.name}
+                  </span>
+                )}
+
+                {hw.description && (
+                  <p className={`text-sm mb-3 line-clamp-2 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                    {hw.description}
+                  </p>
+                )}
+
+                <div className="flex flex-col gap-1.5 text-xs mb-3">
+                  <span className={`flex items-center gap-1.5 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                    <Calendar size={13} />
+                    Due: {new Date(hw.due_date).toLocaleDateString()}
+                  </span>
+                  <span className={`flex items-center gap-1.5 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                    <Users size={13} />
+                    {status.submitted}/{status.total} submitted · {status.graded} graded
+                  </span>
+                  {contentCount > 0 && (
+                    <span className={`flex items-center gap-1.5 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                      <Paperclip size={13} />
+                      {contentCount} attached
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => openSubmissions(hw)}
+                  className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    isDark
+                      ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Eye size={15} />
+                  View submissions ({status.submitted})
+                </button>
               </div>
             );
           })}

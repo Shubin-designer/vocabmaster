@@ -167,7 +167,7 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
   const card = `rounded-2xl border ${isDark ? 'bg-white/[0.03] border-white/[0.08]' : 'bg-white border-gray-200'}`;
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className={`flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl border ${
@@ -238,7 +238,7 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPdfs.map(pdf => {
             const isDragging = draggedPdf?.id === pdf.id;
             const isDragOver = dragOverPdf?.id === pdf.id;
