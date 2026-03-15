@@ -582,6 +582,12 @@ export default function LiveBoard({
   const autoSaveTimerRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Undo/Redo history
+  const historyRef = useRef([]);
+  const historyIndexRef = useRef(-1);
+  const isUndoRedoRef = useRef(false);
+  const MAX_HISTORY = 50;
+
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
   const toolbarRef = useRef(null);
 
@@ -610,6 +616,25 @@ export default function LiveBoard({
   // Delete key and Space (for panning) handlers
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+
+      // Undo: Cmd+Z / Ctrl+Z
+      if (cmdKey && e.key === 'z' && !e.shiftKey) {
+        if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
+        e.preventDefault();
+        undo();
+        return;
+      }
+
+      // Redo: Cmd+Shift+Z / Ctrl+Shift+Z or Ctrl+Y
+      if ((cmdKey && e.key === 'z' && e.shiftKey) || (cmdKey && e.key === 'y')) {
+        if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
+        e.preventDefault();
+        redo();
+        return;
+      }
+
       // Space for panning mode
       if (e.code === 'Space' && !isSpacePressed) {
         if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
@@ -635,7 +660,7 @@ export default function LiveBoard({
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
     };
-  }, [selectedIds, shapes, editingId, isSpacePressed]);
+  }, [selectedIds, shapes, editingId, isSpacePressed, undo, redo]);
 
   // Wheel zoom handler
   const handleWheel = (e) => {
@@ -805,11 +830,72 @@ export default function LiveBoard({
     }, 2000);
   }, [isTeacher, boardId, shapes]);
 
-  const updateShapes = (newShapes) => {
+  // Push current state to history before making changes
+  const pushToHistory = useCallback((currentShapes) => {
+    if (isUndoRedoRef.current) return; // Don't record undo/redo actions
+
+    const history = historyRef.current;
+    const index = historyIndexRef.current;
+
+    // Remove any future history if we're not at the end
+    if (index < history.length - 1) {
+      historyRef.current = history.slice(0, index + 1);
+    }
+
+    // Add current state
+    historyRef.current.push(JSON.stringify(currentShapes));
+
+    // Limit history size
+    if (historyRef.current.length > MAX_HISTORY) {
+      historyRef.current.shift();
+    } else {
+      historyIndexRef.current = historyRef.current.length - 1;
+    }
+  }, []);
+
+  const updateShapes = useCallback((newShapes, skipHistory = false) => {
+    if (!skipHistory) {
+      pushToHistory(shapes);
+    }
     setShapes(newShapes);
     broadcastShapes(newShapes);
     scheduleAutoSave();
-  };
+  }, [shapes, pushToHistory, broadcastShapes, scheduleAutoSave]);
+
+  const undo = useCallback(() => {
+    const history = historyRef.current;
+    const index = historyIndexRef.current;
+
+    if (index < 0 || history.length === 0) return;
+
+    // Save current state for redo if at the end
+    if (index === history.length - 1) {
+      history.push(JSON.stringify(shapes));
+    }
+
+    isUndoRedoRef.current = true;
+    const previousState = JSON.parse(history[index]);
+    setShapes(previousState);
+    broadcastShapes(previousState);
+    scheduleAutoSave();
+    historyIndexRef.current = index - 1;
+    isUndoRedoRef.current = false;
+  }, [shapes, broadcastShapes, scheduleAutoSave]);
+
+  const redo = useCallback(() => {
+    const history = historyRef.current;
+    const index = historyIndexRef.current;
+
+    if (index >= history.length - 2) return;
+
+    isUndoRedoRef.current = true;
+    const nextState = JSON.parse(history[index + 2]);
+    setShapes(nextState);
+    broadcastShapes(nextState);
+    scheduleAutoSave();
+    historyIndexRef.current = index + 1;
+    isUndoRedoRef.current = false;
+  }, [broadcastShapes, scheduleAutoSave]);
 
   const handleChange = (id, newAttrs) => {
     const newShapes = shapes.map((s) => (s.id === id ? { ...s, ...newAttrs } : s));
