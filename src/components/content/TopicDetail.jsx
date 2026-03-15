@@ -45,7 +45,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
   const [initialMaterialForm, setInitialMaterialForm] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [savingMaterial, setSavingMaterial] = useState(false);
-  const [expandedMaterial, setExpandedMaterial] = useState(null);
+  const [previewMaterial, setPreviewMaterial] = useState(null);
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
 
   const loadMaterials = async () => {
@@ -144,7 +144,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
   const [loadingTests, setLoadingTests] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
   const [editingTest, setEditingTest] = useState(null);
-  const [expandedTest, setExpandedTest] = useState(null);
+  const [previewTest, setPreviewTest] = useState(null);
   const [savingTest, setSavingTest] = useState(false);
   const [testForm, setTestForm] = useState({ title: '', description: '', questions: [] });
   const [showPasteModal, setShowPasteModal] = useState(false);
@@ -626,25 +626,17 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                       </span>
                     </div>
                     <button
-                      onClick={() => setExpandedMaterial(expandedMaterial === mat.id ? null : mat.id)}
+                      onClick={() => setPreviewMaterial(mat)}
                       className={`mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                         isDark
                           ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      {expandedMaterial === mat.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                      {expandedMaterial === mat.id ? 'Collapse' : 'Preview'}
+                      <BookOpen size={15} />
+                      Preview
                     </button>
                   </div>
-                  {expandedMaterial === mat.id && (
-                    <div className={`px-5 pb-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
-                      <div
-                        className={`rich-content ${isDark ? 'dark' : 'light'}`}
-                        dangerouslySetInnerHTML={{ __html: mat.content }}
-                      />
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -744,29 +736,18 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                     </p>
                     {test.test_questions?.length > 0 && (
                       <button
-                        onClick={() => setExpandedTest(expandedTest === test.id ? null : test.id)}
+                        onClick={() => setPreviewTest(test)}
                         className={`mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                           isDark
                             ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
-                        {expandedTest === test.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                        {expandedTest === test.id ? 'Collapse' : 'Preview'}
+                        <ClipboardList size={15} />
+                        Preview
                       </button>
                     )}
                   </div>
-                  {expandedTest === test.id && test.test_questions?.length > 0 && (
-                    <div className={`px-5 pb-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-gray-100'} space-y-2`}>
-                      {test.test_questions.map((q, i) => (
-                        <div key={q.id} className={`p-3 rounded-xl text-sm ${isDark ? 'bg-white/[0.03]' : 'bg-gray-50'}`}>
-                          <span className={`font-medium mr-2 ${isDark ? 'text-white/50' : 'text-gray-400'}`}>{i + 1}.</span>
-                          <span className={isDark ? 'text-white/80' : 'text-gray-800'}>{q.question || q.question_text}</span>
-                          <span className={`ml-2 text-xs ${isDark ? 'text-green-400' : 'text-green-600'}`}>→ {q.correct_answer}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -1142,6 +1123,93 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                   {editingTest ? 'Update' : 'Create'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Material Preview Modal */}
+      {previewMaterial && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setPreviewMaterial(null)}
+        >
+          <div
+            className={`rounded-2xl border overflow-hidden flex flex-col ${isDark ? 'bg-[#1a1a1e] border-white/10' : 'bg-white border-gray-200'}`}
+            style={{ width: '60%', minWidth: '950px', maxHeight: '85vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              <div>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{previewMaterial.title}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  {previewMaterial.level && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-white/10 text-white/60' : 'bg-gray-100 text-gray-600'}`}>{previewMaterial.level}</span>
+                  )}
+                  <span className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{new Date(previewMaterial.updated_at || previewMaterial.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+              <button onClick={() => setPreviewMaterial(null)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+              <div className={`rich-content ${isDark ? 'dark' : 'light'}`} dangerouslySetInnerHTML={{ __html: previewMaterial.content }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test Preview Modal */}
+      {previewTest && previewTest.test_questions?.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setPreviewTest(null)}
+        >
+          <div
+            className={`rounded-2xl border overflow-hidden flex flex-col ${isDark ? 'bg-[#1a1a1e] border-white/10' : 'bg-white border-gray-200'}`}
+            style={{ width: '60%', minWidth: '950px', maxHeight: '85vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              <div>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{previewTest.title}</h3>
+                <p className={`text-sm mt-0.5 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                  {previewTest.test_questions.length} question{previewTest.test_questions.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button onClick={() => setPreviewTest(null)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
+              {previewTest.test_questions.map((q, i) => (
+                <div key={q.id} className={`p-4 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-gray-50'}`}>
+                  <div className="flex items-start gap-3">
+                    <span className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{i + 1}.</span>
+                    <div className="flex-1">
+                      <p className={`text-sm ${isDark ? 'text-white/90' : 'text-gray-800'}`}>{q.question || q.question_text}</p>
+                      {q.options && q.options.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {q.options.map((opt, oi) => (
+                            <div key={oi} className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg ${
+                              String.fromCharCode(65 + oi) === q.correct_answer
+                                ? isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700'
+                                : isDark ? 'text-white/60' : 'text-gray-600'
+                            }`}>
+                              <span className="font-medium">{String.fromCharCode(65 + oi)}.</span>
+                              <span>{opt}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className={`mt-2 text-xs font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                        Answer: {q.correct_answer}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
