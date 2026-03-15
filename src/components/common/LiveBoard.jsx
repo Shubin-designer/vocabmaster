@@ -453,117 +453,94 @@ function TransformableCircle({ shapeProps, isSelected, onSelect, onChange }) {
   );
 }
 
-// Transformable Line component - uses Group wrapper for proper rotation
+// Transformable Line component - works like Rect with x, y, width, rotation
 function TransformableLine({ shapeProps, isSelected, onSelect, onChange }) {
-  const groupRef = useRef();
+  const shapeRef = useRef();
   const trRef = useRef();
 
   useEffect(() => {
-    if (isSelected && trRef.current && groupRef.current) {
-      trRef.current.nodes([groupRef.current]);
+    if (isSelected && trRef.current && shapeRef.current) {
+      trRef.current.nodes([shapeRef.current]);
       trRef.current.getLayer().batchDraw();
     }
   }, [isSelected]);
 
-  // Use stored position/rotation or calculate from points
-  const points = shapeProps.points || [];
-  if (points.length < 4) return null;
+  // Convert from points to x, y, width, rotation if needed (first time / legacy)
+  let x = shapeProps.x;
+  let y = shapeProps.y;
+  let width = shapeProps.width;
+  let rotation = shapeProps.rotation || 0;
 
-  // If we have stored center position, use it; otherwise calculate
-  let centerX, centerY, localPoints;
+  // If we have old points format, convert to new format
+  if (x === undefined && shapeProps.points && shapeProps.points.length >= 4) {
+    const points = shapeProps.points;
+    const x1 = points[0], y1 = points[1];
+    const x2 = points[points.length - 2], y2 = points[points.length - 1];
 
-  if (shapeProps.lineX !== undefined && shapeProps.lineY !== undefined && shapeProps.localPoints) {
-    // Use stored local coordinate system
-    centerX = shapeProps.lineX;
-    centerY = shapeProps.lineY;
-    localPoints = shapeProps.localPoints;
-  } else {
-    // First time or legacy: calculate from absolute points
-    const xs = points.filter((_, i) => i % 2 === 0);
-    const ys = points.filter((_, i) => i % 2 === 1);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
-    centerX = (minX + maxX) / 2;
-    centerY = (minY + maxY) / 2;
+    // Calculate center
+    x = (x1 + x2) / 2;
+    y = (y1 + y2) / 2;
 
-    localPoints = [];
-    for (let i = 0; i < points.length; i += 2) {
-      localPoints.push(points[i] - centerX);
-      localPoints.push(points[i + 1] - centerY);
-    }
+    // Calculate length
+    width = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+
+    // Calculate angle in degrees
+    rotation = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
   }
 
-  // Calculate width/height for the group (needed for transformer)
-  const lxs = localPoints.filter((_, i) => i % 2 === 0);
-  const lys = localPoints.filter((_, i) => i % 2 === 1);
-  const width = Math.max(...lxs) - Math.min(...lxs) || 1;
-  const height = Math.max(...lys) - Math.min(...lys) || 1;
+  if (width === undefined || width < 1) width = 100;
+
+  // Line is always horizontal in local coords, centered at origin
+  // We use a Rect as the visual representation with very small height
+  const lineHeight = Math.max(shapeProps.strokeWidth || 2, 4);
 
   return (
     <>
-      <Group
-        ref={groupRef}
-        x={centerX}
-        y={centerY}
+      <Rect
+        ref={shapeRef}
+        x={x}
+        y={y}
         width={width}
-        height={height}
-        rotation={shapeProps.rotation || 0}
+        height={lineHeight}
+        offsetX={width / 2}
+        offsetY={lineHeight / 2}
+        rotation={rotation}
+        fill={shapeProps.stroke || '#000'}
+        cornerRadius={lineHeight / 2}
         draggable
         onClick={onSelect}
         onTap={onSelect}
         onDragEnd={(e) => {
-          const node = e.target;
           onChange({
             ...shapeProps,
-            lineX: node.x(),
-            lineY: node.y(),
-            localPoints: localPoints,
+            x: e.target.x(),
+            y: e.target.y(),
           });
         }}
         onTransformEnd={() => {
-          const node = groupRef.current;
+          const node = shapeRef.current;
           const scaleX = node.scaleX();
-          const scaleY = node.scaleY();
 
-          // Scale local points
-          const newLocalPoints = [];
-          for (let i = 0; i < localPoints.length; i += 2) {
-            newLocalPoints.push(localPoints[i] * scaleX);
-            newLocalPoints.push(localPoints[i + 1] * scaleY);
-          }
-
-          // Reset scale, keep rotation
           node.scaleX(1);
           node.scaleY(1);
 
           onChange({
             ...shapeProps,
-            lineX: node.x(),
-            lineY: node.y(),
+            x: node.x(),
+            y: node.y(),
+            width: Math.max(20, width * scaleX),
             rotation: node.rotation(),
-            localPoints: newLocalPoints,
           });
         }}
-      >
-        <Line
-          points={localPoints}
-          stroke={shapeProps.stroke || '#000'}
-          strokeWidth={shapeProps.strokeWidth || 2}
-          lineCap="round"
-          lineJoin="round"
-          tension={0.5}
-          hitStrokeWidth={Math.max(20, (shapeProps.strokeWidth || 2) + 10)}
-        />
-      </Group>
+      />
       {isSelected && (
         <Transformer
           ref={trRef}
           rotateEnabled={true}
           rotationSnaps={ROTATION_SNAPS}
+          enabledAnchors={['middle-left', 'middle-right']}
           boundBoxFunc={(oldBox, newBox) => {
-            if (newBox.width < 5 || newBox.height < 5) return oldBox;
+            if (newBox.width < 20) return oldBox;
             return newBox;
           }}
         />
@@ -1033,7 +1010,10 @@ export default function LiveBoard({
         newShape = {
           id: genId(),
           type: 'line',
-          points: [canvasPos.x - 50, canvasPos.y, canvasPos.x + 50, canvasPos.y],
+          x: canvasPos.x,
+          y: canvasPos.y,
+          width: 100,
+          rotation: 0,
           stroke: color,
           strokeWidth: brushSize,
         };
@@ -1107,14 +1087,13 @@ export default function LiveBoard({
       const selected = shapes.filter(shape => {
         let shapeX, shapeY, shapeW, shapeH;
 
-        if (shape.type === 'line' && shape.points) {
-          // Calculate bounding box for line from points
-          const xs = shape.points.filter((_, i) => i % 2 === 0);
-          const ys = shape.points.filter((_, i) => i % 2 === 1);
-          shapeX = Math.min(...xs);
-          shapeY = Math.min(...ys);
-          shapeW = Math.max(...xs) - shapeX;
-          shapeH = Math.max(...ys) - shapeY;
+        if (shape.type === 'line') {
+          // Line uses center x,y and width
+          const lineWidth = shape.width || 100;
+          shapeX = (shape.x || 0) - lineWidth / 2;
+          shapeY = (shape.y || 0) - 10;
+          shapeW = lineWidth;
+          shapeH = 20;
         } else {
           shapeX = shape.x || 0;
           shapeY = shape.y || 0;
