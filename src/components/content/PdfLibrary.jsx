@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import {
   Upload, FileText, Trash2, Loader, Search, X,
-  BookOpen, FolderOpen
+  BookOpen, FolderOpen, GripVertical
 } from 'lucide-react';
 import { loadPdf } from '../../utils/pdfUtils';
 
@@ -13,6 +13,8 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [draggedPdf, setDraggedPdf] = useState(null);
+  const [dragOverPdf, setDragOverPdf] = useState(null);
   const fileInputRef = useRef(null);
 
   const loadLibrary = async () => {
@@ -21,7 +23,7 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
       .from('pdf_library')
       .select('*')
       .eq('teacher_id', teacherId)
-      .order('created_at', { ascending: false });
+      .order('sort_order', { ascending: true });
 
     if (!error) {
       setPdfs(data || []);
@@ -67,6 +69,7 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
           file_path: filePath,
           file_size: file.size,
           page_count: pageCount,
+          sort_order: pdfs.length,
         });
 
       if (dbError) throw dbError;
@@ -114,6 +117,51 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  // Drag handlers
+  const handleDragStart = (e, pdf) => {
+    setDraggedPdf(pdf);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedPdf(null);
+    setDragOverPdf(null);
+  };
+
+  const handleDragOver = (e, pdf) => {
+    e.preventDefault();
+    if (draggedPdf && pdf.id !== draggedPdf.id) {
+      setDragOverPdf(pdf);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverPdf(null);
+  };
+
+  const handleDrop = async (e, targetPdf) => {
+    e.preventDefault();
+    if (!draggedPdf || draggedPdf.id === targetPdf.id) return;
+
+    const oldIndex = pdfs.findIndex(p => p.id === draggedPdf.id);
+    const newIndex = pdfs.findIndex(p => p.id === targetPdf.id);
+
+    const newPdfs = [...pdfs];
+    newPdfs.splice(oldIndex, 1);
+    newPdfs.splice(newIndex, 0, draggedPdf);
+
+    setPdfs(newPdfs);
+    setDraggedPdf(null);
+    setDragOverPdf(null);
+
+    for (let i = 0; i < newPdfs.length; i++) {
+      await supabase
+        .from('pdf_library')
+        .update({ sort_order: i })
+        .eq('id', newPdfs[i].id);
+    }
   };
 
   const card = `rounded-2xl border ${isDark ? 'bg-white/[0.03] border-white/[0.08]' : 'bg-white border-gray-200'}`;
@@ -191,8 +239,29 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredPdfs.map(pdf => (
-            <div key={pdf.id} className={card + ' p-4 flex items-start gap-4 group'}>
+          {filteredPdfs.map(pdf => {
+            const isDragging = draggedPdf?.id === pdf.id;
+            const isDragOver = dragOverPdf?.id === pdf.id;
+            return (
+            <div
+              key={pdf.id}
+              draggable
+              onDragStart={e => handleDragStart(e, pdf)}
+              onDragEnd={handleDragEnd}
+              onDragOver={e => handleDragOver(e, pdf)}
+              onDragLeave={handleDragLeave}
+              onDrop={e => handleDrop(e, pdf)}
+              className={`${card} p-4 flex items-start gap-4 group transition-all ${
+                isDragging ? 'opacity-50' : ''
+              } ${
+                isDragOver ? 'ring-2 ring-pink-vibrant' : ''
+              }`}
+            >
+              <div
+                className={`cursor-grab active:cursor-grabbing p-1 mt-1 rounded flex-shrink-0 ${isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-300 hover:text-gray-500'}`}
+              >
+                <GripVertical size={18} />
+              </div>
               <div className={`w-12 h-14 rounded-lg flex items-center justify-center flex-shrink-0 ${
                 isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'
               }`}>
@@ -232,7 +301,8 @@ export default function PdfLibrary({ teacherId, isDark, onSelectPdf }) {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

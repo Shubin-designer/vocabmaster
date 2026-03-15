@@ -3,7 +3,7 @@ import { supabase } from '../../supabaseClient';
 import AssignContentModal from './AssignContentModal';
 import {
   Plus, Edit2, Trash2, Send, Book, Search, X,
-  ChevronDown, ChevronUp, Check, BookOpen
+  ChevronDown, ChevronUp, Check, BookOpen, GripVertical
 } from 'lucide-react';
 import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
 
@@ -21,6 +21,10 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
   const [vocabularyWords, setVocabularyWords] = useState([]);
   const [selectedWords, setSelectedWords] = useState([]);
   const [wordSearch, setWordSearch] = useState('');
+
+  // Drag and drop state
+  const [draggedSet, setDraggedSet] = useState(null);
+  const [dragOverSet, setDragOverSet] = useState(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -49,12 +53,59 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
         sources(id, title)
       `)
       .eq('teacher_id', teacherId)
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
 
     if (!error && data) {
       setSets(data);
     }
     setLoading(false);
+  };
+
+  // Drag handlers
+  const handleDragStart = (e, set) => {
+    setDraggedSet(set);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedSet(null);
+    setDragOverSet(null);
+  };
+
+  const handleDragOver = (e, set) => {
+    e.preventDefault();
+    if (draggedSet && draggedSet.id !== set.id) {
+      setDragOverSet(set);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverSet(null);
+  };
+
+  const handleDrop = async (e, targetSet) => {
+    e.preventDefault();
+    if (!draggedSet || draggedSet.id === targetSet.id) return;
+
+    const oldIndex = sets.findIndex(s => s.id === draggedSet.id);
+    const newIndex = sets.findIndex(s => s.id === targetSet.id);
+
+    const newSets = [...sets];
+    newSets.splice(oldIndex, 1);
+    newSets.splice(newIndex, 0, draggedSet);
+
+    setSets(newSets);
+    setDraggedSet(null);
+    setDragOverSet(null);
+
+    // Update sort_order in database
+    for (let i = 0; i < newSets.length; i++) {
+      await supabase
+        .from('vocabulary_sets')
+        .update({ sort_order: i })
+        .eq('id', newSets[i].id);
+    }
   };
 
   const fetchTopicsAndSources = async () => {
@@ -227,15 +278,30 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredSets.map(set => (
+          {filteredSets.map(set => {
+            const isDragging = draggedSet?.id === set.id;
+            const isDragOver = dragOverSet?.id === set.id;
+
+            return (
             <div
               key={set.id}
-              className={`rounded-2xl border ${
+              draggable
+              onDragStart={(e) => handleDragStart(e, set)}
+              onDragEnd={handleDragEnd}
+              onDragOver={(e) => handleDragOver(e, set)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, set)}
+              className={`rounded-2xl border transition-all ${
                 isDark ? 'bg-white/[0.02] border-white/[0.05]' : 'bg-white border-gray-200'
-              }`}
+              } ${isDragging ? 'opacity-50' : ''} ${isDragOver ? 'ring-2 ring-pink-vibrant' : ''}`}
             >
               {/* Set header */}
               <div className="p-4 flex items-center justify-between">
+                <div className={`cursor-grab active:cursor-grabbing p-1 -ml-1 mr-2 rounded ${
+                  isDark ? 'text-white/30 hover:text-white/50' : 'text-gray-300 hover:text-gray-400'
+                }`}>
+                  <GripVertical size={18} />
+                </div>
                 <div
                   className="flex-1 cursor-pointer"
                   onClick={() => setExpandedSet(expandedSet === set.id ? null : set.id)}
@@ -345,7 +411,8 @@ export default function VocabSetsList({ teacherId, isDark = true }) {
                 </div>
               )}
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 

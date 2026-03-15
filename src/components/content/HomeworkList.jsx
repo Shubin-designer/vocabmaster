@@ -4,7 +4,7 @@ import {
   Plus, Edit2, Trash2, Search, Calendar, Clock,
   Users, ChevronDown, ChevronUp, X, Check, FileText,
   AlertCircle, CheckCircle, Eye, BookOpen, ClipboardList,
-  BookText, Paperclip
+  BookText, Paperclip, GripVertical
 } from 'lucide-react';
 import RichTextEditor from '../common/RichTextEditor';
 import ConfirmDeleteModal from '../common/ConfirmDeleteModal';
@@ -20,6 +20,10 @@ export default function HomeworkList({ teacherId, isDark = true }) {
   const [submissions, setSubmissions] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Drag state
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverItem, setDragOverItem] = useState(null);
 
   // Available content for attachment
   const [availableMaterials, setAvailableMaterials] = useState([]);
@@ -63,7 +67,7 @@ export default function HomeworkList({ teacherId, isDark = true }) {
         homework_content(id, content_type, content_id, sort_order)
       `)
       .eq('teacher_id', teacherId)
-      .order('due_date', { ascending: false });
+      .order('sort_order', { ascending: true });
 
     if (!error && data) {
       setHomework(data);
@@ -141,6 +145,7 @@ export default function HomeworkList({ teacherId, isDark = true }) {
 
     let homeworkId;
     if (selectedHomework) {
+      // keep existing sort_order on edit
       const { error } = await supabase
         .from('homework')
         .update({ ...payload, updated_at: new Date().toISOString() })
@@ -151,6 +156,7 @@ export default function HomeworkList({ teacherId, isDark = true }) {
       // Update content attachments: delete old, insert new
       await supabase.from('homework_content').delete().eq('homework_id', homeworkId);
     } else {
+      payload.sort_order = homework.length;
       const { data, error } = await supabase
         .from('homework')
         .insert(payload)
@@ -311,6 +317,51 @@ export default function HomeworkList({ teacherId, isDark = true }) {
     return availableReadingTexts.filter(r => r.title.toLowerCase().includes(q));
   };
 
+  // Drag handlers
+  const handleDragStart = (e, hw) => {
+    setDraggedItem(hw);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverItem(null);
+  };
+
+  const handleDragOver = (e, hw) => {
+    e.preventDefault();
+    if (draggedItem && hw.id !== draggedItem.id) {
+      setDragOverItem(hw);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverItem(null);
+  };
+
+  const handleDrop = async (e, targetHw) => {
+    e.preventDefault();
+    if (!draggedItem || draggedItem.id === targetHw.id) return;
+
+    const oldIndex = homework.findIndex(h => h.id === draggedItem.id);
+    const newIndex = homework.findIndex(h => h.id === targetHw.id);
+
+    const newHomework = [...homework];
+    newHomework.splice(oldIndex, 1);
+    newHomework.splice(newIndex, 0, draggedItem);
+
+    setHomework(newHomework);
+    setDraggedItem(null);
+    setDragOverItem(null);
+
+    for (let i = 0; i < newHomework.length; i++) {
+      await supabase
+        .from('homework')
+        .update({ sort_order: i })
+        .eq('id', newHomework[i].id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -367,15 +418,34 @@ export default function HomeworkList({ teacherId, isDark = true }) {
             const pastDue = isPastDue(hw.due_date);
             const contentCount = hw.homework_content?.length || 0;
 
+            const isDragging = draggedItem?.id === hw.id;
+            const isDragOver = dragOverItem?.id === hw.id;
+
             return (
               <div
                 key={hw.id}
-                className={`rounded-2xl border p-5 ${
+                draggable
+                onDragStart={e => handleDragStart(e, hw)}
+                onDragEnd={handleDragEnd}
+                onDragOver={e => handleDragOver(e, hw)}
+                onDragLeave={handleDragLeave}
+                onDrop={e => handleDrop(e, hw)}
+                className={`rounded-2xl border p-5 transition-all ${
+                  isDragging ? 'opacity-50' : ''
+                } ${
+                  isDragOver ? 'ring-2 ring-pink-vibrant' : ''
+                } ${
                   isDark ? 'bg-white/[0.02] border-white/[0.05]' : 'bg-white border-gray-200'
                 }`}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div
+                      className={`cursor-grab active:cursor-grabbing p-1 mt-0.5 rounded ${isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-300 hover:text-gray-500'}`}
+                    >
+                      <GripVertical size={18} />
+                    </div>
+                    <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {hw.title}
@@ -423,6 +493,7 @@ export default function HomeworkList({ teacherId, isDark = true }) {
                           {contentCount} attached
                         </span>
                       )}
+                    </div>
                     </div>
                   </div>
 
