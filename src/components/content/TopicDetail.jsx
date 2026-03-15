@@ -551,7 +551,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
 
       {/* ── Materials ── */}
       {activeTab === 'theory' && (
-        <div className="space-y-4 max-w-3xl mx-auto">
+        <div className="space-y-4">
           <div className="flex justify-end">
             <button
               onClick={() => openMaterialForm()}
@@ -577,11 +577,11 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {materials.map((mat) => (
                 <div
                   key={mat.id}
-                  className={`${card(isDark)} overflow-hidden transition-all ${dragOverItem?.id === mat.id && dragType === 'material' ? 'ring-2 ring-pink-vibrant ring-offset-2' : ''}`}
+                  className={`${card(isDark)} overflow-hidden transition-all group ${dragOverItem?.id === mat.id && dragType === 'material' ? 'ring-2 ring-pink-vibrant' : ''} ${isDark ? 'hover:bg-white/[0.06] hover:border-white/20' : 'hover:shadow-md hover:border-gray-300'}`}
                   draggable
                   onDragStart={e => handleDragStart(e, mat, 'material')}
                   onDragEnd={handleDragEnd}
@@ -589,49 +589,56 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                   onDragLeave={handleDragLeave}
                   onDrop={e => handleDrop(e, mat, 'material')}
                 >
-                  <div className="p-4 flex items-center gap-4">
-                    <div className={`cursor-grab active:cursor-grabbing ${isDark ? 'text-white/20 hover:text-white/40' : 'text-gray-300 hover:text-gray-400'}`}>
-                      <GripVertical size={18} />
-                    </div>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-                      <BookOpen size={20} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{mat.title}</h4>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {mat.level && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-white/10 text-white/60' : 'bg-gray-100 text-gray-600'}`}>
-                            {mat.level}
-                          </span>
-                        )}
-                        <span className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>
-                          {new Date(mat.updated_at || mat.created_at).toLocaleDateString()}
-                        </span>
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`cursor-grab active:cursor-grabbing p-1 -ml-1 rounded ${isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-300 hover:text-gray-500'}`}>
+                          <GripVertical size={18} />
+                        </div>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                          <BookOpen size={20} />
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => openMaterialForm(mat)}
+                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'}`}
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => deleteMaterial(mat)}
+                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-500'}`}
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => setExpandedMaterial(expandedMaterial === mat.id ? null : mat.id)}
-                        className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'}`}
-                      >
-                        {expandedMaterial === mat.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                      </button>
-                      <button
-                        onClick={() => openMaterialForm(mat)}
-                        className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'}`}
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => deleteMaterial(mat)}
-                        className={`p-2 rounded-lg ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-500'}`}
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                    <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{mat.title}</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      {mat.level && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-white/10 text-white/60' : 'bg-gray-100 text-gray-600'}`}>
+                          {mat.level}
+                        </span>
+                      )}
+                      <span className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>
+                        {new Date(mat.updated_at || mat.created_at).toLocaleDateString()}
+                      </span>
                     </div>
+                    <button
+                      onClick={() => setExpandedMaterial(expandedMaterial === mat.id ? null : mat.id)}
+                      className={`mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                        isDark
+                          ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {expandedMaterial === mat.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                      {expandedMaterial === mat.id ? 'Collapse' : 'Preview'}
+                    </button>
                   </div>
                   {expandedMaterial === mat.id && (
-                    <div className={`px-4 pb-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
+                    <div className={`px-5 pb-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
                       <div
                         className={`rich-content ${isDark ? 'dark' : 'light'}`}
                         dangerouslySetInnerHTML={{ __html: mat.content }}
@@ -673,7 +680,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
 
       {/* ── Tests ── */}
       {activeTab === 'tests' && (
-        <div className="space-y-4 max-w-3xl mx-auto">
+        <div className="space-y-4">
           <div className="flex justify-end">
             <button
               onClick={() => openTestModal()}
@@ -693,11 +700,11 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
               <p className={isDark ? 'text-white/50' : 'text-gray-500'}>No tests for this topic yet</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {tests.map(test => (
                 <div
                   key={test.id}
-                  className={`${card(isDark)} overflow-hidden transition-all ${dragOverItem?.id === test.id && dragType === 'test' ? 'ring-2 ring-pink-vibrant ring-offset-2' : ''}`}
+                  className={`${card(isDark)} overflow-hidden transition-all group ${dragOverItem?.id === test.id && dragType === 'test' ? 'ring-2 ring-pink-vibrant' : ''} ${isDark ? 'hover:bg-white/[0.06] hover:border-white/20' : 'hover:shadow-md hover:border-gray-300'}`}
                   draggable
                   onDragStart={e => handleDragStart(e, test, 'test')}
                   onDragEnd={handleDragEnd}
@@ -705,42 +712,51 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
                   onDragLeave={handleDragLeave}
                   onDrop={e => handleDrop(e, test, 'test')}
                 >
-                  <div className="p-4 flex items-center gap-4">
-                    <div className={`cursor-grab active:cursor-grabbing ${isDark ? 'text-white/20 hover:text-white/40' : 'text-gray-300 hover:text-gray-400'}`}>
-                      <GripVertical size={18} />
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`cursor-grab active:cursor-grabbing p-1 -ml-1 rounded ${isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-300 hover:text-gray-500'}`}>
+                          <GripVertical size={18} />
+                        </div>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-600'}`}>
+                          <ClipboardList size={20} />
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => openTestModal(test)}
+                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'}`}
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => deleteTest(test)}
+                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-500'}`}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-600'}`}>
-                      <ClipboardList size={20} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{test.title}</h4>
-                      <p className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-                        {test.test_questions?.length || 0} question{test.test_questions?.length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
+                    <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{test.title}</h4>
+                    <p className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                      {test.test_questions?.length || 0} question{test.test_questions?.length !== 1 ? 's' : ''}
+                    </p>
+                    {test.test_questions?.length > 0 && (
                       <button
                         onClick={() => setExpandedTest(expandedTest === test.id ? null : test.id)}
-                        className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'}`}
+                        className={`mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          isDark
+                            ? 'bg-white/[0.05] text-white/80 hover:bg-white/[0.1]'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                       >
-                        {expandedTest === test.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        {expandedTest === test.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                        {expandedTest === test.id ? 'Collapse' : 'Preview'}
                       </button>
-                      <button
-                        onClick={() => openTestModal(test)}
-                        className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'}`}
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => deleteTest(test)}
-                        className={`p-2 rounded-lg ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-500'}`}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                    )}
                   </div>
                   {expandedTest === test.id && test.test_questions?.length > 0 && (
-                    <div className={`px-4 pb-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-gray-100'} space-y-2`}>
+                    <div className={`px-5 pb-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-gray-100'} space-y-2`}>
                       {test.test_questions.map((q, i) => (
                         <div key={q.id} className={`p-3 rounded-xl text-sm ${isDark ? 'bg-white/[0.03]' : 'bg-gray-50'}`}>
                           <span className={`font-medium mr-2 ${isDark ? 'text-white/50' : 'text-gray-400'}`}>{i + 1}.</span>
