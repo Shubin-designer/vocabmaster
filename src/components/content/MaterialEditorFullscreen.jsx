@@ -12,7 +12,8 @@ import Highlight from '@tiptap/extension-highlight';
 import {
   X, Check, Loader2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Upload, ScanText, FileText, ArrowRight,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Quote,
-  Table as TableIcon, Minus, Pilcrow, Heading1, Heading2, Heading3, Trash2, Plus, RowsIcon, ColumnsIcon, FolderOpen
+  Table as TableIcon, Minus, Pilcrow, Heading1, Heading2, Heading3, Trash2, Plus, RowsIcon, ColumnsIcon, FolderOpen,
+  Sparkles, Settings, GripVertical
 } from 'lucide-react';
 import { loadPdf, loadPdfFromUrl, renderPageToCanvas, renderPageToBlob, generateThumbnail } from '../../utils/pdfUtils';
 import { ocrBlobToHtml } from '../../utils/ocrToHtml';
@@ -69,6 +70,55 @@ export default function MaterialEditorFullscreen({
   const [showColorPicker, setShowColorPicker] = useState(false); // false | 'text' | 'highlight'
   const colorPickerRef = useRef(null);
 
+  // Style presets
+  const PRESET_STORAGE_KEY = `vocabmaster_style_presets_${teacherId}`;
+  const DEFAULT_PRESETS = [
+    { id: '1', name: 'Important', textColor: '#ef4444', highlightColor: '', bold: true, italic: false, underline: false },
+    { id: '2', name: 'Key Term', textColor: '', highlightColor: '#eab308', bold: true, italic: false, underline: false },
+    { id: '3', name: 'Example', textColor: '#22c55e', highlightColor: '', bold: false, italic: true, underline: false },
+    { id: '4', name: 'Note', textColor: '#3b82f6', highlightColor: '#3b82f6', bold: false, italic: false, underline: false },
+    { id: '5', name: 'Rule', textColor: '#8b5cf6', highlightColor: '#8b5cf6', bold: true, italic: false, underline: true },
+  ];
+
+  const loadPresets = () => {
+    try {
+      const stored = localStorage.getItem(PRESET_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : DEFAULT_PRESETS;
+    } catch { return DEFAULT_PRESETS; }
+  };
+
+  const [stylePresets, setStylePresets] = useState(loadPresets);
+  const [showPresets, setShowPresets] = useState(false);
+  const [showPresetEditor, setShowPresetEditor] = useState(false);
+  const [editingPreset, setEditingPreset] = useState(null);
+  const presetsRef = useRef(null);
+
+  const savePresets = (presets) => {
+    setStylePresets(presets);
+    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+  };
+
+  const applyPreset = (preset) => {
+    if (!editor) return;
+    let chain = editor.chain().focus();
+
+    // Clear existing formatting first
+    chain = chain.unsetColor().unsetHighlight();
+    if (editor.isActive('bold')) chain = chain.toggleBold();
+    if (editor.isActive('italic')) chain = chain.toggleItalic();
+    if (editor.isActive('underline')) chain = chain.toggleUnderline();
+
+    // Apply preset styles
+    if (preset.textColor) chain = chain.setColor(preset.textColor);
+    if (preset.highlightColor) chain = chain.toggleHighlight({ color: preset.highlightColor + '33' });
+    if (preset.bold) chain = chain.toggleBold();
+    if (preset.italic) chain = chain.toggleItalic();
+    if (preset.underline) chain = chain.toggleUnderline();
+
+    chain.run();
+    setShowPresets(false);
+  };
+
   const isEditing = !!material;
 
   // Tiptap editor
@@ -104,16 +154,19 @@ export default function MaterialEditorFullscreen({
     }
   }, [material?.content]);
 
-  // Close color picker on outside click
+  // Close popups on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (colorPickerRef.current && !colorPickerRef.current.contains(e.target)) {
         setShowColorPicker(false);
       }
+      if (presetsRef.current && !presetsRef.current.contains(e.target)) {
+        setShowPresets(false);
+      }
     };
-    if (showColorPicker) document.addEventListener('mousedown', handleClickOutside);
+    if (showColorPicker || showPresets) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showColorPicker]);
+  }, [showColorPicker, showPresets]);
 
   // Load PDF or Image from file input
   const handleFileSelect = async (e) => {
@@ -700,6 +753,88 @@ export default function MaterialEditorFullscreen({
 
                 <ToolBtn active={inTable} onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Table"><TableIcon size={18} /></ToolBtn>
                 <ToolBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Divider"><Minus size={18} /></ToolBtn>
+
+                <div className={`w-px h-6 mx-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+
+                {/* Style Presets */}
+                <div className="relative" ref={presetsRef}>
+                  <button
+                    type="button"
+                    title="Style Presets"
+                    onMouseDown={e => { e.preventDefault(); setShowPresets(!showPresets); }}
+                    className={`p-2 rounded-lg transition-colors ${
+                      showPresets
+                        ? 'bg-pink-vibrant text-white'
+                        : isDark
+                          ? 'text-white/60 hover:text-white hover:bg-white/10'
+                          : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Sparkles size={18} />
+                  </button>
+                  {showPresets && (
+                    <div className={`absolute bottom-full mb-2 right-0 w-56 rounded-xl shadow-xl border backdrop-blur-xl ${
+                      isDark ? 'bg-[#2a2a30]/95 border-white/10' : 'bg-white/95 border-gray-200'
+                    }`}>
+                      <div className={`px-3 py-2 border-b flex items-center justify-between ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                        <span className={`text-xs font-semibold ${isDark ? 'text-white/70' : 'text-gray-600'}`}>Style Presets</span>
+                        <button
+                          type="button"
+                          onMouseDown={e => { e.preventDefault(); setShowPresets(false); setShowPresetEditor(true); setEditingPreset(null); }}
+                          className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-100 text-gray-500'}`}
+                          title="Edit presets"
+                        >
+                          <Settings size={14} />
+                        </button>
+                      </div>
+                      <div className="p-1.5 space-y-0.5">
+                        {stylePresets.map(preset => (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onMouseDown={e => { e.preventDefault(); applyPreset(preset); }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                              isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
+                            }`}
+                          >
+                            <span
+                              style={{
+                                color: preset.textColor || 'inherit',
+                                background: preset.highlightColor ? preset.highlightColor + '33' : 'none',
+                                fontWeight: preset.bold ? 700 : 400,
+                                fontStyle: preset.italic ? 'italic' : 'normal',
+                                textDecoration: preset.underline ? 'underline' : 'none',
+                                borderRadius: '3px',
+                                padding: preset.highlightColor ? '1px 4px' : '0',
+                              }}
+                            >
+                              {preset.name}
+                            </span>
+                          </button>
+                        ))}
+                        {stylePresets.length === 0 && (
+                          <p className={`text-xs text-center py-3 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>No presets yet</p>
+                        )}
+                      </div>
+                      <div className={`px-1.5 pb-1.5`}>
+                        <button
+                          type="button"
+                          onMouseDown={e => {
+                            e.preventDefault();
+                            // Clear all formatting
+                            editor.chain().focus().unsetColor().unsetHighlight().unsetBold().unsetItalic().unsetUnderline().unsetStrike().run();
+                            setShowPresets(false);
+                          }}
+                          className={`w-full text-xs py-1.5 rounded-lg font-medium ${
+                            isDark ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          Clear formatting
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -743,6 +878,161 @@ export default function MaterialEditorFullscreen({
           onClose={() => setShowLibraryModal(false)}
         />
       )}
+
+      {/* Preset Editor Modal */}
+      {showPresetEditor && (
+        <PresetEditorModal
+          presets={stylePresets}
+          onSave={(p) => { savePresets(p); setShowPresetEditor(false); }}
+          onClose={() => setShowPresetEditor(false)}
+          isDark={isDark}
+        />
+      )}
+    </div>
+  );
+}
+
+const PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#000000', '#ffffff'];
+
+function PresetEditorModal({ presets, onSave, onClose, isDark }) {
+  const [items, setItems] = useState(presets.map(p => ({ ...p })));
+  const [editing, setEditing] = useState(null);
+
+  const addPreset = () => {
+    const np = { id: Date.now().toString(), name: 'New Style', textColor: '', highlightColor: '', bold: false, italic: false, underline: false };
+    setItems([...items, np]);
+    setEditing(items.length);
+  };
+
+  const updateItem = (idx, field, value) => {
+    const u = [...items];
+    u[idx] = { ...u[idx], [field]: value };
+    setItems(u);
+  };
+
+  const removeItem = (idx) => {
+    setItems(items.filter((_, i) => i !== idx));
+    if (editing === idx) setEditing(null);
+  };
+
+  const moveItem = (idx, dir) => {
+    const ni = idx + dir;
+    if (ni < 0 || ni >= items.length) return;
+    const u = [...items];
+    [u[idx], u[ni]] = [u[ni], u[idx]];
+    setItems(u);
+    if (editing === idx) setEditing(ni);
+  };
+
+  const border = isDark ? 'border-white/10' : 'border-gray-200';
+  const textMuted = isDark ? 'text-white/60' : 'text-gray-500';
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className={`w-full max-w-lg max-h-[80vh] flex flex-col rounded-2xl border ${border} ${isDark ? 'bg-[#1a1a1e]' : 'bg-white'}`}>
+        <div className={`flex items-center justify-between p-4 border-b ${border}`}>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Edit Style Presets</h3>
+          <button onClick={onClose} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-gray-100 text-gray-500'}`}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {items.map((preset, idx) => (
+            <div key={preset.id} className={`rounded-xl border ${border} ${isDark ? 'bg-white/[0.03]' : 'bg-gray-50'}`}>
+              <div className="flex items-center gap-2 p-3">
+                <div className="flex flex-col gap-0.5">
+                  <button onClick={() => moveItem(idx, -1)} className={`p-0.5 rounded ${isDark ? 'hover:bg-white/10 text-white/30' : 'hover:bg-gray-200 text-gray-400'}`}><ChevronUp size={12} /></button>
+                  <button onClick={() => moveItem(idx, 1)} className={`p-0.5 rounded ${isDark ? 'hover:bg-white/10 text-white/30' : 'hover:bg-gray-200 text-gray-400'}`}><ChevronDown size={12} /></button>
+                </div>
+                <span
+                  className="flex-1 text-sm"
+                  style={{
+                    color: preset.textColor || (isDark ? '#fff' : '#000'),
+                    background: preset.highlightColor ? preset.highlightColor + '33' : 'none',
+                    fontWeight: preset.bold ? 700 : 400,
+                    fontStyle: preset.italic ? 'italic' : 'normal',
+                    textDecoration: preset.underline ? 'underline' : 'none',
+                    borderRadius: '3px',
+                    padding: preset.highlightColor ? '2px 6px' : '0',
+                    display: 'inline-block',
+                  }}
+                >
+                  {preset.name || 'Untitled'}
+                </span>
+                <button
+                  onClick={() => setEditing(editing === idx ? null : idx)}
+                  className={`p-1.5 rounded-lg ${editing === idx ? 'bg-pink-vibrant text-white' : isDark ? 'hover:bg-white/10 text-white/50' : 'hover:bg-gray-200 text-gray-500'}`}
+                >
+                  <Settings size={14} />
+                </button>
+                <button onClick={() => removeItem(idx)} className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-500'}`}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+
+              {editing === idx && (
+                <div className={`px-3 pb-3 pt-2 border-t ${border} space-y-3`}>
+                  <div>
+                    <label className={`text-xs font-medium ${textMuted}`}>Name</label>
+                    <input
+                      value={preset.name}
+                      onChange={e => updateItem(idx, 'name', e.target.value)}
+                      className={`w-full mt-1 px-3 py-1.5 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`text-xs font-medium ${textMuted}`}>Text Color</label>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <button onClick={() => updateItem(idx, 'textColor', '')} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${!preset.textColor ? 'border-pink-vibrant' : isDark ? 'border-white/20' : 'border-gray-300'}`} title="Default">
+                        <X size={10} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                      </button>
+                      {PALETTE.map(c => (
+                        <button key={c} onClick={() => updateItem(idx, 'textColor', c)} className={`w-6 h-6 rounded-full border-2 hover:scale-110 transition-transform ${preset.textColor === c ? 'border-pink-vibrant scale-110' : c === '#ffffff' ? 'border-gray-300' : isDark ? 'border-white/20' : 'border-gray-300'}`} style={{ background: c }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={`text-xs font-medium ${textMuted}`}>Highlight</label>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <button onClick={() => updateItem(idx, 'highlightColor', '')} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${!preset.highlightColor ? 'border-pink-vibrant' : isDark ? 'border-white/20' : 'border-gray-300'}`} title="None">
+                        <X size={10} className={isDark ? 'text-white/40' : 'text-gray-400'} />
+                      </button>
+                      {PALETTE.filter(c => c !== '#ffffff' && c !== '#000000').map(c => (
+                        <button key={c} onClick={() => updateItem(idx, 'highlightColor', c)} className={`w-6 h-6 rounded-full border-2 hover:scale-110 transition-transform ${preset.highlightColor === c ? 'border-pink-vibrant scale-110' : isDark ? 'border-white/20' : 'border-gray-300'}`} style={{ background: c + '33' }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={`text-xs font-medium ${textMuted}`}>Formatting</label>
+                    <div className="flex gap-1.5 mt-1">
+                      {[
+                        { key: 'bold', label: 'B', style: { fontWeight: 700 } },
+                        { key: 'italic', label: 'I', style: { fontStyle: 'italic' } },
+                        { key: 'underline', label: 'U', style: { textDecoration: 'underline' } },
+                      ].map(opt => (
+                        <button key={opt.key} onClick={() => updateItem(idx, opt.key, !preset[opt.key])} className={`w-8 h-8 rounded-lg text-sm font-medium ${preset[opt.key] ? 'bg-pink-vibrant text-white' : isDark ? 'bg-white/5 text-white/60 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`} style={opt.style}>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className={`flex items-center justify-between p-4 border-t ${border}`}>
+          <button onClick={addPreset} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium ${isDark ? 'bg-white/10 text-white/80 hover:bg-white/20' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+            <Plus size={16} /> Add Preset
+          </button>
+          <div className="flex gap-2">
+            <button onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? 'bg-white/5 text-white/70 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Cancel</button>
+            <button onClick={() => onSave(items)} className="px-4 py-2 rounded-lg text-sm font-medium bg-pink-vibrant text-white hover:brightness-110">Save</button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
