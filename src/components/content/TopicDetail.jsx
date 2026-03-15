@@ -671,6 +671,7 @@ export default function TopicDetail({ topic, teacherId, isDark, onBack }) {
               border-radius: 0 8px 8px 0;
             }
             .rich-content hr { border: none; border-top: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; margin: 1em 0; }
+            .rich-content mark { border-radius: 3px; padding: 1px 3px; }
             .rich-content table { border-collapse: collapse; width: 100%; margin: 0.75em 0; table-layout: fixed; }
             .rich-content th, .rich-content td { border: 1px solid ${isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'}; padding: 6px 10px; text-align: left; }
             .rich-content th { background: ${isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'}; font-weight: 600; }

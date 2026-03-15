@@ -8,6 +8,7 @@ import Table from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
+import Highlight from '@tiptap/extension-highlight';
 import {
   X, Check, Loader2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Upload, ScanText, FileText, ArrowRight,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Quote,
@@ -65,7 +66,7 @@ export default function MaterialEditorFullscreen({
   const [inTable, setInTable] = useState(false);
 
   // Color picker state
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false); // false | 'text' | 'highlight'
   const colorPickerRef = useRef(null);
 
   const isEditing = !!material;
@@ -77,6 +78,7 @@ export default function MaterialEditorFullscreen({
       Underline,
       TextStyle,
       Color,
+      Highlight.configure({ multicolor: true }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
@@ -599,14 +601,14 @@ export default function MaterialEditorFullscreen({
                 <ToolBtn active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline"><UnderlineIcon size={18} /></ToolBtn>
                 <ToolBtn active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()} title="Strike"><Strikethrough size={18} /></ToolBtn>
 
-                {/* Text Color */}
-                <div className="relative" ref={colorPickerRef}>
+                {/* Text Color & Highlight */}
+                <div className="relative flex items-center" ref={colorPickerRef}>
                   <button
                     type="button"
                     title="Text Color"
-                    onMouseDown={e => { e.preventDefault(); setShowColorPicker(!showColorPicker); }}
+                    onMouseDown={e => { e.preventDefault(); setShowColorPicker(showColorPicker === 'text' ? false : 'text'); }}
                     className={`p-2 rounded-lg transition-colors ${
-                      editor.isActive('textStyle')
+                      showColorPicker === 'text'
                         ? 'bg-pink-vibrant text-white'
                         : isDark
                           ? 'text-white/60 hover:text-white hover:bg-white/10'
@@ -615,35 +617,53 @@ export default function MaterialEditorFullscreen({
                   >
                     <div className="flex flex-col items-center gap-0.5">
                       <span className="text-sm font-bold leading-none">A</span>
-                      <div
-                        className="w-4 h-1 rounded-full"
-                        style={{ background: editor.getAttributes('textStyle').color || (isDark ? '#fff' : '#000') }}
-                      />
+                      <div className="w-4 h-1 rounded-full" style={{ background: editor.getAttributes('textStyle').color || (isDark ? '#fff' : '#000') }} />
                     </div>
                   </button>
+                  <button
+                    type="button"
+                    title="Highlight"
+                    onMouseDown={e => { e.preventDefault(); setShowColorPicker(showColorPicker === 'highlight' ? false : 'highlight'); }}
+                    className={`p-2 rounded-lg transition-colors ${
+                      showColorPicker === 'highlight'
+                        ? 'bg-pink-vibrant text-white'
+                        : isDark
+                          ? 'text-white/60 hover:text-white hover:bg-white/10'
+                          : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="text-sm font-bold leading-none px-1 rounded" style={{
+                      background: editor.isActive('highlight') ? (editor.getAttributes('highlight').color || '#eab308') : (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'),
+                      color: editor.isActive('highlight') ? '#000' : 'inherit',
+                    }}>A</span>
+                  </button>
+
                   {showColorPicker && (
                     <div className={`absolute bottom-full mb-2 left-1/2 -translate-x-1/2 p-2 rounded-xl shadow-xl border backdrop-blur-xl ${
                       isDark ? 'bg-[#2a2a30]/95 border-white/10' : 'bg-white/95 border-gray-200'
                     }`}>
-                      <div className="grid grid-cols-6 gap-1.5">
-                        {[
-                          '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6',
-                          '#ec4899', '#14b8a6', '#f43f5e', '#06b6d4', '#6366f1', '#a855f7',
-                          '#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#2563eb', '#7c3aed',
-                          '#ffffff', '#d1d5db', '#9ca3af', '#6b7280', '#374151', '#000000',
-                        ].map(color => (
+                      <div className="flex gap-1.5">
+                        {['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#000000', '#ffffff'].map(color => (
                           <button
                             key={color}
                             type="button"
                             onMouseDown={e => {
                               e.preventDefault();
-                              editor.chain().focus().setColor(color).run();
+                              if (showColorPicker === 'text') {
+                                editor.chain().focus().setColor(color).run();
+                              } else {
+                                editor.chain().focus().toggleHighlight({ color }).run();
+                              }
                               setShowColorPicker(false);
                             }}
                             className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-125 ${
-                              editor.getAttributes('textStyle').color === color
+                              (showColorPicker === 'text'
+                                ? editor.getAttributes('textStyle').color === color
+                                : editor.getAttributes('highlight').color === color && editor.isActive('highlight'))
                                 ? 'border-pink-vibrant scale-110'
-                                : isDark ? 'border-white/20' : 'border-gray-300'
+                                : color === '#ffffff'
+                                  ? 'border-gray-300'
+                                  : isDark ? 'border-white/20' : 'border-gray-300'
                             }`}
                             style={{ background: color }}
                           />
@@ -653,14 +673,18 @@ export default function MaterialEditorFullscreen({
                         type="button"
                         onMouseDown={e => {
                           e.preventDefault();
-                          editor.chain().focus().unsetColor().run();
+                          if (showColorPicker === 'text') {
+                            editor.chain().focus().unsetColor().run();
+                          } else {
+                            editor.chain().focus().unsetHighlight().run();
+                          }
                           setShowColorPicker(false);
                         }}
                         className={`mt-2 w-full text-xs py-1 rounded-lg font-medium ${
                           isDark ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
-                        Reset color
+                        {showColorPicker === 'text' ? 'Reset color' : 'Remove highlight'}
                       </button>
                     </div>
                   )}
@@ -705,6 +729,7 @@ export default function MaterialEditorFullscreen({
           border-radius: 0 8px 8px 0;
         }
         .material-editor .ProseMirror hr { border: none; border-top: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; margin: 1em 0; }
+        .material-editor .ProseMirror mark { border-radius: 3px; padding: 1px 3px; }
         .material-editor .ProseMirror table { border-collapse: collapse; width: 100%; margin: 0.75em 0; }
         .material-editor .ProseMirror th, .material-editor .ProseMirror td { border: 1px solid ${isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'}; padding: 6px 10px; }
         .material-editor .ProseMirror th { background: ${isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'}; font-weight: 600; }
